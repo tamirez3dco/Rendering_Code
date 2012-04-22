@@ -231,7 +231,7 @@ namespace Runing_Form
         {
             scenesDirPath = null;
             DirectoryInfo dir = new DirectoryInfo(Directory.GetCurrentDirectory());
-            scenesDirPath = dir.Parent.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar + "R_S_Data" + Path.DirectorySeparatorChar + "Scene";
+            scenesDirPath = dir.Parent.Parent.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar + "Rendering_Data" + Path.DirectorySeparatorChar + "Scene";
             if (!Directory.Exists(scenesDirPath))
             {
                 Console.WriteLine("ERROR!!! - Could not find ScenesDir=" + scenesDirPath);
@@ -246,7 +246,7 @@ namespace Runing_Form
         {
             GH_DirPath = null;
             DirectoryInfo dir = new DirectoryInfo(Directory.GetCurrentDirectory());
-            GH_DirPath = dir.Parent.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar +"R_S_Data" + Path.DirectorySeparatorChar + "GH_Def_files";
+            GH_DirPath = dir.Parent.Parent.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar + "Rendering_Data" + Path.DirectorySeparatorChar + "GH_Def_files";
             if (!Directory.Exists(GH_DirPath))
             {
                 Console.WriteLine("ERROR!!! - Could not find GH_DirPathr=" + GH_DirPath);
@@ -261,7 +261,7 @@ namespace Runing_Form
         {
             image_DirPath = null;
             DirectoryInfo dir = new DirectoryInfo(Directory.GetCurrentDirectory());
-            image_DirPath = dir.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar + "tempImageFiles";
+            image_DirPath = dir.Parent.Parent.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar + "tempImageFiles";
             if (!Directory.Exists(image_DirPath))
             {
                 bool creationSuccess = false;
