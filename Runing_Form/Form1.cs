@@ -112,10 +112,21 @@ namespace Runing_Form
 
             return true;
         }
+        private bool Refresh_Rhino_GH_Data_From_Github()
+        {
+            // Pull data (all under ftproot/Rendering_Data from GitHub)
+            DirectoryInfo currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
+            String batFileFolder = currentDir.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar + "Extras";
+            ProcessStartInfo psi = new ProcessStartInfo("pullData.bat");
+            psi.WorkingDirectory = batFileFolder;
+            Process p = Process.Start(psi);
+            //p.WaitForInputIdle();
+            p.WaitForExit();
+            return true;
+        }
 
         private bool start_all()
         {
-
             Console.WriteLine("Form constructed at time : " + DateTime.Now);
             if (!read_params_from_cfg_file())
             {
@@ -123,6 +134,13 @@ namespace Runing_Form
                 return false;
             }
 
+            if (!Refresh_Rhino_GH_Data_From_Github())
+            {
+                Console.WriteLine("ERROR !!!- Refresh_Rhino_GH_Data_From_Github() failed!!");
+                return false;
+            }
+            
+            
             if (lookForIp_AmazonStyle)
             {
                 if (!Get_My_IP(out my_ip))
