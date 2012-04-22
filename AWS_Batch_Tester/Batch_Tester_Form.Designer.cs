@@ -118,7 +118,7 @@
             this.bake_textBox.Name = "bake_textBox";
             this.bake_textBox.Size = new System.Drawing.Size(75, 20);
             this.bake_textBox.TabIndex = 11;
-            this.bake_textBox.Text = "Bracelet";
+            this.bake_textBox.Text = "all";
             // 
             // id_till_textBox
             // 
