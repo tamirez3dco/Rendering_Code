@@ -18,6 +18,7 @@ using Amazon;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using System.Net;
+using System.Web.Script.Serialization;
 
 namespace Runing_Form
 {
@@ -27,14 +28,14 @@ namespace Runing_Form
 
         List<GHR> ghrs;
 
-        int num_of_rhinos = -1;
-        bool rhino_visible = false;
+        public static int num_of_rhinos = -1;
+        public static bool rhino_visible = false;
         String sceneFileName;
 
         public static String scenes_DirPath = null;
         public static String GH_DirPath = null;
         public static String images_DirPath = null;
-        public static String my_ip = null;
+    
 
         // debug
         bool lookForIp_AmazonStyle;
@@ -42,32 +43,6 @@ namespace Runing_Form
         public Form1()
         {
             InitializeComponent();
-        }
-        private bool Get_My_IP(out String res)
-        {
-            res = null;
-
-            string sURL = "http://169.254.169.254/latest/meta-data/public-ipv4";
-
-            try
-            {
-                WebRequest wrGETURL;
-                wrGETURL = WebRequest.Create(sURL);
-                WebProxy myProxy = new WebProxy("myproxy", 80);
-                myProxy.BypassProxyOnLocal = true;
-
-                Stream objStream;
-                objStream = wrGETURL.GetResponse().GetResponseStream();
-                StreamReader sr = new StreamReader(objStream);
-                res = sr.ReadToEnd();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Excpetion in Get_My_IP(). = " + e.Message);
-                return false;
-            }
-
-            return true;
         }
 
         private bool read_params_from_cfg_file()
@@ -84,7 +59,7 @@ namespace Runing_Form
                 Console.WriteLine("param " + tempParamName + " is not found in ez3d.config");
                 return false;
             }
-            else this.num_of_rhinos = int.Parse(Utils.CFG[tempParamName]);
+            else num_of_rhinos = int.Parse(Utils.CFG[tempParamName]);
 
             tempParamName = "visible_rhino";
             if (!Utils.CFG.ContainsKey(tempParamName))
@@ -92,7 +67,7 @@ namespace Runing_Form
                 Console.WriteLine("param " + tempParamName + " is not found in ez3d.config");
                 return false;
             }
-            else this.rhino_visible = bool.Parse(Utils.CFG[tempParamName]);
+            else Form1.rhino_visible = bool.Parse(Utils.CFG[tempParamName]);
 
             tempParamName = "scene";
             if (!Utils.CFG.ContainsKey(tempParamName))
@@ -112,18 +87,6 @@ namespace Runing_Form
 
             return true;
         }
-        private bool Refresh_Rhino_GH_Data_From_Github()
-        {
-            // Pull data (all under ftproot/Rendering_Data from GitHub)
-            DirectoryInfo currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
-            String batFileFolder = currentDir.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar + "Extras";
-            ProcessStartInfo psi = new ProcessStartInfo("pullData.bat");
-            psi.WorkingDirectory = batFileFolder;
-            Process p = Process.Start(psi);
-            //p.WaitForInputIdle();
-            p.WaitForExit();
-            return true;
-        }
 
         private bool start_all()
         {
@@ -134,26 +97,34 @@ namespace Runing_Form
                 return false;
             }
 
-            if (!Refresh_Rhino_GH_Data_From_Github())
-            {
-                Console.WriteLine("ERROR !!!- Refresh_Rhino_GH_Data_From_Github() failed!!");
-                return false;
-            }
-            
-            
             if (lookForIp_AmazonStyle)
             {
-                if (!Get_My_IP(out my_ip))
+                if (!Utils.Get_My_IP_AND_DNS())
                 {
-                    Console.WriteLine("ERROR !!! - get_relevant_dirs() failed!!!");
+                    Console.WriteLine("ERROR !!! - Get_My_IP_AND_DNS() failed!!!");
                     return false;
                 }
             }
             else
             {
                 Console.WriteLine("Flagged that machine uses a dummy ip=localhost as in a debug mode on a local machine (Not AWS)");
-                my_ip = "localhost";
+                Utils.my_ip = "localhost";
             }
+
+            
+//            AmazonSQS client;
+            if (!SQS.Initialize_SQS_stuff())
+            {
+                Console.WriteLine("ERROR !!!- Utils.Initialize_SQS_stuff() failed!!");
+                return false;
+            }
+            
+            if (!Utils.Refresh_Rhino_GH_Data_From_Github())
+            {
+                Console.WriteLine("ERROR !!!- Refresh_Rhino_GH_Data_From_Github() failed!!");
+                return false;
+            }
+            
 
             if (!get_relevant_dirs())
             {
@@ -235,6 +206,9 @@ namespace Runing_Form
             numOfInstances_textBox.BackColor = Color.Green;
             numOfInstances_textBox.Text = num_of_rhinos.ToString();
 
+
+            // Send "Server Ready" msg
+
             return true;
         }
 
@@ -297,6 +271,7 @@ namespace Runing_Form
             return true;
         }
 
+
         private bool get_relevant_dirs()
         {
             if (!get_Scenes_Dir(out scenes_DirPath)) return false;
@@ -315,14 +290,18 @@ namespace Runing_Form
             Console.WriteLine("start_all() finished succesfully");
         }
 
+        private bool Send_Email(String msg, String recepient, String sender)
+        {
+            return true;
+        }
         private void button1_Click(object sender, EventArgs e)
         {
-            var newVsibility = !this.rhino_visible;
+            var newVsibility = !Form1.rhino_visible;
             foreach (GHR ghr in ghrs)
             {
                 ghr.rhino.Visible = newVsibility ? 1 : 0;
             }
-            this.rhino_visible = newVsibility;
+            Form1.rhino_visible = newVsibility;
         }
 
         private void restartRhinosButton_Click(object sender, EventArgs e)

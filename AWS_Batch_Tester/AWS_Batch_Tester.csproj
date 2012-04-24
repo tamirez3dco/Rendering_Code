@@ -89,7 +89,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="assemblyinfo.cs" />
-    <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
@@ -125,5 +124,11 @@
     <EmbeddedResource Include="Batch_Tester_Form.resx">
       <DependentUpon>Batch_Tester_Form.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Runing_Form\Runing_Form.csproj">
+      <Project>{B35B4A19-4657-4938-B561-FADC2ABC9615}</Project>
+      <Name>Runing_Form</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>

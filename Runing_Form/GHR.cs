@@ -55,10 +55,6 @@ namespace Runing_Form
         public int id = -1;
         public String current_GH_file = null;
 
-        // The following veriables are for SQS communications
-        public static AmazonSQS sqs;
-        public static String requests_Q_url = null;
-        public static String ready_Q_url = null;
 
         public static bool deciferImageDataFromBody(String msgBody, out ImageDataRequest imageData)
         {
@@ -137,42 +133,6 @@ namespace Runing_Form
 
         }
 
-        private bool Get_Msg_From_Req_Q(out Amazon.SQS.Model.Message msg, out bool msgFound)
-        {
-            msgFound = false;
-            msg = null;
-            try
-            {
-                ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest();
-                receiveMessageRequest.MaxNumberOfMessages = 1;
-                receiveMessageRequest.QueueUrl = requests_Q_url;
-                ReceiveMessageResponse receiveMessageResponse = sqs.ReceiveMessage(receiveMessageRequest);
-                if (receiveMessageResponse.IsSetReceiveMessageResult())
-                {
-                    ReceiveMessageResult receiveMessageResult = receiveMessageResponse.ReceiveMessageResult;
-                    List<Amazon.SQS.Model.Message> receivedMsges = receiveMessageResponse.ReceiveMessageResult.Message;
-                    if (receivedMsges.Count == 0)
-                    {
-                        return true;
-                    }
-                    msgFound = true;
-                    msg = receivedMsges[0];
-                }
-
-            }
-            catch (AmazonSQSException ex)
-            {
-                Console.WriteLine("Caught Exception: " + ex.Message);
-                Console.WriteLine("Response Status Code: " + ex.StatusCode);
-                Console.WriteLine("Error Code: " + ex.ErrorCode);
-                Console.WriteLine("Error Type: " + ex.ErrorType);
-                Console.WriteLine("Request ID: " + ex.RequestId);
-                Console.WriteLine("XML: " + ex.XML);
-                return false;
-            }
-            return true;
-
-        }
 
         int get_msg_failures = 0;
         int get_msg_failures_allowed = 3;
@@ -181,7 +141,7 @@ namespace Runing_Form
             // Get a single MSG from Queue_Requests
             bool msgFound;
             Amazon.SQS.Model.Message msg;
-            if (!Get_Msg_From_Req_Q(out msg, out msgFound))
+            if (!SQS.Get_Msg_From_Req_Q(out msg, out msgFound))
             {
                 MyLog("Get_Msg_From_Req_Q() failed (# " + get_msg_failures +") !!!");
                 if (get_msg_failures < get_msg_failures_allowed)
@@ -217,7 +177,7 @@ namespace Runing_Form
             }
 
             // Add Msg to Queue_Readies
-            if (!Send_Msg_To_Readies_Q(RenderStatus.STARTED, imageData.item_id, beforeProcessingTime))
+            if (!SQS.Send_Msg_To_Readies_Q(RenderStatus.STARTED, imageData.item_id, beforeProcessingTime))
             {
                 MyLog("Form1.Send_Msg_To_Readies_Q(status=STARTED,imageData.item_id=" + imageData.item_id + ") failed");
                 return false;
@@ -232,7 +192,7 @@ namespace Runing_Form
                 {
                     MyLog("Process_Msg_Into_Image_File(msg) failed!!!");
                     // Add Msg to Queue_Readies
-                    if (!Send_Msg_To_Readies_Q(RenderStatus.ERROR, imageData.item_id, beforeProcessingTime))
+                    if (!SQS.Send_Msg_To_Readies_Q(RenderStatus.ERROR, imageData.item_id, beforeProcessingTime))
                     {
                         MyLog("Form1.Send_Msg_To_Readies_Q(status=ERROR,imageData.item_id=" + imageData.item_id + ") failed");
                     }
@@ -240,18 +200,18 @@ namespace Runing_Form
                 }
 
                 // Delete Msg From Queue_Requests
-                if (!Delete_Msg_From_Req_Q(msg))
+                if (!SQS.Delete_Msg_From_Req_Q(msg))
                 {
                     MyLog("Delete_Msg_From_Req_Q(msg) failed!!!");
                     // Add Msg to Queue_Readies
-                    if (!Send_Msg_To_Readies_Q(RenderStatus.ERROR, imageData.item_id, beforeProcessingTime))
+                    if (!SQS.Send_Msg_To_Readies_Q(RenderStatus.ERROR, imageData.item_id, beforeProcessingTime))
                     {
                         MyLog("Form1.Send_Msg_To_Readies_Q(status=ERROR,imageData.item_id=" + imageData.item_id + ") failed");
                     }
                     return false;
                 }
                 // Add Msg to Queue_Readies
-                if (!Send_Msg_To_Readies_Q(RenderStatus.FINISHED,imageData.item_id, beforeProcessingTime))
+                if (!SQS.Send_Msg_To_Readies_Q(RenderStatus.FINISHED,imageData.item_id, beforeProcessingTime))
                 {
                     MyLog("Form1.Send_Msg_To_Readies_Q(imageData.item_id=" + imageData.item_id + ") failed");
                     return false;
@@ -267,11 +227,6 @@ namespace Runing_Form
 
         public void new_runner()
         {
-            if (!Initialize_SQS_stuff())
-            {
-                MyLog("Initialize_SQS_stuff() failed!!!");
-                return;
-            }
 
             while (true)
             {
@@ -283,73 +238,7 @@ namespace Runing_Form
             }
         }
 
-        public bool Send_Msg_To_Readies_Q(RenderStatus status,int item_id, DateTime beforeProcessingTime)
-        {
-            try
-            {
 
-                Dictionary<string, object> dict = new Dictionary<string, object>();
-
-                DateTime current = DateTime.Now;
-                TimeSpan duration = current - beforeProcessingTime;
-
-                dict["item_id"]=item_id;
-                dict["url"]=@"http://" + Form1.my_ip + @"/testim/yofi_" + item_id + ".jpg";
-                dict["duration"] = Math.Round(duration.TotalSeconds,3);
-                dict["status"] = status.ToString();
-
-                JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
-                string jsonString = serializer.Serialize((object)dict);
-
-                SendMessageRequest sendMessageRequest = new SendMessageRequest();
-                sendMessageRequest.QueueUrl = ready_Q_url; //URL from initial queue creation
-                sendMessageRequest.MessageBody = Utils.EncodeTo64(jsonString);
-
-                MyLog("Before sending ready msg(" + sendMessageRequest.MessageBody + ").");
-                sqs.SendMessage(sendMessageRequest);
-                MyLog("After sending ready msg(" + sendMessageRequest.MessageBody + ").");
-            }
-            catch (AmazonSQSException ex)
-            {
-                Console.WriteLine("Caught Exception: " + ex.Message);
-                Console.WriteLine("Response Status Code: " + ex.StatusCode);
-                Console.WriteLine("Error Code: " + ex.ErrorCode);
-                Console.WriteLine("Error Type: " + ex.ErrorType);
-                Console.WriteLine("Request ID: " + ex.RequestId);
-                Console.WriteLine("XML: " + ex.XML);
-                return false;
-            }
-            return true;
-        }
-
-        public bool Delete_Msg_From_Req_Q(Amazon.SQS.Model.Message msg)
-        {
-            try
-            {
-                String messageRecieptHandle = msg.ReceiptHandle;
-
-                //Deleting a message
-                MyLog("Deleting the message.\n");
-                DeleteMessageRequest deleteRequest = new DeleteMessageRequest();
-                deleteRequest.QueueUrl = requests_Q_url;
-                deleteRequest.ReceiptHandle = messageRecieptHandle;
-                MyLog("Before deleting incoming msg(" + messageRecieptHandle + ").");
-                sqs.DeleteMessage(deleteRequest);
-                MyLog("After deleting incoming msgs().");
-
-            }
-            catch (AmazonSQSException ex)
-            {
-                Console.WriteLine("Caught Exception: " + ex.Message);
-                Console.WriteLine("Response Status Code: " + ex.StatusCode);
-                Console.WriteLine("Error Code: " + ex.ErrorCode);
-                Console.WriteLine("Error Type: " + ex.ErrorType);
-                Console.WriteLine("Request ID: " + ex.RequestId);
-                Console.WriteLine("XML: " + ex.XML);
-                return false;
-            }
-            return true;
-        }
 
 
         private bool Process_Into_Image_File(ImageDataRequest imageData,String resultingImagePath)
@@ -414,73 +303,7 @@ namespace Runing_Form
 
         }
 
-        private bool Initialize_SQS_stuff()
-        {
-            try
-            {
-                if (!Utils.CFG.ContainsKey("request_Q_name"))
-                {
-                    Console.WriteLine("param request_Q_name is not found in ez3d.config");
-                    return false;
-                }
-                if (!Utils.CFG.ContainsKey("ready_Q_name"))
-                {
-                    Console.WriteLine("param ready_Q_name is not found in ez3d.config");
-                    return false;
-                }
-
-                //sqs = AWSClientFactory.CreateAmazonSQSClient(new AmazonSQSConfig().WithServiceURL(@"http://sqs.eu-west-1.amazonaws.com"));
-                sqs = AWSClientFactory.CreateAmazonSQSClient();
-
-                ready_Q_url = requests_Q_url = null;
-                ListQueuesRequest listQueuesRequest = new ListQueuesRequest();
-                ListQueuesResponse listQueuesResponse = sqs.ListQueues(listQueuesRequest);
-                if (listQueuesResponse.IsSetListQueuesResult())
-                {
-                    ListQueuesResult listQueuesResult = listQueuesResponse.ListQueuesResult;
-                    foreach (String str in listQueuesResult.QueueUrl)
-                    {
-                        if (str.EndsWith('/' + Utils.CFG["request_Q_name"]))
-                        {
-                            requests_Q_url = str;
-                            Console.WriteLine("requests_Q_url =" +requests_Q_url);
-                        }
-                        if (str.EndsWith('/' + Utils.CFG["ready_Q_name"]))
-                        {
-                            ready_Q_url = str;
-                            Console.WriteLine("ready_Q_url =" + ready_Q_url);
-                        }
-                    }
-
-
-                    if (requests_Q_url == null)
-                    {
-                        Console.WriteLine("(requests_Q_url == null)");
-                        return false;
-                    }
-                    if (ready_Q_url == null)
-                    {
-                        Console.WriteLine("(ready_Q_url == null)");
-                        return false;
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("listQueuesResponse.IsSetListQueuesResult() == false");
-                    return false;
-                }
-
-                Console.WriteLine("Get_Queues_URLs fininshed succefully");
-                return true;
-            }
-            catch (Amazon.SQS.AmazonSQSException e)
-            {
-                Console.WriteLine("Amazon SQS caught !!!");
-                Console.WriteLine(e.Message);
-                return false;
-            }
-
-        }
+        
 
 
         public bool Open_GH_File(String filePath)

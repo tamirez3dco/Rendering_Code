@@ -57,7 +57,7 @@ namespace AWS_Batch_Tester
                     string jsonString = serializer.Serialize((object)dict);
 
                     SendMessageBatchRequestEntry entry = new SendMessageBatchRequestEntry();
-                    entry.MessageBody =  Runing_Form.Utils.EncodeTo64(jsonString);
+                    entry.MessageBody =  Runing_Form. Runing_Form.Utils.EncodeTo64(jsonString);
                     entry.Id = i.ToString();
                     msgEntries.Add(entry);
                 }
