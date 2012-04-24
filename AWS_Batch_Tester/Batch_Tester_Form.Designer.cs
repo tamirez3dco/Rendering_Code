@@ -42,6 +42,7 @@
             this.richTextBox3 = new System.Windows.Forms.RichTextBox();
             this.richTextBox4 = new System.Windows.Forms.RichTextBox();
             this.button3 = new System.Windows.Forms.Button();
+            this.operationTextBox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // richTextBox1
@@ -60,7 +61,7 @@
             this.richTextBox2.TabIndex = 1;
             this.richTextBox2.Tag = "";
             this.richTextBox2.Text = "[{\"gh_file\":\"20091109_ghx060019_Surfaces_Introduction.ghx\",\"item_id\":502,\"tamir_c" +
-                "urveLength\":0,\"tamir_PipeRadius\":0.25,\"bake\":\"Pipe\"}]";
+    "urveLength\":0,\"tamir_PipeRadius\":0.25,\"bake\":\"Pipe\"}]";
             // 
             // button1
             // 
@@ -82,7 +83,7 @@
             // 
             // file_textBox
             // 
-            this.file_textBox.Location = new System.Drawing.Point(87, 92);
+            this.file_textBox.Location = new System.Drawing.Point(121, 92);
             this.file_textBox.Name = "file_textBox";
             this.file_textBox.Size = new System.Drawing.Size(75, 20);
             this.file_textBox.TabIndex = 7;
@@ -122,11 +123,11 @@
             // 
             // id_till_textBox
             // 
-            this.id_till_textBox.Location = new System.Drawing.Point(16, 132);
+            this.id_till_textBox.Location = new System.Drawing.Point(40, 132);
             this.id_till_textBox.Name = "id_till_textBox";
-            this.id_till_textBox.Size = new System.Drawing.Size(47, 20);
+            this.id_till_textBox.Size = new System.Drawing.Size(23, 20);
             this.id_till_textBox.TabIndex = 12;
-            this.id_till_textBox.Text = "1001";
+            this.id_till_textBox.Text = "8";
             // 
             // button2
             // 
@@ -166,11 +167,20 @@
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
+            // operationTextBox
+            // 
+            this.operationTextBox.Location = new System.Drawing.Point(54, 57);
+            this.operationTextBox.Name = "operationTextBox";
+            this.operationTextBox.Size = new System.Drawing.Size(75, 20);
+            this.operationTextBox.TabIndex = 17;
+            this.operationTextBox.Text = "render_model";
+            // 
             // Batch_Tester_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(685, 577);
+            this.Controls.Add(this.operationTextBox);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.richTextBox4);
             this.Controls.Add(this.richTextBox3);
@@ -209,5 +219,6 @@
         private System.Windows.Forms.RichTextBox richTextBox3;
         private System.Windows.Forms.RichTextBox richTextBox4;
         private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.TextBox operationTextBox;
     }
 }

@@ -14,9 +14,7 @@ using System.IO;
 using System.Security.Principal;
 using Rhino4;
 
-using Amazon;
-using Amazon.SQS;
-using Amazon.SQS.Model;
+
 using System.Net;
 using System.Web.Script.Serialization;
 
@@ -208,6 +206,11 @@ namespace Runing_Form
 
 
             // Send "Server Ready" msg
+            if (!SQS.Send_Server_Ready_Message())
+            {
+                Console.WriteLine("ERROR - Send_Server_Ready_Message() failed!!!");
+                return false;
+            }
 
             return true;
         }

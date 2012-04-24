@@ -14,10 +14,10 @@ using System.Web.Script.Serialization;
 
 namespace Runing_Form
 {
-    class Utils
+    public class Utils
     {
-        public static String my_ip = null;
-        public static String public_dns = null;
+        public static String my_ip = "localhost";
+        public static String public_dns = "localhost";
 
         public static Dictionary<String, String> CFG;
         public static bool Read_Cfg_File()

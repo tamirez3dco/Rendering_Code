@@ -30,8 +30,7 @@ namespace AWS_Batch_Tester
             {
 
                 int first_id = int.Parse(id_textBox.Text);
-                int last_id = int.Parse(id_till_textBox.Text);
-                int num_msgs = last_id - first_id + 1;
+                int num_msgs = int.Parse(id_till_textBox.Text);
                 double initialValue = double.Parse(value_textBox.Text);
                 double delta = double.Parse(delta_textBox.Text);
                 //[{"gh_file":"brace1.gh","item_id":501,"NumCircles":0.5,"bake":"Bracelet"}]
@@ -57,7 +56,7 @@ namespace AWS_Batch_Tester
                     string jsonString = serializer.Serialize((object)dict);
 
                     SendMessageBatchRequestEntry entry = new SendMessageBatchRequestEntry();
-                    entry.MessageBody =  Runing_Form. Runing_Form.Utils.EncodeTo64(jsonString);
+                    entry.MessageBody =  Runing_Form.Utils.EncodeTo64(jsonString);
                     entry.Id = i.ToString();
                     msgEntries.Add(entry);
                 }
