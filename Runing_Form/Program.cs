@@ -26,7 +26,6 @@ namespace Runing_Form
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            bool getRes = Utils.Get_Launch_Specific_Data();
             Application.Run(new Form1());
         }
     }

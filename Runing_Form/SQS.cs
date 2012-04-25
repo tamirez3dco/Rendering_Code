@@ -99,6 +99,8 @@ namespace Runing_Form
                 dict["server_ip"] = Utils.my_ip;
                 dict["public_dns"] = Utils.public_dns;
                 dict["num_of_rhinos_on_server"] = Form1.num_of_rhinos;
+                dict["request_Q_name"] = Utils.CFG["request_Q_name"];
+                dict["ready_Q_name"] = Utils.CFG["ready_Q_name"];
 
                 JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
                 string jsonString = serializer.Serialize((object)dict);

@@ -43,11 +43,11 @@ namespace Runing_Form
             InitializeComponent();
         }
 
-        private bool read_params_from_cfg_file()
+        private bool read_params_from_user_data()
         {
-            if (!Utils.Read_Cfg_File())
+            if (!Utils.Get_Launch_Specific_Data())
             {
-                Console.WriteLine("ERROR !!! - Utils.Read_Cfg_File() faild!!!");
+                Console.WriteLine("ERROR !!! - Utils.Get_Launch_Specific_Data() faild!!!");
             }
 
             String tempParamName;
@@ -89,7 +89,7 @@ namespace Runing_Form
         private bool start_all()
         {
             Console.WriteLine("Form constructed at time : " + DateTime.Now);
-            if (!read_params_from_cfg_file())
+            if (!read_params_from_user_data())
             {
                 Console.WriteLine("ERROR - read_params_from_cfg_file() failed!!");
                 return false;

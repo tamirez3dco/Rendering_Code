@@ -163,11 +163,15 @@ namespace Runing_Form
                 StreamReader sr = new StreamReader(objStream);
 
                 JavaScriptSerializer serializer = new JavaScriptSerializer();
-                CFG = serializer.DeserializeObject(sr.ReadToEnd()) as Dictionary<string, object>;
+
+
+                String userDataString_JSON = sr.ReadToEnd();
+
+                CFG = serializer.DeserializeObject(userDataString_JSON) as Dictionary<string, object>;
             }
             catch (Exception e)
             {
-                Console.WriteLine("Excpetion in Get_My_IP_AND_DNS(). = " + e.Message);
+                Console.WriteLine("Excpetion in Get_Launch_Specific_Data(). = " + e.Message);
                 return false;
             }
 
