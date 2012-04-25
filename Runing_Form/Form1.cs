@@ -57,7 +57,7 @@ namespace Runing_Form
                 Console.WriteLine("param " + tempParamName + " is not found in ez3d.config");
                 return false;
             }
-            else num_of_rhinos = int.Parse(Utils.CFG[tempParamName]);
+            else num_of_rhinos = (int)Utils.CFG[tempParamName];
 
             tempParamName = "visible_rhino";
             if (!Utils.CFG.ContainsKey(tempParamName))
@@ -65,7 +65,7 @@ namespace Runing_Form
                 Console.WriteLine("param " + tempParamName + " is not found in ez3d.config");
                 return false;
             }
-            else Form1.rhino_visible = bool.Parse(Utils.CFG[tempParamName]);
+            else Form1.rhino_visible = (bool)Utils.CFG[tempParamName];
 
             tempParamName = "scene";
             if (!Utils.CFG.ContainsKey(tempParamName))
@@ -73,7 +73,7 @@ namespace Runing_Form
                 Console.WriteLine("param " + tempParamName + " is not found in ez3d.config");
                 return false;
             }
-            else this.sceneFileName = Utils.CFG[tempParamName];
+            else this.sceneFileName = (String)Utils.CFG[tempParamName];
 
             tempParamName = "is_amazon_ip";
             if (!Utils.CFG.ContainsKey(tempParamName))
@@ -81,7 +81,7 @@ namespace Runing_Form
                 Console.WriteLine("param " + tempParamName + " is not found in ez3d.config");
                 return false;
             }
-            else this.lookForIp_AmazonStyle = bool.Parse(Utils.CFG[tempParamName]);
+            else this.lookForIp_AmazonStyle = (bool)Utils.CFG[tempParamName];
 
             return true;
         }

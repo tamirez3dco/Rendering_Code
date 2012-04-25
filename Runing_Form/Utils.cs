@@ -19,10 +19,10 @@ namespace Runing_Form
         public static String my_ip = "localhost";
         public static String public_dns = "localhost";
 
-        public static Dictionary<String, String> CFG;
+        public static Dictionary<String, Object> CFG;
         public static bool Read_Cfg_File()
         {
-            CFG = new Dictionary<string, string>();
+            CFG = new Dictionary<String, Object>();
             DirectoryInfo currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
             String filePath = currentDir.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar + "Extras" + Path.DirectorySeparatorChar + "ez3d.cfg";
             if (!File.Exists(filePath))
@@ -144,6 +144,33 @@ namespace Runing_Form
                 Console.WriteLine("Excpetion in Get_My_IP_AND_DNS(). = " + e.Message);
                 return false;
             }
+            return true;
+        }
+
+
+        public static bool Get_Launch_Specific_Data()
+        {
+            try
+            {
+                string sURL = "http://169.254.169.254/latest/user-data/";
+                WebRequest wrGETURL;
+                wrGETURL = WebRequest.Create(sURL);
+                WebProxy myProxy = new WebProxy("myproxy", 80);
+                myProxy.BypassProxyOnLocal = true;
+
+                Stream objStream;
+                objStream = wrGETURL.GetResponse().GetResponseStream();
+                StreamReader sr = new StreamReader(objStream);
+
+                JavaScriptSerializer serializer = new JavaScriptSerializer();
+                CFG = serializer.DeserializeObject(sr.ReadToEnd()) as Dictionary<string, object>;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Excpetion in Get_My_IP_AND_DNS(). = " + e.Message);
+                return false;
+            }
+
             return true;
         }
 

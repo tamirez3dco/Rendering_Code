@@ -48,12 +48,12 @@ namespace Runing_Form
                     ListQueuesResult listQueuesResult = listQueuesResponse.ListQueuesResult;
                     foreach (String str in listQueuesResult.QueueUrl)
                     {
-                        if (str.EndsWith('/' + Utils.CFG["request_Q_name"]))
+                        if (str.EndsWith('/' + (String)Utils.CFG["request_Q_name"]))
                         {
                             requests_Q_url = str;
                             Console.WriteLine("requests_Q_url =" + requests_Q_url);
                         }
-                        if (str.EndsWith('/' + Utils.CFG["ready_Q_name"]))
+                        if (str.EndsWith('/' + (String)Utils.CFG["ready_Q_name"]))
                         {
                             ready_Q_url = str;
                             Console.WriteLine("ready_Q_url =" + ready_Q_url);

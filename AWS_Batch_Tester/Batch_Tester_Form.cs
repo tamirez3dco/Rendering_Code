@@ -96,7 +96,7 @@ namespace AWS_Batch_Tester
                 foreach (String str in listQueuesResult.QueueUrl)
                 {
                     Console.WriteLine("  QueueUrl: {0}", str);
-                    if (str.EndsWith('/'+ Runing_Form.Utils.CFG["request_Q_name"]))
+                    if (str.EndsWith('/'+ (String)Runing_Form.Utils.CFG["request_Q_name"]))
                     {
                         requests_Q_url = str;
                     }
