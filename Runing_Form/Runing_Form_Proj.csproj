@@ -53,21 +53,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ControlloerForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ControlloerForm.Designer.cs">
-      <DependentUpon>ControlloerForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="GHR.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Runing_Form.cs" />
+    <Compile Include="Runing_Form.Designer.cs">
+      <DependentUpon>Runing_Form.cs</DependentUpon>
+    </Compile>
     <Compile Include="S3.cs" />
     <Compile Include="SQS.cs" />
     <Compile Include="Utils.cs" />
-    <EmbeddedResource Include="ControlloerForm.resx">
-      <DependentUpon>ControlloerForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -78,6 +73,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="Runing_Form.resx">
+      <DependentUpon>Runing_Form.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="app.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
