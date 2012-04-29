@@ -28,10 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.numOfInstances_textBox = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
             this.restartRhinosButton = new System.Windows.Forms.Button();
+            this.check_ShutDown_Condition_Timer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // numOfInstances_textBox
@@ -73,7 +75,12 @@
             this.restartRhinosButton.UseVisualStyleBackColor = true;
             this.restartRhinosButton.Click += new System.EventHandler(this.restartRhinosButton_Click);
             // 
-            // Form1
+            // check_ShutDown_Condition_Timer
+            // 
+            this.check_ShutDown_Condition_Timer.Interval = 10000;
+            this.check_ShutDown_Condition_Timer.Tick += new System.EventHandler(this.check_ShutDown_Condition_Timer_Tick);
+            // 
+            // Runing_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -82,7 +89,7 @@
             this.Controls.Add(this.button1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.numOfInstances_textBox);
-            this.Name = "Form1";
+            this.Name = "Runing_Form";
             this.Text = "Windows Rhino Controller";
             this.Load += new System.EventHandler(this.Runing_Form_Load);
             this.ResumeLayout(false);
@@ -96,6 +103,7 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button restartRhinosButton;
+        private System.Windows.Forms.Timer check_ShutDown_Condition_Timer;
     }
 }
 

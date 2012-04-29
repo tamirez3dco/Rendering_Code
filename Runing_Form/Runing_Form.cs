@@ -72,15 +72,16 @@ namespace Runing_Form
             }
             else this.sceneFileName = (String)Utils.CFG[tempParamName];
 
-/*
-            tempParamName = "is_amazon_ip";
-            if (!Utils.CFG.ContainsKey(tempParamName))
+
+            // Note that the condition on this one is different. 
+            // It is here just to allow debugging on AWS machines
+            tempParamName = "is_amazon_machine";
+            if (Utils.CFG.ContainsKey(tempParamName))
             {
-                Console.WriteLine("param " + tempParamName + " is not found in ez3d.config");
-                return false;
+                Console.WriteLine("param " + tempParamName + " WAS found !!!. Probably a DEBUG run...");
+                Utils.is_amazon_machine = (bool)Utils.CFG[tempParamName];
             }
-            else this.is_amazon_machine = (bool)Utils.CFG[tempParamName];
-*/
+
             return true;
         }
 
@@ -215,6 +216,9 @@ namespace Runing_Form
                 return false;
             }
 
+            Utils.lastMsg_Time = DateTime.Now;
+            check_ShutDown_Condition_Timer.Enabled = true;
+
             return true;
         }
 
@@ -319,6 +323,15 @@ namespace Runing_Form
                 return;
             }
             numOfInstances_textBox.BackColor = Color.Green;
+        }
+
+        private void check_ShutDown_Condition_Timer_Tick(object sender, EventArgs e)
+        {
+            bool should_Shut_Down_Server = (DateTime.Now - Utils.lastMsg_Time).TotalMinutes > (int)Utils.CFG["idle_minutes_to_shutdown"];
+            if (should_Shut_Down_Server)
+            {
+                Utils.Shut_Down_Server();
+            }
         }
 
    

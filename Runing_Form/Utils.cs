@@ -23,35 +23,7 @@ namespace Runing_Form
         public static String user_Data_String = null;
         public static Dictionary<String, Object> CFG;
 
-
-        public static bool Read_Cfg_File()
-        {
-            CFG = new Dictionary<String, Object>();
-            DirectoryInfo currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
-            String filePath = currentDir.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar + "Extras" + Path.DirectorySeparatorChar + "ez3d.cfg";
-            if (!File.Exists(filePath))
-            {
-                Console.WriteLine("Could not locate config file in path "+ filePath);
-                return false;
-            }
-
-            using (StreamReader sr = new StreamReader(filePath))
-            {
-                String line;
-                char[] tokenizer = { '=' };
-                while ((line = sr.ReadLine()) != null)
-                {
-                    String[] tokens = line.Split(tokenizer, StringSplitOptions.RemoveEmptyEntries);
-                    if (tokens.Length != 2)
-                    {
-                        Console.WriteLine("illigle line in cfg file is:" + line);
-                        return false;
-                    }
-                    CFG[tokens[0].Trim()] = tokens[1].Trim();
-                }
-            }
-            return true;
-        }
+        public static DateTime lastMsg_Time;
 
         public static string EncodeTo64(string toEncode)
         {
@@ -184,6 +156,12 @@ namespace Runing_Form
             return true;
         }
 
+
+        internal static void Shut_Down_Server()
+        {
+            ProcessStartInfo psi = new ProcessStartInfo("shutdown.exe", "/s /f");
+            Process p = Process.Start(psi);
+        }
     }
 
  

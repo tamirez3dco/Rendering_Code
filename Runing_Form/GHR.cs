@@ -168,6 +168,8 @@ namespace Runing_Form
                 return true;
             }
 
+            Utils.lastMsg_Time = DateTime.Now;
+
             // Extract the ImageData
             ImageDataRequest imageData = null;
             if (!deciferImageDataFromBody(msg.Body, out imageData))
