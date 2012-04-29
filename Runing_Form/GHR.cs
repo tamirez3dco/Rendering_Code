@@ -274,9 +274,10 @@ namespace Runing_Form
                 return false;
             }
 
-            if (!S3.Write_File_To_S3(resultingImagePath, imageData.item_id.ToString()))
+            String fileName_on_S3 = imageData.item_id.ToString() + ".jpg";
+            if (!S3.Write_File_To_S3(resultingImagePath, fileName_on_S3))
             {
-                logLine = "Write_File_To_S3(resultingImagePath=" + resultingImagePath + ", imageData.item_id=" + imageData.item_id.ToString() + ") failed !!!";
+                logLine = "Write_File_To_S3(resultingImagePath=" + resultingImagePath + ", fileName_on_S3=" + fileName_on_S3 + ") failed !!!";
                 MyLog(logLine);
                 return false;
             }
