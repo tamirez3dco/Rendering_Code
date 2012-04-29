@@ -56,7 +56,9 @@
     <Compile Include="GHR.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Runing_Form.cs" />
+    <Compile Include="Runing_Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Runing_Form.Designer.cs">
       <DependentUpon>Runing_Form.cs</DependentUpon>
     </Compile>

@@ -17,6 +17,7 @@ namespace Runing_Form
 
         public static bool Write_File_To_S3(String path, String key_name)
         {
+            DateTime before = DateTime.Now;
             try
             {
                 // simple object put
@@ -34,6 +35,8 @@ namespace Runing_Form
                 Console.WriteLine("Write_File_To_S3(String path=" + path + ", String key_name=" + key_name + ") failed!!!");
                 return false;
             }
+            TimeSpan uploadTime = DateTime.Now - before;
+            Console.WriteLine("Uploading " + path + " into S3 Bucket=" + bucketName + " , key=" + key_name + " took " + uploadTime.TotalMilliseconds.ToString() + " milliseconds");
 
             return true;
 
