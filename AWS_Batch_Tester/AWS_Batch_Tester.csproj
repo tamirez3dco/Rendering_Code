@@ -126,9 +126,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Runing_Form\Runing_Form.csproj">
+    <ProjectReference Include="..\Runing_Form\Runing_Form_Proj.csproj">
       <Project>{B35B4A19-4657-4938-B561-FADC2ABC9615}</Project>
-      <Name>Runing_Form</Name>
+      <Name>Runing_Form_Proj</Name>
     </ProjectReference>
   </ItemGroup>
 </Project>

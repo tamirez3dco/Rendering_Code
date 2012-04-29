@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 
 using Amazon;
+using System.Web.Script.Serialization;
 
 // Add using statements to access AWS SDK for .NET services. 
 // Both the Service and its Model namespace need to be added 
@@ -19,6 +20,8 @@ namespace AWS_Batch_Tester
     {
         public static void Main(string[] args)
         {
+            Runing_Form.Utils.user_Data_String = args[0];
+            Console.WriteLine("Runing_Form.Utils.user_Data_String="+Runing_Form.Utils.user_Data_String);
             new Batch_Tester_Form().ShowDialog();
             Console.Read();
         }

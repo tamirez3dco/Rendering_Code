@@ -82,7 +82,9 @@ namespace AWS_Batch_Tester
 
         private void Batch_Tester_Form_Load(object sender, EventArgs e)
         {
-            Runing_Form.Utils.Read_Cfg_File();
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            Runing_Form.Utils.CFG = serializer.DeserializeObject(Runing_Form.Utils.user_Data_String) as Dictionary<string, object>;
+
 
 
             client = AWSClientFactory.CreateAmazonSQSClient();

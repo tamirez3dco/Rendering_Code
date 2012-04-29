@@ -26,7 +26,17 @@ namespace Runing_Form
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            Application.Run(new Form1());
+            if (args.Length == 0)
+            {
+                Utils.is_amazon_machine = true; // get the CFG dictionary from AWS User_Data
+                                                // String itself is read later on on ControlloerForm.startAll()
+            }
+            else
+            {
+                Utils.is_amazon_machine = false; // a localHost debug session - get the CFG dictionary from Application param
+                Utils.user_Data_String = args[0];
+            }
+            Application.Run(new Runing_Form());
         }
     }
 }

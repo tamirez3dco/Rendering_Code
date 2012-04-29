@@ -16,10 +16,14 @@ namespace Runing_Form
 {
     public class Utils
     {
+        public static bool is_amazon_machine = true;
         public static String my_ip = "localhost";
         public static String public_dns = "localhost";
 
+        public static String user_Data_String = null;
         public static Dictionary<String, Object> CFG;
+
+
         public static bool Read_Cfg_File()
         {
             CFG = new Dictionary<String, Object>();
@@ -152,22 +156,24 @@ namespace Runing_Form
         {
             try
             {
-                string sURL = "http://169.254.169.254/latest/user-data/";
-                WebRequest wrGETURL;
-                wrGETURL = WebRequest.Create(sURL);
-                WebProxy myProxy = new WebProxy("myproxy", 80);
-                myProxy.BypassProxyOnLocal = true;
+                if (Utils.is_amazon_machine)
+                {
+                    string sURL = "http://169.254.169.254/latest/user-data/";
+                    WebRequest wrGETURL;
+                    wrGETURL = WebRequest.Create(sURL);
+                    WebProxy myProxy = new WebProxy("myproxy", 80);
+                    myProxy.BypassProxyOnLocal = true;
 
-                Stream objStream;
-                objStream = wrGETURL.GetResponse().GetResponseStream();
-                StreamReader sr = new StreamReader(objStream);
+                    Stream objStream;
+                    objStream = wrGETURL.GetResponse().GetResponseStream();
+                    StreamReader sr = new StreamReader(objStream);
+                    user_Data_String = sr.ReadToEnd();
+                }
+
+                Console.WriteLine("user_Data_String="+user_Data_String);
 
                 JavaScriptSerializer serializer = new JavaScriptSerializer();
-
-
-                String userDataString_JSON = sr.ReadToEnd();
-
-                CFG = serializer.DeserializeObject(userDataString_JSON) as Dictionary<string, object>;
+                CFG = serializer.DeserializeObject(user_Data_String) as Dictionary<string, object>;
             }
             catch (Exception e)
             {

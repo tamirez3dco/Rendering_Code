@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runing_Form", "Runing_Form\Runing_Form.csproj", "{B35B4A19-4657-4938-B561-FADC2ABC9615}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runing_Form_Proj", "Runing_Form\Runing_Form_Proj.csproj", "{B35B4A19-4657-4938-B561-FADC2ABC9615}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AWS_Batch_Tester", "AWS_Batch_Tester\AWS_Batch_Tester.csproj", "{645C3B9A-69C1-46CD-9089-E219BFF0B4F1}"
 EndProject

@@ -187,7 +187,7 @@ namespace Runing_Form
             if (imageData.operation == "render_model")
             {
                 // Process Msg to picture
-                String imageFilePath = Form1.images_DirPath + Path.DirectorySeparatorChar + "yofi_" + imageData.item_id + ".jpg";
+                String imageFilePath = Runing_Form.images_DirPath + Path.DirectorySeparatorChar + "yofi_" + imageData.item_id + ".jpg";
                 if (!Process_Into_Image_File(imageData, imageFilePath))
                 {
                     MyLog("Process_Msg_Into_Image_File(msg) failed!!!");
@@ -256,7 +256,7 @@ namespace Runing_Form
             }
             else
             {
-                if (!Open_GH_File(Form1.GH_DirPath + Path.DirectorySeparatorChar + imageData.gh_filePath))
+                if (!Open_GH_File(Runing_Form.GH_DirPath + Path.DirectorySeparatorChar + imageData.gh_filePath))
                 {
                     logLine = "Open_GH_File(imageData[imageData.gh_filePath=" + imageData.gh_filePath + "); failed";
                     MyLog(logLine);
@@ -267,34 +267,18 @@ namespace Runing_Form
 
             if (!Set_Params_And_Render(imageData, resultingImagePath))
             {
-                logLine = "Get_A_Picture(imageData=" + imageData.ToString() + "], filePath=" + resultingImagePath + "); failed";
-                MyLog(logLine);
-                return false;
-            }
-/*
-            // delete msg from requests Q
-            List<Amazon.SQS.Model.Message> dummyList = new List<Amazon.SQS.Model.Message>();
-            dummyList.Add(msg);
-            if (!Form1.Delete_Msgs_From_Req_Q(dummyList))
-            {
-                logLine = "Form1.Delete_Msgs_From_Req_Q(dummyList) failed";
+                logLine = "Set_Params_And_Render(imageData=" + imageData.ToString() + "], filePath=" + resultingImagePath + ") failed !!!";
                 MyLog(logLine);
                 return false;
             }
 
-            // put msg in ready Q
-            String imagePathForFTP;
-            FileInfo imageFileInfo = new FileInfo(filePath);
-            //localhost/tempImageFiles/yofi_135.jpg
-            imagePathForFTP = @"ftp://" + System.Net.Dns.GetHostName() + @"/tempImageFiles" + @"/" + "yofi_" + imageData.item_id + ".jpg";
-            if (!Form1.Send_Msg_To_Readies_Q(imageData.item_id, imagePathForFTP))
+            if (!S3.Write_File_To_S3(resultingImagePath, imageData.item_id.ToString()))
             {
-                logLine = "Form1.Send_Msg_To_Readies_Q(imageData.item_id=" + imageData.item_id + ",imagePathForFTP=" + imagePathForFTP + ") failed";
+                logLine = "Write_File_To_S3(resultingImagePath=" + resultingImagePath + ", imageData.item_id=" + imageData.item_id.ToString() + ") failed !!!";
                 MyLog(logLine);
                 return false;
             }
-*/
-            
+
 
             DateTime afterTime = DateTime.Now;
             int timed = (int)((afterTime - beforeTime).TotalMilliseconds);
