@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartArguments>{\"num_of_rhino_instances\":1,\"visible_rhino\":false,\"scene\":\"scene13.3dm\",\"request_Q_name\":\"DEBUG_Queue_Requests\",\"ready_Q_name\":\"DEBUG_Queue_Readies\",\"s3_bucketName\":\"DEBUG_Bucket\",\"idle_minutes_to_shutdown\":15,\"is_amazon_machine\":false}</StartArguments>
+    <StartArguments>{\"num_of_rhino_instances\":1,\"visible_rhino\":false,\"scene\":\"scene13.3dm\",\"request_Q_name\":\"DEBUG_Queue_Requests\",\"ready_Q_name\":\"DEBUG_Queue_Readies\",\"s3_bucketName\":\"DEBUG_Bucket\",\"idle_minutes_to_shutdown\":15,\"is_amazon_machine\":true}</StartArguments>
   </PropertyGroup>
 </Project>
