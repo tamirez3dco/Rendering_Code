@@ -174,7 +174,8 @@ namespace Runing_Form
                 TimeSpan duration = current - beforeProcessingTime;
 
                 dict["item_id"] = item_id;
-                dict["url"] = @"http://" + Utils.my_ip + @"/testim/yofi_" + item_id + ".jpg";
+                //dict["url"] = @"http://" + Utils.my_ip + @"/testim/yofi_" + item_id + ".jpg";
+                dict["url"] = @"http://s3.amazonaws.com/" + S3.bucketName + @"/" + item_id + ".jpg";
                 dict["duration"] = Math.Round(duration.TotalSeconds, 3);
                 dict["status"] = status.ToString();
 
