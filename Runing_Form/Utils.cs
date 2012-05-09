@@ -47,12 +47,38 @@ namespace Runing_Form
         {
             // Pull data (all under ftproot/Rendering_Data from GitHub)
             DirectoryInfo currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
-            String batFileFolder = currentDir.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar + "Extras";
-            ProcessStartInfo psi = new ProcessStartInfo("pullData.bat");
-            psi.WorkingDirectory = batFileFolder;
-            Process p = Process.Start(psi);
-            //p.WaitForInputIdle();
-            p.WaitForExit();
+            
+            String renderingDataFolderPath = currentDir.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar + "Extras";
+            try
+            {
+                ProcessStartInfo psi = new ProcessStartInfo("stash.bat");
+                psi.WorkingDirectory = renderingDataFolderPath;
+
+                Process p = Process.Start(psi);
+                //p.WaitForInputIdle();
+                Debug.WriteLine("between 1");
+                p.WaitForExit();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("BAASA");
+            }
+
+
+            try
+            {
+                ProcessStartInfo psi = new ProcessStartInfo("pullData.bat");
+                psi.WorkingDirectory = renderingDataFolderPath;
+                
+                Process p = Process.Start(psi);
+                p.WaitForExit();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("BAASA");
+            }
+
+            
 
             // copy PythonScripts to correct location
             DirectoryInfo pythonScriptsGitDirectory = new DirectoryInfo(Runing_Form.PythonScripts_DirPath_Git);

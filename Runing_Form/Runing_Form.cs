@@ -89,6 +89,14 @@ namespace Runing_Form
         private bool start_all()
         {
             Console.WriteLine("Form constructed at time : " + DateTime.Now);
+            // kill all current Rhino4.exe processes
+            Process[] procs = Process.GetProcessesByName("Rhino4");
+            Console.WriteLine("Killing " + procs.Length + " previous Rhino processes");
+            foreach (Process p in procs) { p.Kill(); }
+            Thread.Sleep(1000);
+            procs = Process.GetProcessesByName("Rhino4");
+            Console.WriteLine(procs.Length + " previous Rhino processes remaind alive");
+
             if (!read_params_from_user_data())
             {
                 Console.WriteLine("ERROR - read_params_from_cfg_file() failed!!");
@@ -138,13 +146,6 @@ namespace Runing_Form
 
 
 
-            // kill all current Rhino4.exe processes
-            Process[] procs = Process.GetProcessesByName("Rhino4");
-            Console.WriteLine("Killing " + procs.Length + " previous Rhino processes");
-            foreach (Process p in procs) { p.Kill(); }
-            Thread.Sleep(1000);
-            procs = Process.GetProcessesByName("Rhino4");
-            Console.WriteLine(procs.Length + " previous Rhino processes remaind alive");
 
             ghrs = new List<GHR>();
             for (int i = 0; i < num_of_rhinos; i++)
