@@ -27,26 +27,26 @@ namespace Runing_Form
         ERROR
     }
     public class ImageDataRequest
-   {
-       public String bake = null;
-       public int item_id;
-       public Dictionary<String, Double> propValues = new Dictionary<string, double>();
-       public String gh_filePath;
-       public string operation;
+    {
+        public String bake = null;
+        public int item_id;
+        public Dictionary<String, Double> propValues = new Dictionary<string, double>();
+        public String gh_filePath;
+        public string operation;
 
-       public override string ToString()
-       {
-           String res = "item_id=" + item_id.ToString() + Environment.NewLine;
-           res += "gh_filePath=" + gh_filePath + Environment.NewLine;
-           res += "bake=" + bake + Environment.NewLine;
-           res += "params:" + Environment.NewLine;
-           foreach (String key in propValues.Keys)
-           {
-               res += "    " + key + "=" + propValues[key].ToString() + Environment.NewLine;
-           }
-           return res;
-       }
-   } 
+        public override string ToString()
+        {
+            String res = "item_id=" + item_id.ToString() + Environment.NewLine;
+            res += "gh_filePath=" + gh_filePath + Environment.NewLine;
+            res += "bake=" + bake + Environment.NewLine;
+            res += "params:" + Environment.NewLine;
+            foreach (String key in propValues.Keys)
+            {
+                res += "    " + key + "=" + propValues[key].ToString() + Environment.NewLine;
+            }
+            return res;
+        }
+    }
 
     public class GHR
     {
@@ -54,6 +54,8 @@ namespace Runing_Form
         public dynamic grasshopper;
         public int id = -1;
         public String current_GH_file = null;
+
+        public static String Python_Scripts_Actual_Folder_Path = null;
 
 
         public static bool deciferImageDataFromBody(String msgBody, out ImageDataRequest imageData)
@@ -66,7 +68,7 @@ namespace Runing_Form
             var jsonObject = serializer.DeserializeObject(jsonString) as Dictionary<string, object>;
             Dictionary<String, Object> jsonDict = (Dictionary<String, Object>)jsonObject;
 
-            
+
             if (!jsonDict.ContainsKey("operation"))
             {
                 Console.WriteLine("ERROR !!! - (!jsonDict.ContainsKey(\"operation\"))");
@@ -104,7 +106,7 @@ namespace Runing_Form
             {
 
                 Dictionary<String, Double> paramValues = new Dictionary<string, double>();
-                Dictionary<String, Object> paramObjects = (Dictionary<String,Object>)jsonDict["params"];
+                Dictionary<String, Object> paramObjects = (Dictionary<String, Object>)jsonDict["params"];
                 foreach (String key in paramObjects.Keys)
                 {
                     Object obj = paramObjects[key];
@@ -143,7 +145,7 @@ namespace Runing_Form
             Amazon.SQS.Model.Message msg;
             if (!SQS.Get_Msg_From_Req_Q(out msg, out msgFound))
             {
-                MyLog("Get_Msg_From_Req_Q() failed (# " + get_msg_failures +") !!!");
+                MyLog("Get_Msg_From_Req_Q() failed (# " + get_msg_failures + ") !!!");
                 if (get_msg_failures < get_msg_failures_allowed)
                 {
                     get_msg_failures++;
@@ -213,7 +215,7 @@ namespace Runing_Form
                     return false;
                 }
                 // Add Msg to Queue_Readies
-                if (!SQS.Send_Msg_To_Readies_Q(RenderStatus.FINISHED,imageData.item_id, beforeProcessingTime))
+                if (!SQS.Send_Msg_To_Readies_Q(RenderStatus.FINISHED, imageData.item_id, beforeProcessingTime))
                 {
                     MyLog("Form1.Send_Msg_To_Readies_Q(imageData.item_id=" + imageData.item_id + ") failed");
                     return false;
@@ -222,9 +224,10 @@ namespace Runing_Form
             }
             else
             {
-                MyLog("ERROR !!! - (" + imageData.operation + "=imageData.operation != \"render_model\")");            }
-                MyLog("imageData="+imageData.ToString());
-                return false;
+                MyLog("ERROR !!! - (" + imageData.operation + "=imageData.operation != \"render_model\")");
+            }
+            MyLog("imageData=" + imageData.ToString());
+            return false;
         }
 
         public void new_runner()
@@ -243,7 +246,7 @@ namespace Runing_Form
 
 
 
-        private bool Process_Into_Image_File(ImageDataRequest imageData,String resultingImagePath)
+        private bool Process_Into_Image_File(ImageDataRequest imageData, String resultingImagePath)
         {
             DateTime beforeTime = DateTime.Now;
 
@@ -251,27 +254,36 @@ namespace Runing_Form
             MyLog(logLine);
 
 
-            if (current_GH_file == imageData.gh_filePath)
+            if (imageData.gh_filePath.EndsWith(".gh") || imageData.gh_filePath.EndsWith(".ghx"))
             {
-                logLine = "Skipping Open_GH_File(imageData[imageData.gh_filePath=" + imageData.gh_filePath + ")";
-                MyLog(logLine);
-            }
-            else
-            {
-                if (!Open_GH_File(Runing_Form.GH_DirPath + Path.DirectorySeparatorChar + imageData.gh_filePath))
+
+                if (current_GH_file == imageData.gh_filePath)
                 {
-                    logLine = "Open_GH_File(imageData[imageData.gh_filePath=" + imageData.gh_filePath + "); failed";
+                    logLine = "Skipping Open_GH_File(imageData[imageData.gh_filePath=" + imageData.gh_filePath + ")";
+                    MyLog(logLine);
+                }
+                else
+                {
+                    if (!Open_GH_File(Runing_Form.GH_DirPath + Path.DirectorySeparatorChar + imageData.gh_filePath))
+                    {
+                        logLine = "Open_GH_File(imageData[imageData.gh_filePath=" + imageData.gh_filePath + "); failed";
+                        MyLog(logLine);
+                        return false;
+                    }
+                    current_GH_file = imageData.gh_filePath;
+                }
+
+
+                if (!Set_Params_And_Render(imageData, resultingImagePath))
+                {
+                    logLine = "Set_Params_And_Render(imageData=" + imageData.ToString() + "], filePath=" + resultingImagePath + ") failed !!!";
                     MyLog(logLine);
                     return false;
                 }
-                current_GH_file = imageData.gh_filePath;
             }
-
-            if (!Set_Params_And_Render(imageData, resultingImagePath))
+            else
             {
-                logLine = "Set_Params_And_Render(imageData=" + imageData.ToString() + "], filePath=" + resultingImagePath + ") failed !!!";
-                MyLog(logLine);
-                return false;
+                Run_Script_And_Render(imageData, resultingImagePath);
             }
 
             String fileName_on_S3 = imageData.item_id.ToString() + ".jpg";
@@ -290,7 +302,7 @@ namespace Runing_Form
 
         }
 
-        
+
 
 
         public bool Open_GH_File(String filePath)
@@ -310,40 +322,59 @@ namespace Runing_Form
                 return false;
             }
 
-            MyLog("Finished succefully  Open_GH_File(*,filePath=" + filePath + ((int)(DateTime.Now-before).TotalMilliseconds) + " miliseconds after Starting");
+            MyLog("Finished succefully  Open_GH_File(*,filePath=" + filePath + ((int)(DateTime.Now - before).TotalMilliseconds) + " miliseconds after Starting");
             return true;
         }
 
         public void MyLog(String line)
         {
             DateTime now = DateTime.Now;
-            Console.WriteLine("(id=" + id + ")("+now.Hour + ":"+now.Minute + ":"+now.Second+"." +now.Millisecond + ") " + line);
+            Console.WriteLine("(id=" + id + ")(" + now.Hour + ":" + now.Minute + ":" + now.Second + "." + now.Millisecond + ") " + line);
         }
 
         public bool DeleteAll()
         {
             DateTime beforeTime = DateTime.Now;
             String logLine;
-                int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
-                logLine = "Starting DeleteAll()";
-                MyLog(logLine);
+            int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
+            logLine = "Starting DeleteAll()";
+            MyLog(logLine);
 
 
-                // Delete all
-                String selectAllCommand = "SelLayerNumber 0";
-                int selectCommandRes = rhino.RunScript(selectAllCommand, 1);
-                fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
-                logLine = "selectCommandRes="+selectCommandRes+ " After " + fromStart + " milliseconds";
-                MyLog(logLine);
-                
+            // Delete all
+            String selectAllCommand = "SelLayerNumber 0";
+            int selectCommandRes = rhino.RunScript(selectAllCommand, 1);
+            fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
+            logLine = "selectCommandRes=" + selectCommandRes + " After " + fromStart + " milliseconds";
+            MyLog(logLine);
 
-                String deleteCommand = "Delete";
-                int deleteCommandRes = rhino.RunScript(deleteCommand, 1);
-                fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
-                logLine = "deleteCommandRes="+selectCommandRes+ " After " + fromStart + " milliseconds";
-                MyLog(logLine);
+
+            String deleteCommand = "Delete";
+            int deleteCommandRes = rhino.RunScript(deleteCommand, 1);
+            fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
+            logLine = "deleteCommandRes=" + selectCommandRes + " After " + fromStart + " milliseconds";
+            MyLog(logLine);
             return true;
 
+        }
+        public bool Run_Script_And_Render(ImageDataRequest imageData, String outputPath)
+        {
+            DeleteAll();
+            String commParams = "";
+            foreach (String paramName in imageData.propValues.Keys)
+            {
+                Double value = imageData.propValues[paramName];
+                commParams = commParams + " " + paramName + "=" + value;
+            }
+
+            //String runCommand = "vase1 rad1=0.2 rad2=0.42 rad3=0.6 rad4=0.5 Enter";
+            String runCommand = imageData.gh_filePath + " " + commParams + " Enter";
+            rhino.RunScript(runCommand, 1);
+
+            String captureCommand = "-FlamingoRenderTo f " + outputPath + " " + 180 + " " + 180;
+            int captureCommandRes = rhino.RunScript(captureCommand, 1);
+
+            return true;
         }
         public bool Set_Params_And_Render(ImageDataRequest imageData, String outputPath)
         {
@@ -378,8 +409,7 @@ namespace Runing_Form
 
             fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
             logLine = "After baking object:" + imageData.bake + " After " + fromStart + " milliseconds";
-            MyLog(logLine);
-
+            //MyLog(logLine);
 
             String captureCommand = "-FlamingoRenderTo f " + outputPath + " " + 180 + " " + 180;
             int captureCommandRes = rhino.RunScript(captureCommand, 1);
@@ -391,7 +421,7 @@ namespace Runing_Form
             return true;
         }
 
-      
+
 
     }
 
@@ -402,6 +432,6 @@ namespace Runing_Form
         FAIL
     }
 
-   
+
 
 }

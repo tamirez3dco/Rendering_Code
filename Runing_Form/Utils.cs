@@ -53,6 +53,15 @@ namespace Runing_Form
             Process p = Process.Start(psi);
             //p.WaitForInputIdle();
             p.WaitForExit();
+
+            // copy PythonScripts to correct location
+            DirectoryInfo pythonScriptsGitDirectory = new DirectoryInfo(Runing_Form.PythonScripts_DirPath_Git);
+            FileInfo[] pythonFiles = pythonScriptsGitDirectory.GetFiles("*.py");
+            foreach (FileInfo pythonFile in pythonFiles)
+            {
+                String destFileName = GHR.Python_Scripts_Actual_Folder_Path + Path.DirectorySeparatorChar + pythonFile.Name;
+                pythonFile.CopyTo(destFileName, true);
+            }
             return true;
         }
 

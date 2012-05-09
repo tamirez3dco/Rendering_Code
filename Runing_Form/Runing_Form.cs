@@ -33,6 +33,7 @@ namespace Runing_Form
         public static String scenes_DirPath = null;
         public static String GH_DirPath = null;
         public static String images_DirPath = null;
+        public static String PythonScripts_DirPath_Git = null;
 
 
         public Runing_Form()
@@ -108,7 +109,7 @@ namespace Runing_Form
                 Utils.my_ip = "localhost";
             }
 
-            
+
             if (!SQS.Initialize_SQS_stuff())
             {
                 Console.WriteLine("ERROR !!!- Initialize_SQS_stuff() failed!!");
@@ -121,18 +122,21 @@ namespace Runing_Form
                 return false;
             }
 
-            if (!Utils.Refresh_Rhino_GH_Data_From_Github())
-            {
-                Console.WriteLine("ERROR !!!- Refresh_Rhino_GH_Data_From_Github() failed!!");
-                return false;
-            }
-            
-
             if (!get_relevant_dirs())
             {
                 Console.WriteLine("ERROR !!! - get_relevant_dirs() failed!!!");
                 return false;
             }
+
+            if (!Utils.Refresh_Rhino_GH_Data_From_Github())
+            {
+                Console.WriteLine("ERROR !!!- Refresh_Rhino_GH_Data_From_Github() failed!!");
+                return false;
+            }
+
+
+
+
 
             // kill all current Rhino4.exe processes
             Process[] procs = Process.GetProcessesByName("Rhino4");
@@ -252,6 +256,21 @@ namespace Runing_Form
             return true;
         }
 
+        private bool get_pythonscripts_files_Dir(out String PY_DirPath)
+        {
+            PY_DirPath = null;
+            DirectoryInfo dir = new DirectoryInfo(Directory.GetCurrentDirectory());
+            PY_DirPath = dir.Parent.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar + "Rendering_Data" + Path.DirectorySeparatorChar + "PythonScripts";
+            if (!Directory.Exists(PY_DirPath))
+            {
+                Console.WriteLine("ERROR!!! - Could not find PY_DirPath=" + PY_DirPath);
+                return false;
+
+            }
+            Console.WriteLine("PY_DirPath = " + PY_DirPath);
+            return true;
+        }
+
         private bool get_tempImages_files_Dir(out String image_DirPath)
         {
             image_DirPath = null;
@@ -287,6 +306,9 @@ namespace Runing_Form
             if (!get_Scenes_Dir(out scenes_DirPath)) return false;
             if (!get_grasshopper_files_Dir(out GH_DirPath)) return false;
             if (!get_tempImages_files_Dir(out images_DirPath)) return false;
+            if (!get_pythonscripts_files_Dir(out PythonScripts_DirPath_Git)) return false;
+
+            GHR.Python_Scripts_Actual_Folder_Path = @"C:\Users\" + System.Environment.UserName + @"\AppData\Roaming\McNeel\Rhinoceros\5.0\Plug-ins\PythonPlugins\quest {4aa421bc-1d5d-4d9e-9e48-91bf91516ffa}\dev";
             return true;
         }
         private void Runing_Form_Load(object sender, EventArgs e)
@@ -334,15 +356,15 @@ namespace Runing_Form
             }
         }
 
-   
+
         //[{"gh_file":"20091109_ghx060019_Surfaces_Introduction.ghx","item_id":135,"tamir_curveLength":0,"tamir_PipeRadius":0.25,"bake":"Pipe"},{"gh_file":"20091109_ghx060019_Surfaces_Introduction.ghx","item_id":136,"tamir_curveLength":0.2,"tamir_PipeRadius":0.5,"bake":"Pipe"},{"gh_file":"20091109_ghx060019_Surfaces_Introduction.ghx","item_id":135,"tamir_curveLength":1,"tamir_PipeRadius":1,"bake":"Pipe"}]
         //[{"gh_file":"20091109_ghx060019_Surfaces_Introduction.ghx","item_id":135,"tamir_curveLength":0,"tamir_PipeRadius":0.25,"bake":"Pipe"}]
         //[{"gh_file":"brace1.gh","item_id":139,"NumCircles":0.5,"bake":"Bracelet"}]
-   
 
-     
 
-     
-  
+
+
+
+
     }
 }
