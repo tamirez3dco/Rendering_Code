@@ -56,7 +56,6 @@ namespace Runing_Form
 
                 Process p = Process.Start(psi);
                 //p.WaitForInputIdle();
-                Debug.WriteLine("between 1");
                 p.WaitForExit();
             }
             catch (Exception e)

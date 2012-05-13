@@ -169,7 +169,7 @@ namespace Runing_Form
                 Thread.Sleep(1000);
 
                 String sceneFilePath = scenes_DirPath + Path.DirectorySeparatorChar + sceneFileName;
-                String replicateFilePath = scenes_DirPath + Path.DirectorySeparatorChar + "rep_" + i + ".3dm";
+                String replicateFilePath = scenes_DirPath + Path.DirectorySeparatorChar + "rep_" + i + "_"+sceneFileName;
                 File.Copy(sceneFilePath, replicateFilePath, true);
 
 
@@ -196,6 +196,7 @@ namespace Runing_Form
                 }
 
                 GHR ghr = new GHR(i, rhino, grasshopper);
+                ghr.current_Rhino_File = sceneFileName;
                 ghrs.Add(ghr);
 
 

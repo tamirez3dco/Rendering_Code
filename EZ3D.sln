@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runing_Form_Proj", "Runing_Form\Runing_Form_Proj.csproj", "{B35B4A19-4657-4938-B561-FADC2ABC9615}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AWS_Batch_Tester", "AWS_Batch_Tester\AWS_Batch_Tester.csproj", "{645C3B9A-69C1-46CD-9089-E219BFF0B4F1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AWS_Batch_Tester", "AWS_Batch_Tester\AWS_Batch_Tester.csproj", "{3C39C898-54CB-4E05-95B4-B64E1A53B667}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,16 +25,16 @@ Global
 		{B35B4A19-4657-4938-B561-FADC2ABC9615}.Release|Mixed Platforms.Build.0 = Release|x86
 		{B35B4A19-4657-4938-B561-FADC2ABC9615}.Release|x86.ActiveCfg = Release|x86
 		{B35B4A19-4657-4938-B561-FADC2ABC9615}.Release|x86.Build.0 = Release|x86
-		{645C3B9A-69C1-46CD-9089-E219BFF0B4F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{645C3B9A-69C1-46CD-9089-E219BFF0B4F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{645C3B9A-69C1-46CD-9089-E219BFF0B4F1}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{645C3B9A-69C1-46CD-9089-E219BFF0B4F1}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{645C3B9A-69C1-46CD-9089-E219BFF0B4F1}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{645C3B9A-69C1-46CD-9089-E219BFF0B4F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{645C3B9A-69C1-46CD-9089-E219BFF0B4F1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{645C3B9A-69C1-46CD-9089-E219BFF0B4F1}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{645C3B9A-69C1-46CD-9089-E219BFF0B4F1}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{645C3B9A-69C1-46CD-9089-E219BFF0B4F1}.Release|x86.ActiveCfg = Release|Any CPU
+		{3C39C898-54CB-4E05-95B4-B64E1A53B667}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{3C39C898-54CB-4E05-95B4-B64E1A53B667}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{3C39C898-54CB-4E05-95B4-B64E1A53B667}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{3C39C898-54CB-4E05-95B4-B64E1A53B667}.Debug|x86.ActiveCfg = Debug|x86
+		{3C39C898-54CB-4E05-95B4-B64E1A53B667}.Debug|x86.Build.0 = Debug|x86
+		{3C39C898-54CB-4E05-95B4-B64E1A53B667}.Release|Any CPU.ActiveCfg = Release|x86
+		{3C39C898-54CB-4E05-95B4-B64E1A53B667}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{3C39C898-54CB-4E05-95B4-B64E1A53B667}.Release|Mixed Platforms.Build.0 = Release|x86
+		{3C39C898-54CB-4E05-95B4-B64E1A53B667}.Release|x86.ActiveCfg = Release|x86
+		{3C39C898-54CB-4E05-95B4-B64E1A53B667}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

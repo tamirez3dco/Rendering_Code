@@ -43,6 +43,7 @@
             this.richTextBox4 = new System.Windows.Forms.RichTextBox();
             this.button3 = new System.Windows.Forms.Button();
             this.operationTextBox = new System.Windows.Forms.TextBox();
+            this.sceneTextBox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // richTextBox1
@@ -61,7 +62,7 @@
             this.richTextBox2.TabIndex = 1;
             this.richTextBox2.Tag = "";
             this.richTextBox2.Text = "[{\"gh_file\":\"20091109_ghx060019_Surfaces_Introduction.ghx\",\"item_id\":502,\"tamir_c" +
-    "urveLength\":0,\"tamir_PipeRadius\":0.25,\"bake\":\"Pipe\"}]";
+                "urveLength\":0,\"tamir_PipeRadius\":0.25,\"bake\":\"Pipe\"}]";
             // 
             // button1
             // 
@@ -127,7 +128,7 @@
             this.id_till_textBox.Name = "id_till_textBox";
             this.id_till_textBox.Size = new System.Drawing.Size(23, 20);
             this.id_till_textBox.TabIndex = 12;
-            this.id_till_textBox.Text = "8";
+            this.id_till_textBox.Text = "1";
             // 
             // button2
             // 
@@ -175,11 +176,20 @@
             this.operationTextBox.TabIndex = 17;
             this.operationTextBox.Text = "render_model";
             // 
+            // sceneTextBox
+            // 
+            this.sceneTextBox.Location = new System.Drawing.Point(99, 118);
+            this.sceneTextBox.Name = "sceneTextBox";
+            this.sceneTextBox.Size = new System.Drawing.Size(75, 20);
+            this.sceneTextBox.TabIndex = 18;
+            this.sceneTextBox.Text = "scene13.3dm";
+            // 
             // Batch_Tester_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(685, 577);
+            this.Controls.Add(this.sceneTextBox);
             this.Controls.Add(this.operationTextBox);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.richTextBox4);
@@ -220,5 +230,6 @@
         private System.Windows.Forms.RichTextBox richTextBox4;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.TextBox operationTextBox;
+        private System.Windows.Forms.TextBox sceneTextBox;
     }
 }

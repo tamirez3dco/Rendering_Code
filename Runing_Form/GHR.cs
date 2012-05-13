@@ -31,13 +31,15 @@ namespace Runing_Form
         public String bake = null;
         public int item_id;
         public Dictionary<String, Double> propValues = new Dictionary<string, double>();
-        public String gh_filePath;
+        public String gh_fileName;
+        public String scene;
         public string operation;
 
         public override string ToString()
         {
             String res = "item_id=" + item_id.ToString() + Environment.NewLine;
-            res += "gh_filePath=" + gh_filePath + Environment.NewLine;
+            res += "gh_fileName=" + gh_fileName + Environment.NewLine;
+            res += "rhino_fileName=" + scene + Environment.NewLine;
             res += "bake=" + bake + Environment.NewLine;
             res += "params:" + Environment.NewLine;
             foreach (String key in propValues.Keys)
@@ -54,6 +56,7 @@ namespace Runing_Form
         public dynamic grasshopper;
         public int id = -1;
         public String current_GH_file = null;
+        public String current_Rhino_File = null;
 
         public static String Python_Scripts_Actual_Folder_Path = null;
 
@@ -81,7 +84,7 @@ namespace Runing_Form
                 Console.WriteLine("ERROR !!! - (!jsonDict.ContainsKey(\"gh_file\"))");
                 return false;
             }
-            else imageData.gh_filePath = (String)jsonDict["gh_file"];
+            else imageData.gh_fileName = (String)jsonDict["gh_file"];
 
             if (!jsonDict.ContainsKey("item_id"))
             {
@@ -89,6 +92,12 @@ namespace Runing_Form
                 return false;
             }
             else imageData.item_id = (int)jsonDict["item_id"];
+
+            if (jsonDict.ContainsKey("scene"))
+            {
+                imageData.scene = (String)jsonDict["scene"];
+            }
+            else imageData.scene = null;
 
             if (!jsonDict.ContainsKey("bake"))
             {
@@ -253,24 +262,56 @@ namespace Runing_Form
             String logLine = "Starting Get_Pictures()";
             MyLog(logLine);
 
+            if (imageData.scene != null)
+            {
+                if (imageData.scene != current_Rhino_File)
+                {
+                    String sceneFilePath = Runing_Form.scenes_DirPath + Path.DirectorySeparatorChar + imageData.scene;
+                    String replicateFilePath = Runing_Form.scenes_DirPath + Path.DirectorySeparatorChar + "rep_" + id +"_"+ imageData.scene;
+                    File.Copy(sceneFilePath, replicateFilePath, true);
+                    try
+                    {
+                        String saveCommand = "-Save N";
+                        int saveCommandRes = rhino.RunScript(saveCommand, 1);
+                    }
+                    catch (Exception e)
+                    {
+                    }
 
-            if (imageData.gh_filePath.EndsWith(".gh") || imageData.gh_filePath.EndsWith(".ghx"))
+                    Console.WriteLine("Loading scene Rhino # " + id + " at " + DateTime.Now);
+                    String openCommand = "-Open " + replicateFilePath;
+                    int openCommandRes = rhino.RunScript(openCommand, 1);
+
+                    int isInitialized = rhino.IsInitialized();
+                    if (isInitialized != 1)
+                    {
+                        MyLog("ERROR!!: " + isInitialized + "==isInitialized != 1)");
+                        return false;
+                    }
+
+                    current_Rhino_File = imageData.scene;
+                }
+            }
+ 
+
+
+            if (imageData.gh_fileName.EndsWith(".gh") || imageData.gh_fileName.EndsWith(".ghx"))
             {
 
-                if (current_GH_file == imageData.gh_filePath)
+                if (current_GH_file == imageData.gh_fileName)
                 {
-                    logLine = "Skipping Open_GH_File(imageData[imageData.gh_filePath=" + imageData.gh_filePath + ")";
+                    logLine = "Skipping Open_GH_File(imageData[imageData.gh_filePath=" + imageData.gh_fileName + ")";
                     MyLog(logLine);
                 }
                 else
                 {
-                    if (!Open_GH_File(Runing_Form.GH_DirPath + Path.DirectorySeparatorChar + imageData.gh_filePath))
+                    if (!Open_GH_File(Runing_Form.GH_DirPath + Path.DirectorySeparatorChar + imageData.gh_fileName))
                     {
-                        logLine = "Open_GH_File(imageData[imageData.gh_filePath=" + imageData.gh_filePath + "); failed";
+                        logLine = "Open_GH_File(imageData[imageData.gh_filePath=" + imageData.gh_fileName + "); failed";
                         MyLog(logLine);
                         return false;
                     }
-                    current_GH_file = imageData.gh_filePath;
+                    current_GH_file = imageData.gh_fileName;
                 }
 
 
@@ -368,7 +409,7 @@ namespace Runing_Form
             }
 
             //String runCommand = "vase1 rad1=0.2 rad2=0.42 rad3=0.6 rad4=0.5 Enter";
-            String runCommand = imageData.gh_filePath + " " + commParams + " Enter";
+            String runCommand = imageData.gh_fileName + " " + commParams + " Enter";
             rhino.RunScript(runCommand, 1);
 
             String captureCommand = "-FlamingoRenderTo f " + outputPath + " " + 180 + " " + 180;

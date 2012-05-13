@@ -41,6 +41,7 @@ namespace AWS_Batch_Tester
 
 
                     dict["gh_file"] = file_textBox.Text;
+                    dict["scene"] = sceneTextBox.Text;
                     dict["item_id"] = (first_id + i);
                     dict["params"] = new Dictionary<String,Object>();
                     Dictionary<String, Object> paramsDict = new Dictionary<String, Object>();
