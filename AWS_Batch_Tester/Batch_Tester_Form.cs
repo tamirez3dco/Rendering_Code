@@ -28,44 +28,51 @@ namespace AWS_Batch_Tester
         {
             try
             {
-
                 int first_id = int.Parse(id_textBox.Text);
                 int num_msgs = int.Parse(id_till_textBox.Text);
                 double initialValue = double.Parse(value_textBox.Text);
                 double delta = double.Parse(delta_textBox.Text);
                 //[{"gh_file":"brace1.gh","item_id":501,"NumCircles":0.5,"bake":"Bracelet"}]
-                List<SendMessageBatchRequestEntry> msgEntries = new List<SendMessageBatchRequestEntry>();
-                for (int i = 0; i < num_msgs; i++)
+                String[] optionalScenes = { "scene11.3dm", "scene13.3dm", "scene15.3dm", "scene17.3dm" };
+                for (int j = 0; j < Math.Ceiling((double)num_msgs / 10); j++)
                 {
-                    Dictionary<String, Object> dict = new Dictionary<String, Object>();
+                    List<SendMessageBatchRequestEntry> msgEntries = new List<SendMessageBatchRequestEntry>();
+                    for (int i = j * 10; i <Math.Min(num_msgs,(j+1)*10); i++)
+                    {
+                        Dictionary<String, Object> dict = new Dictionary<String, Object>();
 
 
-                    dict["gh_file"] = file_textBox.Text;
-                    dict["scene"] = sceneTextBox.Text;
-                    dict["item_id"] = (first_id + i);
-                    dict["params"] = new Dictionary<String,Object>();
-                    Dictionary<String, Object> paramsDict = new Dictionary<String, Object>();
-                    double propValue = Math.Round(initialValue + i * delta,1);
-                    paramsDict[property_textBox.Text]=propValue;
-                    dict["params"] = paramsDict;
-                    //List<String> bakeries = new List<String>();
-                    //bakeries.Add(bake_textBox.Text);
-                    dict["bake"] = bake_textBox.Text;
-                    dict["operation"] = "render_model";
+                        dict["gh_file"] = file_textBox.Text;
 
-                    JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
-                    string jsonString = serializer.Serialize((object)dict);
+                        //dict["scene"] = sceneTextBox.Text;
+                        dict["scene"] = optionalScenes[(j/3)%optionalScenes.Length];
+                        //if (i == 7) dict["scene"] = "no_such_file";
+                        dict["item_id"] = (first_id + i).ToString();
+                        dict["params"] = new Dictionary<String, Object>();
+                        Dictionary<String, Object> paramsDict = new Dictionary<String, Object>();
+                        double propValue = Math.Round(initialValue + ((i * 3) % 10) * delta, 1);
+                        //double propValue = (i % 2 == 0) ? 0.1 : 0.9;
+                        paramsDict[property_textBox.Text] = propValue;
+                        dict["params"] = paramsDict;
+                        //List<String> bakeries = new List<String>();
+                        //bakeries.Add(bake_textBox.Text);
+                        dict["bake"] = bake_textBox.Text;
+                        dict["operation"] = "render_model";
 
-                    SendMessageBatchRequestEntry entry = new SendMessageBatchRequestEntry();
-                    entry.MessageBody =  Runing_Form.Utils.EncodeTo64(jsonString);
-                    entry.Id = i.ToString();
-                    msgEntries.Add(entry);
+                        JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
+                        string jsonString = serializer.Serialize((object)dict);
+
+                        SendMessageBatchRequestEntry entry = new SendMessageBatchRequestEntry();
+                        entry.MessageBody = Runing_Form.Utils.EncodeTo64(jsonString);
+                        entry.Id = i.ToString();
+                        msgEntries.Add(entry);
+                    }
+
+                    SendMessageBatchRequest sendMessageBatchRequest = new SendMessageBatchRequest();
+                    sendMessageBatchRequest.QueueUrl = requests_Q_url;
+                    sendMessageBatchRequest.Entries = msgEntries;
+                    client.SendMessageBatch(sendMessageBatchRequest);
                 }
-
-                SendMessageBatchRequest sendMessageBatchRequest = new SendMessageBatchRequest();
-                sendMessageBatchRequest.QueueUrl = requests_Q_url;
-                sendMessageBatchRequest.Entries = msgEntries;
-                client.SendMessageBatch(sendMessageBatchRequest);
             }
             catch (AmazonSQSException ex)
             {

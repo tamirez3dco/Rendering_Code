@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runing_Form_Proj", "Runing_
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AWS_Batch_Tester", "AWS_Batch_Tester\AWS_Batch_Tester.csproj", "{3C39C898-54CB-4E05-95B4-B64E1A53B667}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerMonitor", "ServerMonitor\ServerMonitor.csproj", "{D0B08AE0-EE09-4EF5-A6DF-2B0AA617B712}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,16 @@ Global
 		{3C39C898-54CB-4E05-95B4-B64E1A53B667}.Release|Mixed Platforms.Build.0 = Release|x86
 		{3C39C898-54CB-4E05-95B4-B64E1A53B667}.Release|x86.ActiveCfg = Release|x86
 		{3C39C898-54CB-4E05-95B4-B64E1A53B667}.Release|x86.Build.0 = Release|x86
+		{D0B08AE0-EE09-4EF5-A6DF-2B0AA617B712}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{D0B08AE0-EE09-4EF5-A6DF-2B0AA617B712}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{D0B08AE0-EE09-4EF5-A6DF-2B0AA617B712}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{D0B08AE0-EE09-4EF5-A6DF-2B0AA617B712}.Debug|x86.ActiveCfg = Debug|x86
+		{D0B08AE0-EE09-4EF5-A6DF-2B0AA617B712}.Debug|x86.Build.0 = Debug|x86
+		{D0B08AE0-EE09-4EF5-A6DF-2B0AA617B712}.Release|Any CPU.ActiveCfg = Release|x86
+		{D0B08AE0-EE09-4EF5-A6DF-2B0AA617B712}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{D0B08AE0-EE09-4EF5-A6DF-2B0AA617B712}.Release|Mixed Platforms.Build.0 = Release|x86
+		{D0B08AE0-EE09-4EF5-A6DF-2B0AA617B712}.Release|x86.ActiveCfg = Release|x86
+		{D0B08AE0-EE09-4EF5-A6DF-2B0AA617B712}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -136,6 +136,7 @@ namespace Runing_Form
                 return false;
             }
 
+
             if (!Utils.Refresh_Rhino_GH_Data_From_Github())
             {
                 Console.WriteLine("ERROR !!!- Refresh_Rhino_GH_Data_From_Github() failed!!");
@@ -150,57 +151,32 @@ namespace Runing_Form
             ghrs = new List<GHR>();
             for (int i = 0; i < num_of_rhinos; i++)
             {
-                Console.WriteLine("Starting Rhino # " + i + " at " + DateTime.Now);
-                Rhino5Application rhino = new Rhino5Application();
-                rhino.Visible = 1;
-                if (rhino == null)
+                Rhino_Wrapper rhino;
+                if (!startSingleRhino(out rhino))
                 {
-                    Console.WriteLine("(i=" + i + ") rhino == null");
+                    Console.WriteLine("startSingleRhino failed!!!");
                     return false;
                 }
-                for (int tries = 0; tries < 200; tries++)
-                {
-                    if (rhino.IsInitialized() == 1)
-                    {
-                        break;
-                    }
-                    Thread.Sleep(100);
-                }
-                Thread.Sleep(1000);
-
                 String sceneFilePath = scenes_DirPath + Path.DirectorySeparatorChar + sceneFileName;
+/*
                 String replicateFilePath = scenes_DirPath + Path.DirectorySeparatorChar + "rep_" + i + "_"+sceneFileName;
                 File.Copy(sceneFilePath, replicateFilePath, true);
-
+*/
 
                 Console.WriteLine("Loading scene Rhino # " + i + " at " + DateTime.Now);
-                String openCommand = "-Open " + replicateFilePath;
-                int openCommandRes = rhino.RunScript(openCommand, 1);
-
-                int isInitialized = rhino.IsInitialized();
-                if (isInitialized != 1)
-                {
-                    Console.WriteLine("ERROR!!: (i=" + i + ") (" + isInitialized + "==isInitialized != 1)");
-                    return false;
-                }
-                Console.WriteLine("Starting Grasshopper # " + i + " at " + DateTime.Now);
-                rhino.RunScript("_Grasshopper", 0);
-                Thread.Sleep(2000);
-                dynamic grasshopper = rhino.GetPlugInObject("b45a29b1-4343-4035-989e-044e8580d9cf", "00000000-0000-0000-0000-000000000000") as dynamic;
+                String openCommand = "-Open " + sceneFilePath;
+                int openCommandRes = rhino.rhino_app.RunScript(openCommand, 1);
 
 
-                if (grasshopper == null)
-                {
-                    Console.WriteLine("ERROR!!: (i=" + i + ") (grasshopper == null)");
-                    return false;
-                }
-
-                GHR ghr = new GHR(i, rhino, grasshopper);
+                GHR ghr = new GHR(i, rhino);
                 ghr.current_Rhino_File = sceneFileName;
                 ghrs.Add(ghr);
 
+                String editPythonCommand = "EditPythonScript";
+                rhino.rhino_app.RunScript(editPythonCommand, 0);
+                Thread.Sleep(2000);
 
-                rhino.Visible = rhino_visible ? 1 : 0;
+                rhino.rhino_app.Visible = rhino_visible ? 1 : 0;
 
 
                 Thread thread = new Thread(new ThreadStart(ghr.new_runner));
@@ -223,7 +199,7 @@ namespace Runing_Form
             }
 
             Utils.lastMsg_Time = DateTime.Now;
-            check_ShutDown_Condition_Timer.Enabled = true;
+            checkSpareRhinos_Timer.Enabled = true;
 
             return true;
         }
@@ -273,7 +249,7 @@ namespace Runing_Form
             return true;
         }
 
-        private bool get_tempImages_files_Dir(out String image_DirPath)
+        public static bool get_tempImages_files_Dir(out String image_DirPath)
         {
             image_DirPath = null;
             DirectoryInfo dir = new DirectoryInfo(Directory.GetCurrentDirectory());
@@ -333,7 +309,7 @@ namespace Runing_Form
             var newVsibility = !Runing_Form.rhino_visible;
             foreach (GHR ghr in ghrs)
             {
-                ghr.rhino.Visible = newVsibility ? 1 : 0;
+                ghr.rhino_wrapper.rhino_app.Visible = newVsibility ? 1 : 0;
             }
             Runing_Form.rhino_visible = newVsibility;
         }
@@ -356,6 +332,102 @@ namespace Runing_Form
             {
                 Utils.Shut_Down_Server();
             }
+        }
+
+        private bool startSingleRhino(out Rhino_Wrapper newRhino)
+        {
+            newRhino = new Rhino_Wrapper();
+            lock (GHR.locker)
+            {
+                Process[] procs_before = Process.GetProcessesByName("Rhino4");
+                Console.WriteLine("Starting Rhino at " + DateTime.Now);
+                newRhino.rhino_app = new Rhino5Application();
+                newRhino.rhino_app.ReleaseWithoutClosing = 1;
+                newRhino.rhino_app.Visible = rhino_visible ? 1 : 0;
+                if (newRhino == null)
+                {
+                    Console.WriteLine("rhino == null");
+                    return false;
+                }
+                for (int tries = 0; tries < 200; tries++)
+                {
+                    if (newRhino.rhino_app.IsInitialized() == 1)
+                    {
+                        break;
+                    }
+                    Thread.Sleep(100);
+                }
+                Process[] procs_after = Process.GetProcessesByName("Rhino4");
+                List<int> pids_before = new List<int>();
+                List<int> new_pids = new List<int>();
+                foreach (Process p in procs_before) pids_before.Add(p.Id);
+                foreach (Process p in procs_after)
+                {
+                    if (!pids_before.Contains(p.Id))
+                    {
+                        new_pids.Add(p.Id);
+                    }
+                }
+
+                if (new_pids.Count != 1)
+                {
+                    Console.WriteLine("ERROR ! - (new_pids.Count != 1 =" + new_pids.Count);
+                    Console.WriteLine("procs_before=:");
+                    foreach (Process p in procs_before) Console.WriteLine(p.Id);
+                    Console.WriteLine("procs_after=:");
+                    foreach (Process p in procs_after) Console.WriteLine(p.Id);
+                    return false;
+                }
+                else
+                {
+                    newRhino.rhino_pid = new_pids[0];
+                }
+            }
+
+            Console.WriteLine("Starting Grasshopper at " + DateTime.Now);
+            newRhino.rhino_app.RunScript("_Grasshopper", 0);
+            Thread.Sleep(1000);
+
+            newRhino.grasshopper = newRhino.rhino_app.GetPlugInObject("b45a29b1-4343-4035-989e-044e8580d9cf", "00000000-0000-0000-0000-000000000000") as dynamic;
+            if (newRhino.grasshopper == null)
+            {
+                Console.WriteLine("ERROR!!: (grasshopper == null)");
+                return false;
+            }
+            newRhino.grasshopper.HideEditor();
+
+            return true;
+        }
+
+        private void checkSpareRhinos_Timer_Tick(object sender, EventArgs e)
+        {
+            checkSpareRhinos_Timer.Enabled = false;
+            if (GHR.spareRhinos.Count >= 2 * num_of_rhinos)
+            {
+                checkSpareRhinos_Timer.Enabled = true;
+                return;
+            }
+
+            bool cond_1 = (DateTime.Now - Utils.lastMsg_Time).TotalSeconds > 5;
+            bool cond_2 = GHR.spareRhinos.Count < Math.Min(2, num_of_rhinos);
+            if (cond_1 || cond_2)
+            {
+                Console.WriteLine("checkSpareRhinos_Timer_Tick GHR.spareRhinos.Count=" + GHR.spareRhinos.Count + " opening new Rhino");
+                Rhino_Wrapper newRhino;
+                if (!startSingleRhino(out newRhino))
+                {
+                    Console.WriteLine("startSingleRhino() failed!!! at " + DateTime.Now);
+                    //checkSpareRhinos_Timer.Enabled = true;
+                    return;
+                }
+                GHR.pushRhinoIntoQueue(newRhino);
+            }
+            else
+            {
+                //Console.WriteLine("checkSpareRhinos_Timer_Tick GHR.spareRhinos.Count=" + GHR.spareRhinos.Count +" nothing to do");
+            }
+            checkSpareRhinos_Timer.Enabled = true;
+
         }
 
 

@@ -35,6 +35,7 @@ namespace Runing_Form
             {
                 Utils.is_amazon_machine = false; // a localHost debug session - get the CFG dictionary from Application param
                 Utils.user_Data_String = args[0];
+                Console.WriteLine("args[0]=" + args[0]);
             }
             Application.Run(new Runing_Form());
         }

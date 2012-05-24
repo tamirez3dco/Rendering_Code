@@ -29,7 +29,7 @@ namespace Runing_Form
     public class ImageDataRequest
     {
         public String bake = null;
-        public int item_id;
+        public String item_id;
         public Dictionary<String, Double> propValues = new Dictionary<string, double>();
         public String gh_fileName;
         public String scene;
@@ -50,16 +50,48 @@ namespace Runing_Form
         }
     }
 
+    public class Rhino_Wrapper
+    {
+        public Rhino5Application rhino_app;
+        public int rhino_pid;
+        public DateTime creationTime;
+        public DateTime killTime;
+        public dynamic grasshopper;
+    }
+
     public class GHR
     {
-        public Rhino5Application rhino;
-        public dynamic grasshopper;
+        public Rhino_Wrapper rhino_wrapper;
         public int id = -1;
         public String current_GH_file = null;
         public String current_Rhino_File = null;
 
         public static String Python_Scripts_Actual_Folder_Path = null;
 
+        public static Queue<Rhino_Wrapper> spareRhinos = new Queue<Rhino_Wrapper>();
+        public static Queue<int> rhino_requestors_Q = new Queue<int>();
+        //public static Dictionary<
+        public static Type locker = typeof(GHR);
+        public static Type requestors_locker = typeof(GHR);
+        public static bool getRhinoFromQueue(out Rhino_Wrapper outRhino)
+        {
+            outRhino = null;
+            lock (locker)
+            {
+                if (spareRhinos.Count == 0) return false;
+                outRhino = spareRhinos.Dequeue();
+                return true;
+            }
+        }
+
+        public static bool pushRhinoIntoQueue(Rhino_Wrapper newRhino)
+        {
+            lock (locker)
+            {
+                spareRhinos.Enqueue(newRhino);
+            }
+            return true;
+        }
 
         public static bool deciferImageDataFromBody(String msgBody, out ImageDataRequest imageData)
         {
@@ -91,7 +123,7 @@ namespace Runing_Form
                 Console.WriteLine("ERROR !!! - (!jsonDict.ContainsKey(\"item_id\"))");
                 return false;
             }
-            else imageData.item_id = (int)jsonDict["item_id"];
+            else imageData.item_id = (String)jsonDict["item_id"];
 
             if (jsonDict.ContainsKey("scene"))
             {
@@ -136,11 +168,10 @@ namespace Runing_Form
         }
 
 
-        public GHR(int id, Rhino5Application rhino, dynamic grasshopper)
+        public GHR(int id, Rhino_Wrapper rhino)
         {
             this.id = id;
-            this.grasshopper = grasshopper;
-            this.rhino = rhino;
+            this.rhino_wrapper = rhino;
 
         }
 
@@ -203,12 +234,9 @@ namespace Runing_Form
                 String imageFilePath = Runing_Form.images_DirPath + Path.DirectorySeparatorChar + "yofi_" + imageData.item_id + ".jpg";
                 if (!Process_Into_Image_File(imageData, imageFilePath))
                 {
-                    MyLog("Process_Msg_Into_Image_File(msg) failed!!!");
-                    // Add Msg to Queue_Readies
-                    if (!SQS.Send_Msg_To_Readies_Q(RenderStatus.ERROR, imageData.item_id, beforeProcessingTime))
-                    {
-                        MyLog("Form1.Send_Msg_To_Readies_Q(status=ERROR,imageData.item_id=" + imageData.item_id + ") failed");
-                    }
+                    String logLine = "Process_Msg_Into_Image_File(msg) failed!!! (). ImageData=" + imageData.ToString();
+                    MyLog(logLine);
+                    SQS.Send_Msg_To_ERROR_Q(id, logLine);
                     return false;
                 }
 
@@ -244,16 +272,47 @@ namespace Runing_Form
 
             while (true)
             {
+
                 if (!single_cycle())
                 {
                     MyLog("single_cycle() failed!!!");
+                    if (!SQS.Send_Msg_To_ERROR_Q(id, "single_cycle() returned false"))
+                    {
+                        MyLog("And could not EVEN send the ERROR msg to the ERROR Q");
+                    }
                     return;
                 }
             }
         }
 
 
-
+        private bool waitForRhinoFromQueue(out Rhino_Wrapper rhinoFromQueue, int tries, int delayEachTry)
+        {
+            rhinoFromQueue = null;
+            MyLog("GHr id=" + id + " requesting new Rhino (before lock). Before rhino_requestors_Q.count=" + rhino_requestors_Q.Count);
+            lock (GHR.requestors_locker)
+            {
+                MyLog("GHr id=" + id + " requesting new Rhino. Before rhino_requestors_Q.count=" + rhino_requestors_Q.Count);
+                rhino_requestors_Q.Enqueue(id);
+            }
+            for (int i = 0; i < tries; i++)
+            {
+                lock (GHR.requestors_locker)
+                {
+                    if (rhino_requestors_Q.Peek() == id)
+                    {
+                        if (GHR.getRhinoFromQueue(out rhinoFromQueue))
+                        {
+                            rhino_requestors_Q.Dequeue();
+                            MyLog("GHr id=" + id + " received new Rhino. After rhino_requestors_Q.count=" + rhino_requestors_Q.Count);
+                            return true;
+                        }
+                    }
+                }
+                Thread.Sleep(delayEachTry);
+            }
+            return false;
+        }
 
         private bool Process_Into_Image_File(ImageDataRequest imageData, String resultingImagePath)
         {
@@ -262,27 +321,71 @@ namespace Runing_Form
             String logLine = "Starting Get_Pictures()";
             MyLog(logLine);
 
+            if (imageData.scene != current_Rhino_File)
+            {
+                // Close previous rhino
+                try
+                {
+                    MyLog("Save & Exit for rhino file=" + current_Rhino_File);
+
+                    try
+                    {
+                        if (rhino_wrapper.grasshopper != null) rhino_wrapper.grasshopper.CloseAllDocuments();
+                    }
+                    catch (Exception e_Stam)
+                    {
+                        MyLog("Exception e_Stam Process_Into_Image_File(0). e_Stam.Message=" + e_Stam.Message);
+                    }
+
+
+                    String exitCommand = "Exit";
+                    int exitCommandRes = rhino_wrapper.rhino_app.RunScript(exitCommand, 1);
+
+                    Process p = Process.GetProcessById(rhino_wrapper.rhino_pid);
+                    if (p != null) p.Kill();
+
+                }
+                catch (Exception e)
+                {
+                    MyLog("Exception in Process_Into_Image_File(1). e.Message="+e.Message);
+                    return false;
+                }
+
+                if (!waitForRhinoFromQueue(out rhino_wrapper, 150, 100))
+                {
+                    MyLog("waitForRhinoFromQueue() failed!!!");
+                    return false;
+                }
+                current_Rhino_File = null;
+                current_GH_file = null;
+            }
             if (imageData.scene != null)
             {
                 if (imageData.scene != current_Rhino_File)
                 {
-                    String sceneFilePath = Runing_Form.scenes_DirPath + Path.DirectorySeparatorChar + imageData.scene;
-                    String replicateFilePath = Runing_Form.scenes_DirPath + Path.DirectorySeparatorChar + "rep_" + id +"_"+ imageData.scene;
-                    File.Copy(sceneFilePath, replicateFilePath, true);
+/*
                     try
                     {
-                        String saveCommand = "-Save N";
-                        int saveCommandRes = rhino.RunScript(saveCommand, 1);
+                        String saveCommand = "-Save Enter";
+                        int saveCommandRes = rhino_wrapper.rhino_app.RunScript(saveCommand, 1);
                     }
                     catch (Exception e)
                     {
+                        MyLog("Exception in Process_Into_Image_File(2). e.Message=" + e.Message);
+
+                    }
+*/
+                    String sceneFilePath = Runing_Form.scenes_DirPath + Path.DirectorySeparatorChar + imageData.scene;
+                    if (!File.Exists(sceneFilePath))
+                    {
+                        return false;
                     }
 
                     Console.WriteLine("Loading scene Rhino # " + id + " at " + DateTime.Now);
-                    String openCommand = "-Open " + replicateFilePath;
-                    int openCommandRes = rhino.RunScript(openCommand, 1);
+                    String openCommand = "-Open " + sceneFilePath;
+                    int openCommandRes = rhino_wrapper.rhino_app.RunScript(openCommand, 1);
 
-                    int isInitialized = rhino.IsInitialized();
+                    int isInitialized = rhino_wrapper.rhino_app.IsInitialized();
                     if (isInitialized != 1)
                     {
                         MyLog("ERROR!!: " + isInitialized + "==isInitialized != 1)");
@@ -297,6 +400,7 @@ namespace Runing_Form
 
             if (imageData.gh_fileName.EndsWith(".gh") || imageData.gh_fileName.EndsWith(".ghx"))
             {
+
 
                 if (current_GH_file == imageData.gh_fileName)
                 {
@@ -324,7 +428,12 @@ namespace Runing_Form
             }
             else
             {
-                Run_Script_And_Render(imageData, resultingImagePath);
+                if (!Run_Script_And_Render(imageData, resultingImagePath))
+                {
+                    logLine = "Run_Script_And_Render(imageData=" + imageData.ToString() + "], filePath=" + resultingImagePath + ") failed !!!";
+                    MyLog(logLine);
+                    return false;
+                }
             }
 
             String fileName_on_S3 = imageData.item_id.ToString() + ".jpg";
@@ -353,9 +462,9 @@ namespace Runing_Form
 
             try
             {
-                grasshopper.CloseAllDocuments();
+                rhino_wrapper.grasshopper.CloseAllDocuments();
                 Thread.Sleep(1000);
-                grasshopper.OpenDocument(filePath);
+                rhino_wrapper.grasshopper.OpenDocument(filePath);
             }
             catch (Exception e)
             {
@@ -373,6 +482,7 @@ namespace Runing_Form
             Console.WriteLine("(id=" + id + ")(" + now.Hour + ":" + now.Minute + ":" + now.Second + "." + now.Millisecond + ") " + line);
         }
 
+
         public bool DeleteAll()
         {
             DateTime beforeTime = DateTime.Now;
@@ -384,14 +494,14 @@ namespace Runing_Form
 
             // Delete all
             String selectAllCommand = "SelLayerNumber 0";
-            int selectCommandRes = rhino.RunScript(selectAllCommand, 1);
+            int selectCommandRes = rhino_wrapper.rhino_app.RunScript(selectAllCommand, 1);
             fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
             logLine = "selectCommandRes=" + selectCommandRes + " After " + fromStart + " milliseconds";
             MyLog(logLine);
 
 
             String deleteCommand = "Delete";
-            int deleteCommandRes = rhino.RunScript(deleteCommand, 1);
+            int deleteCommandRes = rhino_wrapper.rhino_app.RunScript(deleteCommand, 1);
             fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
             logLine = "deleteCommandRes=" + selectCommandRes + " After " + fromStart + " milliseconds";
             MyLog(logLine);
@@ -400,20 +510,29 @@ namespace Runing_Form
         }
         public bool Run_Script_And_Render(ImageDataRequest imageData, String outputPath)
         {
-            DeleteAll();
-            String commParams = "";
-            foreach (String paramName in imageData.propValues.Keys)
+            try
             {
-                Double value = imageData.propValues[paramName];
-                commParams = commParams + " " + paramName + "=" + value;
+                DeleteAll();
+                String commParams = "";
+                foreach (String paramName in imageData.propValues.Keys)
+                {
+                    Double value = imageData.propValues[paramName];
+                    commParams = commParams + " " + paramName + "=" + value;
+                }
+
+                //String runCommand = "vase1 rad1=0.2 rad2=0.42 rad3=0.6 rad4=0.5 Enter";
+                String runCommand = imageData.gh_fileName + " " + commParams + " Enter";
+                rhino_wrapper.rhino_app.RunScript(runCommand, 1);
+
+
+                String captureCommand = "-FlamingoRenderTo f " + outputPath + " " + 180 + " " + 180;
+                int captureCommandRes = rhino_wrapper.rhino_app.RunScript(captureCommand, 1);
             }
-
-            //String runCommand = "vase1 rad1=0.2 rad2=0.42 rad3=0.6 rad4=0.5 Enter";
-            String runCommand = imageData.gh_fileName + " " + commParams + " Enter";
-            rhino.RunScript(runCommand, 1);
-
-            String captureCommand = "-FlamingoRenderTo f " + outputPath + " " + 180 + " " + 180;
-            int captureCommandRes = rhino.RunScript(captureCommand, 1);
+            catch (Exception e)
+            {
+                MyLog("Exception in Run_Script_And_Render(). e.Message="+e.Message);
+                return false;
+            }
 
             return true;
         }
@@ -430,7 +549,7 @@ namespace Runing_Form
             foreach (String paramName in imageData.propValues.Keys)
             {
                 Double value = imageData.propValues[paramName];
-                if (!grasshopper.AssignDataToParameter(paramName, value))
+                if (!rhino_wrapper.grasshopper.AssignDataToParameter(paramName, value))
                 {
                     fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
                     logLine = "grasshopper.AssignDataToParameter(paramName=" + paramName + ", value=" + value + ") returned false After " + fromStart + " milliseconds";
@@ -444,16 +563,16 @@ namespace Runing_Form
 
             }
 
-            grasshopper.RunSolver(true);
+            rhino_wrapper.grasshopper.RunSolver(true);
 
-            Object objRes = grasshopper.BakeDataInObject(imageData.bake);
+            Object objRes = rhino_wrapper.grasshopper.BakeDataInObject(imageData.bake);
 
             fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
             logLine = "After baking object:" + imageData.bake + " After " + fromStart + " milliseconds";
             //MyLog(logLine);
 
             String captureCommand = "-FlamingoRenderTo f " + outputPath + " " + 180 + " " + 180;
-            int captureCommandRes = rhino.RunScript(captureCommand, 1);
+            int captureCommandRes = rhino_wrapper.rhino_app.RunScript(captureCommand, 1);
             MyLog("Image rendered by:" + captureCommand);
 
             fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);

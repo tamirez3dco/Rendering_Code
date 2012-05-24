@@ -60,7 +60,7 @@ namespace Runing_Form
             }
             catch (Exception e)
             {
-                Debug.WriteLine("BAASA");
+                Console.WriteLine("Exception in Refresh_Rhino_GH_Data_From_Github(1). e.Message="+e.Message);
             }
 
 
@@ -74,7 +74,7 @@ namespace Runing_Form
             }
             catch (Exception e)
             {
-                Debug.WriteLine("BAASA");
+                Console.WriteLine("Exception in Refresh_Rhino_GH_Data_From_Github(2). e.Message=" + e.Message);
             }
 
             
@@ -110,6 +110,56 @@ namespace Runing_Form
         }
 
 
+        public static bool Get_Server_Launch_Time(out DateTime utcLaunch)
+        {
+            utcLaunch = new DateTime();
+            try
+            {
+                string sURL = "http://169.254.169.254/latest/dynamic/instance-identity/document";
+                WebRequest wrGETURL;
+                wrGETURL = WebRequest.Create(sURL);
+                WebProxy myProxy = new WebProxy("myproxy", 80);
+                myProxy.BypassProxyOnLocal = true;
+
+                Stream objStream;
+                objStream = wrGETURL.GetResponse().GetResponseStream();
+                StreamReader sr = new StreamReader(objStream);
+                String responseString = sr.ReadToEnd();
+                JavaScriptSerializer serializer = new JavaScriptSerializer();
+                var jsonObject = serializer.DeserializeObject(responseString) as Dictionary<string, object>;
+                Dictionary<String, Object> jsonDict = (Dictionary<String, Object>)jsonObject;
+                String utcKey = "pendingTime";
+                if (!jsonDict.ContainsKey(utcKey))
+                {
+                    Console.WriteLine("(!jsonDict.ContainsKey(" + utcKey +")) in Get_Server_Launch_Time()");
+                    return false;
+                }
+                String utcTimeString = (String)jsonDict[utcKey];
+                bool res = DateTime.TryParse(utcTimeString, out utcLaunch);
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Excpetion in Get_Server_Launch_Time(). = " + e.Message);
+                return false;
+            }
+
+
+
+            return true;
+        }
+
+
+        public static bool getUTC_Time_LastImage(DirectoryInfo dif, out DateTime resTs)
+        {
+            FileInfo[] jpgs = dif.GetFiles("*.jpg");
+            resTs = new DateTime();
+            foreach (FileInfo file in jpgs)
+            {
+                if (file.CreationTimeUtc > resTs) resTs = file.CreationTimeUtc;
+            }
+            return true;
+        }
 
         public static bool Get_My_IP_AND_DNS()
         {
@@ -191,7 +241,7 @@ namespace Runing_Form
         }
 
 
-        internal static void Shut_Down_Server()
+        public static void Shut_Down_Server()
         {
             ProcessStartInfo psi = new ProcessStartInfo("shutdown.exe", "/s /f");
             Process p = Process.Start(psi);
