@@ -49,6 +49,8 @@ namespace AWS_Batch_Tester
                         //if (i == 7) dict["scene"] = "no_such_file";
                         dict["item_id"] = (first_id + i).ToString();
                         dict["params"] = new Dictionary<String, Object>();
+                        dict["width"] = 350;
+                        dict["height"] = 400;
                         Dictionary<String, Object> paramsDict = new Dictionary<String, Object>();
                         double propValue = Math.Round(initialValue + ((i * 3) % 10) * delta, 1);
                         //double propValue = (i % 2 == 0) ? 0.1 : 0.9;

@@ -30,9 +30,10 @@ namespace Runing_Form
     {
         public String bake = null;
         public String item_id;
-        public Dictionary<String, Double> propValues = new Dictionary<string, double>();
+        public Dictionary<String, Object> propValues = new Dictionary<String,Object>();
         public String gh_fileName;
         public String scene;
+        public Size imageSize = new Size();
         public string operation;
 
         public override string ToString()
@@ -41,6 +42,7 @@ namespace Runing_Form
             res += "gh_fileName=" + gh_fileName + Environment.NewLine;
             res += "rhino_fileName=" + scene + Environment.NewLine;
             res += "bake=" + bake + Environment.NewLine;
+            res += "imageSize=" + imageSize.ToString() + Environment.NewLine;
             res += "params:" + Environment.NewLine;
             foreach (String key in propValues.Keys)
             {
@@ -138,6 +140,20 @@ namespace Runing_Form
             }
             else imageData.bake = (String)jsonDict["bake"];
 
+            if (!jsonDict.ContainsKey("width"))
+            {
+                Console.WriteLine("INFO - (!jsonDict.ContainsKey(\"width\"))");
+                imageData.imageSize.Width = 180;
+            }
+            else imageData.imageSize.Width = (int)jsonDict["width"];
+
+            if (!jsonDict.ContainsKey("height"))
+            {
+                Console.WriteLine("INFO - (!jsonDict.ContainsKey(\"height\"))");
+                imageData.imageSize.Height = 180;
+            }
+            else imageData.imageSize.Height = (int)jsonDict["height"];
+
             if (!jsonDict.ContainsKey("params"))
             {
                 Console.WriteLine("ERROR !!! - (!jsonDict.ContainsKey(\"params\"))");
@@ -147,7 +163,8 @@ namespace Runing_Form
             {
 
                 Dictionary<String, Double> paramValues = new Dictionary<string, double>();
-                Dictionary<String, Object> paramObjects = (Dictionary<String, Object>)jsonDict["params"];
+               imageData.propValues = (Dictionary<String, Object>)jsonDict["params"];
+/*
                 foreach (String key in paramObjects.Keys)
                 {
                     Object obj = paramObjects[key];
@@ -163,6 +180,7 @@ namespace Runing_Form
                     }
                 }
                 imageData.propValues = paramValues;
+ */
             }
             return true;
         }
@@ -231,8 +249,7 @@ namespace Runing_Form
             if (imageData.operation == "render_model")
             {
                 // Process Msg to picture
-                String imageFilePath = Runing_Form.images_DirPath + Path.DirectorySeparatorChar + "yofi_" + imageData.item_id + ".jpg";
-                if (!Process_Into_Image_File(imageData, imageFilePath))
+                if (!Process_Into_Image_File(imageData))
                 {
                     String logLine = "Process_Msg_Into_Image_File(msg) failed!!! (). ImageData=" + imageData.ToString();
                     MyLog(logLine);
@@ -314,7 +331,7 @@ namespace Runing_Form
             return false;
         }
 
-        private bool Process_Into_Image_File(ImageDataRequest imageData, String resultingImagePath)
+        private bool Process_Into_Image_File(ImageDataRequest imageData)
         {
             DateTime beforeTime = DateTime.Now;
 
@@ -363,18 +380,6 @@ namespace Runing_Form
             {
                 if (imageData.scene != current_Rhino_File)
                 {
-/*
-                    try
-                    {
-                        String saveCommand = "-Save Enter";
-                        int saveCommandRes = rhino_wrapper.rhino_app.RunScript(saveCommand, 1);
-                    }
-                    catch (Exception e)
-                    {
-                        MyLog("Exception in Process_Into_Image_File(2). e.Message=" + e.Message);
-
-                    }
-*/
                     String sceneFilePath = Runing_Form.scenes_DirPath + Path.DirectorySeparatorChar + imageData.scene;
                     if (!File.Exists(sceneFilePath))
                     {
@@ -419,21 +424,28 @@ namespace Runing_Form
                 }
 
 
-                if (!Set_Params_And_Render(imageData, resultingImagePath))
+                if (!Set_GH_Params(imageData))
                 {
-                    logLine = "Set_Params_And_Render(imageData=" + imageData.ToString() + "], filePath=" + resultingImagePath + ") failed !!!";
+                    logLine = "Set_Params(imageData=" + imageData.ToString() + "]) failed !!!";
                     MyLog(logLine);
                     return false;
                 }
             }
             else
             {
-                if (!Run_Script_And_Render(imageData, resultingImagePath))
+                if (!Run_Script(imageData))
                 {
-                    logLine = "Run_Script_And_Render(imageData=" + imageData.ToString() + "], filePath=" + resultingImagePath + ") failed !!!";
+                    logLine = "Run_Script(imageData=" + imageData.ToString() + "]) failed !!!";
                     MyLog(logLine);
                     return false;
                 }
+            }
+
+            String resultingImagePath;
+            if (!Render(imageData, out resultingImagePath))
+            {
+                MyLog("Render(imageData=" + imageData.ToString() + ") failed !!!");
+                return false;
             }
 
             String fileName_on_S3 = imageData.item_id.ToString() + ".jpg";
@@ -508,25 +520,36 @@ namespace Runing_Form
             return true;
 
         }
-        public bool Run_Script_And_Render(ImageDataRequest imageData, String outputPath)
+        public bool Run_Script(ImageDataRequest imageData)
         {
+            MyLog("Starting Run_Script_And_Render(ImageData imageData=" + imageData.ToString() + "))");
+            DateTime beforeTime = DateTime.Now;
             try
             {
                 DeleteAll();
                 String commParams = "";
+                List<String> stringValues = new List<string>();
                 foreach (String paramName in imageData.propValues.Keys)
                 {
-                    Double value = imageData.propValues[paramName];
-                    commParams = commParams + " " + paramName + "=" + value;
+                    Object propValue = imageData.propValues[paramName];
+                    Type propValueType = propValue.GetType();
+                    if (propValueType == typeof(Double) || propValueType == typeof(Decimal))
+                    {
+                        commParams = commParams + " " + paramName + "=" + imageData.propValues[paramName].ToString();
+                    }
+                    else if (propValue.GetType() == typeof(String))
+                    {
+                        stringValues.Add((String)propValue);
+                    }
                 }
 
                 //String runCommand = "vase1 rad1=0.2 rad2=0.42 rad3=0.6 rad4=0.5 Enter";
                 String runCommand = imageData.gh_fileName + " " + commParams + " Enter";
+                foreach (String value in stringValues)
+                {
+                    runCommand += " "+ value + " Enter";
+                }
                 rhino_wrapper.rhino_app.RunScript(runCommand, 1);
-
-
-                String captureCommand = "-FlamingoRenderTo f " + outputPath + " " + 180 + " " + 180;
-                int captureCommandRes = rhino_wrapper.rhino_app.RunScript(captureCommand, 1);
             }
             catch (Exception e)
             {
@@ -534,11 +557,38 @@ namespace Runing_Form
                 return false;
             }
 
+            
+            int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
+            MyLog("Script ran After " + fromStart + " milliseconds");
+
             return true;
         }
-        public bool Set_Params_And_Render(ImageDataRequest imageData, String outputPath)
+
+        private bool Render(ImageDataRequest imageData, out String outputPath)
         {
-            MyLog("Starting Save_A_Picture(ImageData imageData, String outputPath))");
+            outputPath = Runing_Form.images_DirPath + Path.DirectorySeparatorChar + "yofi_" + imageData.item_id + ".jpg";
+            try
+            {
+
+                DateTime beforeTime = DateTime.Now;
+                String captureCommand = "-FlamingoRenderTo f " + outputPath + " " + imageData.imageSize.Width + " " + imageData.imageSize.Height;
+                int captureCommandRes = rhino_wrapper.rhino_app.RunScript(captureCommand, 1);
+
+                int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
+                MyLog("After rendering by: " + captureCommand + "  into" + outputPath + " After " + fromStart + " milliseconds");
+
+            }
+            catch (Exception e)
+            {
+                MyLog("Excpetion in Render(imageData=" + imageData.ToString() + ", String outputPath=" + outputPath + ", e.Message=" + e.Message);
+                return false;
+            }
+
+            return true;
+        }
+        public bool Set_GH_Params(ImageDataRequest imageData)
+        {
+            MyLog("Starting Set_Params_And_Render(ImageData imageData="+imageData.ToString()+")");
             DateTime beforeTime = DateTime.Now;
             String logLine;
             int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
@@ -548,7 +598,7 @@ namespace Runing_Form
 
             foreach (String paramName in imageData.propValues.Keys)
             {
-                Double value = imageData.propValues[paramName];
+                Object value = imageData.propValues[paramName];
                 if (!rhino_wrapper.grasshopper.AssignDataToParameter(paramName, value))
                 {
                     fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
@@ -569,15 +619,8 @@ namespace Runing_Form
 
             fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
             logLine = "After baking object:" + imageData.bake + " After " + fromStart + " milliseconds";
-            //MyLog(logLine);
-
-            String captureCommand = "-FlamingoRenderTo f " + outputPath + " " + 180 + " " + 180;
-            int captureCommandRes = rhino_wrapper.rhino_app.RunScript(captureCommand, 1);
-            MyLog("Image rendered by:" + captureCommand);
-
-            fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
-            logLine = "After rendering into" + outputPath + " After " + fromStart + " milliseconds";
             MyLog(logLine);
+
             return true;
         }
 

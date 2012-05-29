@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <StartArguments>
-    </StartArguments>
+    <StartArguments>{\"num_of_rhino_instances\":1,\"visible_rhino\":true,\"scene\":\"scene11.3dm\",\"request_Q_name\":\"tamir_request\",\"ready_Q_name\":\"tamir_ready\",\"s3_bucketName\":\"tamir_Bucket\",\"idle_minutes_to_shutdown\":45,\"is_amazon_machine\":false}</StartArguments>
   </PropertyGroup>
 </Project>
