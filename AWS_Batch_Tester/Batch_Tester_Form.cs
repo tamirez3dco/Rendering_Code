@@ -45,9 +45,16 @@ namespace AWS_Batch_Tester
                         dict["gh_file"] = file_textBox.Text;
 
                         //dict["scene"] = sceneTextBox.Text;
-                        dict["scene"] = optionalScenes[(j/3)%optionalScenes.Length];
+                        dict["scene"] = "multiLayer.3dm";
+                        //dict["scene"] = optionalScenes[(j/3)%optionalScenes.Length];
                         //if (i == 7) dict["scene"] = "no_such_file";
                         dict["item_id"] = (first_id + i).ToString();
+                        int magicNum = 5;
+                        int layerIndex = (i % magicNum);
+                        if (layerIndex > 0) layerIndex += 2;
+                        dict["layer_index"] = layerIndex;
+
+          
                         dict["params"] = new Dictionary<String, Object>();
                         dict["width"] = 350;
                         dict["height"] = 400;

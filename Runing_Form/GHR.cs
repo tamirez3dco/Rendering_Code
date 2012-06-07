@@ -35,6 +35,7 @@ namespace Runing_Form
         public String scene;
         public Size imageSize = new Size();
         public string operation;
+        public int layerIndex = -1;
 
         public override string ToString()
         {
@@ -154,6 +155,12 @@ namespace Runing_Form
             }
             else imageData.imageSize.Height = (int)jsonDict["height"];
 
+            if (jsonDict.ContainsKey("layer_index"))
+            {
+                imageData.layerIndex = (int)jsonDict["layer_index"];
+            }
+
+
             if (!jsonDict.ContainsKey("params"))
             {
                 Console.WriteLine("ERROR !!! - (!jsonDict.ContainsKey(\"params\"))");
@@ -164,23 +171,6 @@ namespace Runing_Form
 
                 Dictionary<String, Double> paramValues = new Dictionary<string, double>();
                imageData.propValues = (Dictionary<String, Object>)jsonDict["params"];
-/*
-                foreach (String key in paramObjects.Keys)
-                {
-                    Object obj = paramObjects[key];
-                    if (obj.GetType() == typeof(Decimal))
-                    {
-                        Decimal dec = (Decimal)paramObjects[key];
-                        paramValues[key] = Decimal.ToDouble(dec);
-                    }
-                    else if (obj.GetType() == typeof(int))
-                    {
-                        int _int = (int)paramObjects[key];
-                        paramValues[key] = (Double)_int;
-                    }
-                }
-                imageData.propValues = paramValues;
- */
             }
             return true;
         }
@@ -400,8 +390,18 @@ namespace Runing_Form
                     current_Rhino_File = imageData.scene;
                 }
             }
- 
 
+            if (!DeleteAll())
+            {
+                MyLog("ERROR!!: DeleteAll() failed !!!");
+                return false;
+            }
+
+            if (!setDefaultLayer(imageData.layerIndex))
+            {
+                MyLog("ERROR!!: setDefaultLayer(layerIndex="+imageData.layerIndex.ToString()+") failed !!!");
+                return false;
+            }
 
             if (imageData.gh_fileName.EndsWith(".gh") || imageData.gh_fileName.EndsWith(".ghx"))
             {
@@ -505,20 +505,24 @@ namespace Runing_Form
 
 
             // Delete all
-            String selectAllCommand = "SelLayerNumber 0";
-            int selectCommandRes = rhino_wrapper.rhino_app.RunScript(selectAllCommand, 1);
+            String deleteAllCommand = "EZ3DDellAllCommand";
+            int deleteAllCommanddRes = rhino_wrapper.rhino_app.RunScript(deleteAllCommand, 1);
             fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
-            logLine = "selectCommandRes=" + selectCommandRes + " After " + fromStart + " milliseconds";
-            MyLog(logLine);
-
-
-            String deleteCommand = "Delete";
-            int deleteCommandRes = rhino_wrapper.rhino_app.RunScript(deleteCommand, 1);
-            fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
-            logLine = "deleteCommandRes=" + selectCommandRes + " After " + fromStart + " milliseconds";
+            logLine = "deleteAllCommanddRes=" + deleteAllCommanddRes + " After " + fromStart + " milliseconds";
             MyLog(logLine);
             return true;
 
+        }
+
+
+        public bool setDefaultLayer(int layerIndex)
+        {
+            if (layerIndex >= 0)
+            {
+                String setLayerCommand = "_EZ3DSilentChangeLayerCommand " + layerIndex.ToString();
+                int setLayerCommandRes = rhino_wrapper.rhino_app.RunScript(setLayerCommand, 1);
+            }
+            return true;
         }
         public bool Run_Script(ImageDataRequest imageData)
         {
@@ -526,7 +530,6 @@ namespace Runing_Form
             DateTime beforeTime = DateTime.Now;
             try
             {
-                DeleteAll();
                 String commParams = "";
                 List<String> stringValues = new List<string>();
                 foreach (String paramName in imageData.propValues.Keys)
@@ -592,9 +595,6 @@ namespace Runing_Form
             DateTime beforeTime = DateTime.Now;
             String logLine;
             int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
-
-            DeleteAll();
-
 
             foreach (String paramName in imageData.propValues.Keys)
             {
