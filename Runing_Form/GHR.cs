@@ -155,10 +155,15 @@ namespace Runing_Form
             }
             else imageData.imageSize.Height = (int)jsonDict["height"];
 
-            if (jsonDict.ContainsKey("layer_index"))
+            if (!jsonDict.ContainsKey("layer_index"))
+            {
+                imageData.layerIndex = 0;
+            }
+            else
             {
                 imageData.layerIndex = (int)jsonDict["layer_index"];
             }
+
 
 
             if (!jsonDict.ContainsKey("params"))

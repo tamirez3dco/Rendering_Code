@@ -50,9 +50,10 @@ namespace AWS_Batch_Tester
                         //if (i == 7) dict["scene"] = "no_such_file";
                         dict["item_id"] = (first_id + i).ToString();
                         int magicNum = 5;
+
                         int layerIndex = (i % magicNum);
                         if (layerIndex > 0) layerIndex += 2;
-                        dict["layer_index"] = layerIndex;
+                        if (i <= 7) dict["layer_index"] = layerIndex;
 
           
                         dict["params"] = new Dictionary<String, Object>();
