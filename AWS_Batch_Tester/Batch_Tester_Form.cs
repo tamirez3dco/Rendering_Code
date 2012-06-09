@@ -28,6 +28,7 @@ namespace AWS_Batch_Tester
         {
             try
             {
+                String[] layers = { "Default", "tamir1", "tamir2", "tamir3", "tamir4" };
                 int first_id = int.Parse(id_textBox.Text);
                 int num_msgs = int.Parse(id_till_textBox.Text);
                 double initialValue = double.Parse(value_textBox.Text);
@@ -51,9 +52,9 @@ namespace AWS_Batch_Tester
                         dict["item_id"] = (first_id + i).ToString();
                         int magicNum = 5;
 
-                        int layerIndex = (i % magicNum);
-                        if (layerIndex > 0) layerIndex += 2;
-                        if (i <= 7) dict["layer_index"] = layerIndex;
+
+                        String layerName = (layers[i % layers.Length]);
+                        if (i <= 7) dict["layer_name"] = layerName;
 
           
                         dict["params"] = new Dictionary<String, Object>();

@@ -34,8 +34,8 @@ namespace Runing_Form
         public String gh_fileName;
         public String scene;
         public Size imageSize = new Size();
-        public string operation;
-        public int layerIndex = -1;
+        public String operation;
+        public String layerName = String.Empty;
 
         public override string ToString()
         {
@@ -155,13 +155,13 @@ namespace Runing_Form
             }
             else imageData.imageSize.Height = (int)jsonDict["height"];
 
-            if (!jsonDict.ContainsKey("layer_index"))
+            if (!jsonDict.ContainsKey("layer_name"))
             {
-                imageData.layerIndex = 0;
+                imageData.layerName = "Default";
             }
             else
             {
-                imageData.layerIndex = (int)jsonDict["layer_index"];
+                imageData.layerName = (String)jsonDict["layer_name"];
             }
 
 
@@ -402,9 +402,9 @@ namespace Runing_Form
                 return false;
             }
 
-            if (!setDefaultLayer(imageData.layerIndex))
+            if (!setDefaultLayer(imageData.layerName))
             {
-                MyLog("ERROR!!: setDefaultLayer(layerIndex="+imageData.layerIndex.ToString()+") failed !!!");
+                MyLog("ERROR!!: setDefaultLayer(layerName="+imageData.layerName+") failed !!!");
                 return false;
             }
 
@@ -520,13 +520,10 @@ namespace Runing_Form
         }
 
 
-        public bool setDefaultLayer(int layerIndex)
+        public bool setDefaultLayer(String layerName)
         {
-            if (layerIndex >= 0)
-            {
-                String setLayerCommand = "_EZ3DSilentChangeLayerCommand " + layerIndex.ToString();
-                int setLayerCommandRes = rhino_wrapper.rhino_app.RunScript(setLayerCommand, 1);
-            }
+            String setLayerCommand = "_EZ3DSilentChangeLayerCommand " + layerName;
+            int setLayerCommandRes = rhino_wrapper.rhino_app.RunScript(setLayerCommand, 1);
             return true;
         }
         public bool Run_Script(ImageDataRequest imageData)

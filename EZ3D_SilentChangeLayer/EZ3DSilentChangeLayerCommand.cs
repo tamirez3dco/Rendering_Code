@@ -33,7 +33,7 @@ namespace EZ3D_SilentChangeLayer
 
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
-            int destLayerIndex;
+            String destLayerName;
 
 /*
             foreach (Rhino.DocObjects.Layer layer in doc.Layers)
@@ -41,19 +41,28 @@ namespace EZ3D_SilentChangeLayer
                 RhinoApp.WriteLine(layer.LayerIndex.ToString() + ")(" + layer.Name + ":" + layer.ToString());
             }
  */
-            using (GetInteger getInt = new GetInteger())
+            using (GetString getString = new GetString())
             {
-                getInt.SetCommandPrompt("Enter new default Layer Index");
-                if (getInt.Get() != GetResult.Number)
+                getString.SetCommandPrompt("Enter new default Layer name");
+                if (getString.Get() != GetResult.String)
                 {
-                    RhinoApp.WriteLine("No layer index recieved.");
+                    RhinoApp.WriteLine("No layer name recieved.");
                     return Result.Failure;
                 }
-                destLayerIndex = getInt.Number();
+                destLayerName = getString.StringResult().Trim();
             }
 
-            doc.Layers.SetCurrentLayerIndex(destLayerIndex,false);
-            return Result.Success;
+            foreach (Rhino.DocObjects.Layer layer in doc.Layers)
+            {
+                //RhinoApp.WriteLine(layer.LayerIndex.ToString() + ")(" + layer.Name + ":" + layer.ToString());
+                if (layer.Name.Trim() == destLayerName)
+                {
+                    doc.Layers.SetCurrentLayerIndex(layer.LayerIndex, false);
+                    return Result.Success;
+                }
+            }
+            
+            return Result.Failure;
         }
     }
 }
