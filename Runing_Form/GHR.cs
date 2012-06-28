@@ -30,7 +30,7 @@ namespace Runing_Form
     {
         public String bake = null;
         public String item_id;
-        public Dictionary<String, Object> propValues = new Dictionary<String,Object>();
+        public Dictionary<String, Object> propValues = new Dictionary<String, Object>();
         public String gh_fileName;
         public String scene;
         public Size imageSize = new Size();
@@ -175,11 +175,15 @@ namespace Runing_Form
             {
 
                 Dictionary<String, Double> paramValues = new Dictionary<string, double>();
-               imageData.propValues = (Dictionary<String, Object>)jsonDict["params"];
+                imageData.propValues = (Dictionary<String, Object>)jsonDict["params"];
             }
             return true;
         }
 
+        public THREAD_RESPONSE last_Response = THREAD_RESPONSE.NO_RESPONSE;
+        public String last_request_id;
+        public Dictionary<String, bool> shittyIDs = new Dictionary<string, bool>();
+        public Amazon.SQS.Model.Message last_msg;
 
         public GHR(int id, Rhino_Wrapper rhino)
         {
@@ -191,8 +195,11 @@ namespace Runing_Form
 
         int get_msg_failures = 0;
         int get_msg_failures_allowed = 3;
-        private bool single_cycle()
+        private void single_cycle()
         {
+            DateTime beforeTime = DateTime.Now;
+            last_Response = THREAD_RESPONSE.NO_RESPONSE;
+            last_request_id = String.Empty;
             // Get a single MSG from Queue_Requests
             bool msgFound;
             Amazon.SQS.Model.Message msg;
@@ -203,10 +210,12 @@ namespace Runing_Form
                 {
                     get_msg_failures++;
                     Thread.Sleep(1000);
-                    return true;
+                    last_Response = THREAD_RESPONSE.FAIL;
+                    return;
                 }
                 MyLog("Get_Msg_From_Req_Q() failed and (" + get_msg_failures + "=get_msg_failures >= get_msg_failures_allowed=" + get_msg_failures_allowed + ") !!!");
-                return false;
+                last_Response = THREAD_RESPONSE.FAIL;
+                return;
             }
             if (get_msg_failures > 0)
             {
@@ -220,7 +229,8 @@ namespace Runing_Form
             if (!msgFound)
             {
                 Thread.Sleep(250);
-                return true;
+                last_Response = THREAD_RESPONSE.NO_REQUEST;
+                return;
             }
 
             Utils.lastMsg_Time = DateTime.Now;
@@ -230,27 +240,49 @@ namespace Runing_Form
             if (!deciferImageDataFromBody(msg.Body, out imageData))
             {
                 MyLog("GHR_Dispatcher.deciferImagesDataFromJSON(msg.Body=" + msg.Body + ", out imagesDatas) failed!!!");
-                return false;
+                last_Response = THREAD_RESPONSE.FAIL;
+                return;
             }
+
+            last_request_id = imageData.item_id;
+            last_msg = msg;
 
             // Add Msg to Queue_Readies
             if (!SQS.Send_Msg_To_Readies_Q(RenderStatus.STARTED, imageData.item_id, beforeProcessingTime))
             {
                 MyLog("Form1.Send_Msg_To_Readies_Q(status=STARTED,imageData.item_id=" + imageData.item_id + ") failed");
-                return false;
+                last_Response = THREAD_RESPONSE.FAIL;
+                return;
             }
 
 
             if (imageData.operation == "render_model")
             {
+                DateTime beforeRhino = DateTime.Now;
                 // Process Msg to picture
-                if (!Process_Into_Image_File(imageData))
+                String resultingLocalImageFilePath;
+                TimeSpan renderTime, buildTime, waitTime;
+                if (!Process_Into_Image_File(imageData, out resultingLocalImageFilePath, out renderTime, out buildTime, out waitTime))
                 {
                     String logLine = "Process_Msg_Into_Image_File(msg) failed!!! (). ImageData=" + imageData.ToString();
                     MyLog(logLine);
                     SQS.Send_Msg_To_ERROR_Q(id, logLine);
-                    return false;
+                    last_Response = THREAD_RESPONSE.FAIL;
+                    return;
                 }
+
+                DateTime afterRhino_Before_S3 = DateTime.Now;
+
+                String fileName_on_S3 = imageData.item_id.ToString() + ".jpg";
+                if (!S3.Write_File_To_S3(resultingLocalImageFilePath, fileName_on_S3))
+                {
+                    String logLine = "Write_File_To_S3(resultingImagePath=" + resultingLocalImageFilePath + ", fileName_on_S3=" + fileName_on_S3 + ") failed !!!";
+                    SQS.Send_Msg_To_ERROR_Q(id, logLine);
+                    last_Response = THREAD_RESPONSE.FAIL;
+                    return;
+                }
+
+                DateTime afterS3_Before_SQS = DateTime.Now;
 
                 // Delete Msg From Queue_Requests
                 if (!SQS.Delete_Msg_From_Req_Q(msg))
@@ -261,39 +293,93 @@ namespace Runing_Form
                     {
                         MyLog("Form1.Send_Msg_To_Readies_Q(status=ERROR,imageData.item_id=" + imageData.item_id + ") failed");
                     }
-                    return false;
+                    last_Response = THREAD_RESPONSE.FAIL;
+                    return;
                 }
                 // Add Msg to Queue_Readies
                 if (!SQS.Send_Msg_To_Readies_Q(RenderStatus.FINISHED, imageData.item_id, beforeProcessingTime))
                 {
                     MyLog("Form1.Send_Msg_To_Readies_Q(imageData.item_id=" + imageData.item_id + ") failed");
-                    return false;
+                    last_Response = THREAD_RESPONSE.FAIL;
+                    return;
                 }
-                return true;
+
+                DateTime afterSQS = DateTime.Now;
+
+                MyLog("Reading msg time =" + (beforeRhino - beforeProcessingTime).TotalMilliseconds.ToString() + " millis");
+                MyLog("Wait time=" + waitTime.TotalMilliseconds.ToString() + " millis");
+                MyLog("Rhino build time=" + buildTime.TotalMilliseconds.ToString() + " millis");
+                MyLog("Render time=" + renderTime.TotalMilliseconds.ToString() + " millis");
+                MyLog("S3 Time=" + (afterS3_Before_SQS - afterRhino_Before_S3).TotalMilliseconds.ToString() + " millis");
+                MyLog("SQS Time=" + (afterSQS - afterS3_Before_SQS).TotalMilliseconds.ToString() + " millis");
+                MyLog("Total single_cycle(id=" + imageData.item_id + ")=" + (afterSQS - beforeTime).TotalMilliseconds.ToString() + " millis");
+        
+                last_Response = THREAD_RESPONSE.SUCCESS;
+                return;
             }
             else
             {
                 MyLog("ERROR !!! - (" + imageData.operation + "=imageData.operation != \"render_model\")");
             }
             MyLog("imageData=" + imageData.ToString());
-            return false;
+            last_Response = THREAD_RESPONSE.FAIL;
+            return;
         }
+  
 
         public void new_runner()
         {
 
             while (true)
             {
+                Thread thread = new Thread(new ThreadStart(this.single_cycle));
+                thread.Start();
 
-                if (!single_cycle())
+                if (!thread.Join(15000))
                 {
-                    MyLog("single_cycle() failed!!!");
-                    if (!SQS.Send_Msg_To_ERROR_Q(id, "single_cycle() returned false"))
+                    MyLog("single cycle 2 has timed out !!!");
+                    if (last_request_id != String.Empty)
                     {
-                        MyLog("And could not EVEN send the ERROR msg to the ERROR Q");
+                        if (shittyIDs.ContainsKey(last_request_id))
+                        {
+                            // this is a second timeout for this msg - remove it from the AWS SQS + send an error msg
+                            SQS.Delete_Msg_From_Req_Q(last_msg);
+                            String errorMsg = "Second timeout on request with id=" + last_request_id + ". Removing from Q";
+                            SQS.Send_Msg_To_ERROR_Q(id, errorMsg);
+                        }
+                        else
+                        {
+                            shittyIDs[last_request_id] = true;
+                        }
                     }
-                    return;
+
+                    // Close previous rhino
+                    try
+                    {
+                        brutally_killPrivRhino();
+                    }
+                    catch (Exception e)
+                    {
+                        MyLog("Exception in Process_Into_Image_File(1). e.Message=" + e.Message);
+                        return;
+                    }
+
+                    if (!waitForRhinoFromQueue(out rhino_wrapper, 150, 100))
+                    {
+                        MyLog("waitForRhinoFromQueue() failed!!!");
+                        return;
+                    }
+                    current_Rhino_File = null;
+                    current_GH_file = null;
                 }
+                else
+                {
+                    if (last_Response != THREAD_RESPONSE.NO_REQUEST)
+                    {
+                        MyLog("single cycle 2 exitted on time with lastSucceeded=" + last_Response.ToString());
+                    }
+                }
+
             }
         }
 
@@ -326,48 +412,77 @@ namespace Runing_Form
             return false;
         }
 
-        private bool Process_Into_Image_File(ImageDataRequest imageData)
+        private void brutally_killPrivRhino()
+        {
+            Thread killer_thread = new Thread(new ThreadStart(this.closePrivRhino));
+            killer_thread.Start();
+            killer_thread.Join(5000);
+
+            Process p = Process.GetProcessById(rhino_wrapper.rhino_pid);
+            if (p != null) p.Kill();
+        }
+
+        private void closePrivRhino()
+        {
+            try
+            {
+                MyLog("Save & Exit for rhino file=" + current_Rhino_File);
+
+                try
+                {
+                    if (rhino_wrapper.grasshopper != null) rhino_wrapper.grasshopper.CloseAllDocuments();
+                }
+                catch (Exception e_Stam)
+                {
+                    MyLog("Exception e_Stam Process_Into_Image_File(0). e_Stam.Message=" + e_Stam.Message);
+                }
+
+
+                String exitCommand = "-Exit";
+                int exitCommandRes = rhino_wrapper.rhino_app.RunScript(exitCommand, 1);
+            }
+            catch (Exception e)
+            {
+                MyLog("Exception in Process_Into_Image_File(1). e.Message=" + e.Message);
+            }
+
+            return;
+        }
+
+        private bool Process_Into_Image_File(ImageDataRequest imageData, out String localImageFilePath, out TimeSpan renderTime, out TimeSpan buildTime, out TimeSpan waitTime)
         {
             DateTime beforeTime = DateTime.Now;
 
             String logLine = "Starting Get_Pictures()";
             MyLog(logLine);
+            localImageFilePath = String.Empty;
+            renderTime = new TimeSpan();
+            buildTime = new TimeSpan();
+            waitTime = new TimeSpan();
 
-            if (imageData.scene != current_Rhino_File)
+            if ((current_Rhino_File != null) && (imageData.scene != current_Rhino_File))
             {
                 // Close previous rhino
                 try
                 {
-                    MyLog("Save & Exit for rhino file=" + current_Rhino_File);
-
-                    try
-                    {
-                        if (rhino_wrapper.grasshopper != null) rhino_wrapper.grasshopper.CloseAllDocuments();
-                    }
-                    catch (Exception e_Stam)
-                    {
-                        MyLog("Exception e_Stam Process_Into_Image_File(0). e_Stam.Message=" + e_Stam.Message);
-                    }
-
-
-                    String exitCommand = "Exit";
-                    int exitCommandRes = rhino_wrapper.rhino_app.RunScript(exitCommand, 1);
-
-                    Process p = Process.GetProcessById(rhino_wrapper.rhino_pid);
-                    if (p != null) p.Kill();
-
+                    brutally_killPrivRhino();
                 }
                 catch (Exception e)
                 {
-                    MyLog("Exception in Process_Into_Image_File(1). e.Message="+e.Message);
+                    MyLog("Exception in Process_Into_Image_File(1). e.Message=" + e.Message);
                     return false;
                 }
+
+                DateTime beforeWait = DateTime.Now;
 
                 if (!waitForRhinoFromQueue(out rhino_wrapper, 150, 100))
                 {
                     MyLog("waitForRhinoFromQueue() failed!!!");
                     return false;
                 }
+
+                waitTime = DateTime.Now - beforeWait;
+
                 current_Rhino_File = null;
                 current_GH_file = null;
             }
@@ -404,7 +519,7 @@ namespace Runing_Form
 
             if (!setDefaultLayer(imageData.layerName))
             {
-                MyLog("ERROR!!: setDefaultLayer(layerName="+imageData.layerName+") failed !!!");
+                MyLog("ERROR!!: setDefaultLayer(layerName=" + imageData.layerName + ") failed !!!");
                 return false;
             }
 
@@ -446,6 +561,10 @@ namespace Runing_Form
                 }
             }
 
+
+            buildTime = DateTime.Now - beforeTime;
+
+
             String resultingImagePath;
             if (!Render(imageData, out resultingImagePath))
             {
@@ -453,14 +572,8 @@ namespace Runing_Form
                 return false;
             }
 
-            String fileName_on_S3 = imageData.item_id.ToString() + ".jpg";
-            if (!S3.Write_File_To_S3(resultingImagePath, fileName_on_S3))
-            {
-                logLine = "Write_File_To_S3(resultingImagePath=" + resultingImagePath + ", fileName_on_S3=" + fileName_on_S3 + ") failed !!!";
-                MyLog(logLine);
-                return false;
-            }
-
+            renderTime = (DateTime.Now - beforeTime) - buildTime;
+            localImageFilePath = resultingImagePath;
 
             DateTime afterTime = DateTime.Now;
             int timed = (int)((afterTime - beforeTime).TotalMilliseconds);
@@ -552,17 +665,17 @@ namespace Runing_Form
                 String runCommand = imageData.gh_fileName + " " + commParams + " Enter";
                 foreach (String value in stringValues)
                 {
-                    runCommand += " "+ value + " Enter";
+                    runCommand += " " + value + " Enter";
                 }
                 rhino_wrapper.rhino_app.RunScript(runCommand, 1);
             }
             catch (Exception e)
             {
-                MyLog("Exception in Run_Script_And_Render(). e.Message="+e.Message);
+                MyLog("Exception in Run_Script_And_Render(). e.Message=" + e.Message);
                 return false;
             }
 
-            
+
             int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
             MyLog("Script ran After " + fromStart + " milliseconds");
 
@@ -593,7 +706,7 @@ namespace Runing_Form
         }
         public bool Set_GH_Params(ImageDataRequest imageData)
         {
-            MyLog("Starting Set_Params_And_Render(ImageData imageData="+imageData.ToString()+")");
+            MyLog("Starting Set_Params_And_Render(ImageData imageData=" + imageData.ToString() + ")");
             DateTime beforeTime = DateTime.Now;
             String logLine;
             int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
@@ -626,6 +739,71 @@ namespace Runing_Form
             return true;
         }
 
+        public static bool startSingleRhino(bool visible, out Rhino_Wrapper newRhino)
+        {
+            newRhino = new Rhino_Wrapper();
+            lock (GHR.locker)
+            {
+                Process[] procs_before = Process.GetProcessesByName("Rhino4");
+                Console.WriteLine("Starting Rhino at " + DateTime.Now);
+                newRhino.rhino_app = new Rhino5Application();
+                newRhino.rhino_app.ReleaseWithoutClosing = 1;
+                newRhino.rhino_app.Visible = visible ? 1 : 0;
+                if (newRhino == null)
+                {
+                    Console.WriteLine("rhino == null");
+                    return false;
+                }
+                for (int tries = 0; tries < 200; tries++)
+                {
+                    if (newRhino.rhino_app.IsInitialized() == 1)
+                    {
+                        break;
+                    }
+                    Thread.Sleep(100);
+                }
+                Process[] procs_after = Process.GetProcessesByName("Rhino4");
+                List<int> pids_before = new List<int>();
+                List<int> new_pids = new List<int>();
+                foreach (Process p in procs_before) pids_before.Add(p.Id);
+                foreach (Process p in procs_after)
+                {
+                    if (!pids_before.Contains(p.Id))
+                    {
+                        new_pids.Add(p.Id);
+                    }
+                }
+
+                if (new_pids.Count != 1)
+                {
+                    Console.WriteLine("ERROR ! - (new_pids.Count != 1 =" + new_pids.Count);
+                    Console.WriteLine("procs_before=:");
+                    foreach (Process p in procs_before) Console.WriteLine(p.Id);
+                    Console.WriteLine("procs_after=:");
+                    foreach (Process p in procs_after) Console.WriteLine(p.Id);
+                    return false;
+                }
+                else
+                {
+                    newRhino.rhino_pid = new_pids[0];
+                }
+            }
+
+            Console.WriteLine("Starting Grasshopper at " + DateTime.Now);
+            newRhino.rhino_app.RunScript("_Grasshopper", 0);
+            Thread.Sleep(1000);
+
+            newRhino.grasshopper = newRhino.rhino_app.GetPlugInObject("b45a29b1-4343-4035-989e-044e8580d9cf", "00000000-0000-0000-0000-000000000000") as dynamic;
+            if (newRhino.grasshopper == null)
+            {
+                Console.WriteLine("ERROR!!: (grasshopper == null)");
+                return false;
+            }
+            newRhino.grasshopper.HideEditor();
+
+            return true;
+        }
+
 
 
     }
@@ -634,6 +812,7 @@ namespace Runing_Form
     {
         NO_RESPONSE,
         SUCCESS,
+        NO_REQUEST,
         FAIL
     }
 

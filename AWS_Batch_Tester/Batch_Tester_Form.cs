@@ -38,7 +38,7 @@ namespace AWS_Batch_Tester
                 for (int j = 0; j < Math.Ceiling((double)num_msgs / 10); j++)
                 {
                     List<SendMessageBatchRequestEntry> msgEntries = new List<SendMessageBatchRequestEntry>();
-                    for (int i = j * 10; i <Math.Min(num_msgs,(j+1)*10); i++)
+                    for (int i = j * 10; i < Math.Min(num_msgs, (j + 1) * 10); i++)
                     {
                         Dictionary<String, Object> dict = new Dictionary<String, Object>();
 
@@ -50,18 +50,17 @@ namespace AWS_Batch_Tester
                         //dict["scene"] = optionalScenes[(j/3)%optionalScenes.Length];
                         //if (i == 7) dict["scene"] = "no_such_file";
                         dict["item_id"] = (first_id + i).ToString();
-                        int magicNum = 5;
 
 
-                        String layerName = (layers[i % layers.Length]);
-                        if (i <= 7) dict["layer_name"] = layerName;
+                        //String layerName = (layers[i % layers.Length]);
+                        //if (i <= 7) dict["layer_name"] = layerName;
 
-          
+
                         dict["params"] = new Dictionary<String, Object>();
                         dict["width"] = 350;
                         dict["height"] = 400;
                         Dictionary<String, Object> paramsDict = new Dictionary<String, Object>();
-                        double propValue = Math.Round(initialValue + ((i * 3) % 10) * delta, 1);
+                        double propValue = Math.Round(initialValue + ((i) % 10) * delta, 1);
                         //double propValue = (i % 2 == 0) ? 0.1 : 0.9;
                         paramsDict[property_textBox.Text] = propValue;
                         dict["params"] = paramsDict;
@@ -117,7 +116,7 @@ namespace AWS_Batch_Tester
                 foreach (String str in listQueuesResult.QueueUrl)
                 {
                     Console.WriteLine("  QueueUrl: {0}", str);
-                    if (str.EndsWith('/'+ (String)Runing_Form.Utils.CFG["request_Q_name"]))
+                    if (str.EndsWith('/' + (String)Runing_Form.Utils.CFG["request_Q_name"]))
                     {
                         requests_Q_url = str;
                     }
