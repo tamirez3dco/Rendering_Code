@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rhino_Restarter", "Rhino_Restarter.csproj", "{FE62B4CC-5F2D-4C39-9829-A6C2A2B86C73}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UtilsDLL", "..\UtilsDLL\UtilsDLL.csproj", "{0D25EDA1-A260-40E2-BB4A-3BF445DB0A88}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FE62B4CC-5F2D-4C39-9829-A6C2A2B86C73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE62B4CC-5F2D-4C39-9829-A6C2A2B86C73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE62B4CC-5F2D-4C39-9829-A6C2A2B86C73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE62B4CC-5F2D-4C39-9829-A6C2A2B86C73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D25EDA1-A260-40E2-BB4A-3BF445DB0A88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D25EDA1-A260-40E2-BB4A-3BF445DB0A88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D25EDA1-A260-40E2-BB4A-3BF445DB0A88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D25EDA1-A260-40E2-BB4A-3BF445DB0A88}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
