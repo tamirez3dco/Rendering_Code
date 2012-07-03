@@ -335,7 +335,7 @@ namespace Runing_Form
                 Thread thread = new Thread(new ThreadStart(this.single_cycle));
                 thread.Start();
 
-                if (!thread.Join(15000))
+                if (!thread.Join((int)Utils.CFG["Timeout_seconds"]*1000))
                 {
                     MyLog("single cycle 2 has timed out !!!");
                     if (last_request_id != String.Empty)

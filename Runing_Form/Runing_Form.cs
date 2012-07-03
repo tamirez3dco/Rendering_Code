@@ -325,14 +325,6 @@ namespace Runing_Form
             numOfInstances_textBox.BackColor = Color.Green;
         }
 
-        private void check_ShutDown_Condition_Timer_Tick(object sender, EventArgs e)
-        {
-            bool should_Shut_Down_Server = (DateTime.Now - Utils.lastMsg_Time).TotalMinutes > (int)Utils.CFG["idle_minutes_to_shutdown"];
-            if (should_Shut_Down_Server)
-            {
-                Utils.Shut_Down_Server();
-            }
-        }
 
         private bool startSingleRhino(out Rhino_Wrapper newRhino)
         {

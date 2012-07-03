@@ -25,6 +25,9 @@ namespace Rhino_Restarter
     {
         public static void Main(string[] args)
         {
+            // Get my DNS
+            String dns;
+            UtilsDLL.Network_Utils.Get_DNS(out dns);
             // Get my external IP
             IPAddress host_ip;
             if (!UtilsDLL.Network_Utils.GetIP(out host_ip))
@@ -44,6 +47,7 @@ namespace Rhino_Restarter
                 return;
             }
 
+
             if (!my_Q_found)
             {
                 // Create Q
@@ -54,6 +58,13 @@ namespace Rhino_Restarter
                 }
             }
 
+
+            if (!UtilsDLL.SQS_Utils.Add_Q_Premissions_Everybody(my_Q_url))
+            {
+                Console.WriteLine("UtilsDLL.SQS_Utils.Delete_all_msgs_from_Q(my_Q_name=" + my_Q_name + ") failed!!!");
+                return;
+            }
+            
             if (!UtilsDLL.SQS_Utils.Delete_all_msgs_from_Q(my_Q_name))
             {
                 Console.WriteLine("UtilsDLL.SQS_Utils.Delete_all_msgs_from_Q(my_Q_name=" + my_Q_name + ") failed!!!");

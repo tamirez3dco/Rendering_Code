@@ -59,6 +59,8 @@ namespace UtilsDLL
             return true;
         }
 
+
+
         public static bool Create_Q(String Q_name, out String Q_url, out String Q_arn)
         {
             Q_url = String.Empty;
@@ -69,24 +71,88 @@ namespace UtilsDLL
             Q_url = cq_response.CreateQueueResult.QueueUrl;
             if (Q_url.EndsWith(Q_name))
             {
-                if (!Get_Q_arn(Q_name, out Q_arn))
+                if (!Get_Q_arn(Q_url, out Q_arn))
                 {
                     Console.WriteLine("Get_Q_arn(Q_name="+Q_name+", out Q_arn) failed!!!");
                     return false;
                 }
+                Amazon.SQS.Model.AddPermissionRequest addPremissionRequest = new Amazon.SQS.Model.AddPermissionRequest();
+                addPremissionRequest.ActionName = new List<string>();
+                addPremissionRequest.ActionName.Add("*");
+                addPremissionRequest.AWSAccountId = new List<string>();
+                addPremissionRequest.AWSAccountId.Add("*");
+
+                sqs_client.AddPermission(addPremissionRequest);
+                
                 return true;
             }
             return false;
         }
 
-
-        public static bool Get_Q_arn(String Q_name, out String Q_arn)
+        public static bool stam(String Q_url)
         {
-            Amazon.IdentityManagement.AmazonIdentityManagementServiceClient identity_client = new Amazon.IdentityManagement.AmazonIdentityManagementServiceClient();
-            String accountId = identity_client.GetUser().GetUserResult.User.UserId;
-            //String accountId = idMgr.getUser().getUser().getUserId();
-            Q_arn = "arn:aws:sqs:us-east-1:"+accountId + ":" + Q_name;
+            GetQueueAttributesRequest gqa_request = new GetQueueAttributesRequest();
+            gqa_request.AttributeName = new List<String>(new String[]{"All"});
+            gqa_request.QueueUrl = Q_url;
+            GetQueueAttributesResponse gqa_response = sqs_client.GetQueueAttributes(gqa_request);
             return true;
+        }
+
+        public static bool Get_All_Q_Attributes(String Q_url, out List<Amazon.SQS.Model.Attribute> attributes)
+        {
+            attributes = null;
+            GetQueueAttributesRequest gqa_request = new GetQueueAttributesRequest();
+            gqa_request.AttributeName = new List<String>(new String[] { "All" });
+            gqa_request.QueueUrl = Q_url;
+            GetQueueAttributesResponse gqa_response = sqs_client.GetQueueAttributes(gqa_request);
+            attributes = gqa_response.GetQueueAttributesResult.Attribute;
+            return true;
+        }
+
+
+        public static bool Add_Q_Premissions_Everybody(String Q_url)
+        {
+            String sid ="\"Sid\":\""+Q_url+"\"";
+            String effect = "\"Effect\":\"Allow\"";
+            String pricipal = "\"Principal\":{\"AWS\":\"*\"}";
+            String action = "\"Action\":\"SQS:*\"";
+            String Q_arn;
+            if (!Get_Q_arn(Q_url,out Q_arn)) return false;
+            String resource = "\"Resource\":\"" + Q_arn+"\"";
+
+            String myPolicy = "{\"Version\":\"2008-10-17\",\"Id\":\"" + Q_arn+"/SQSDefaultPolicy\",\"Statement\":[{"+
+                sid + "," + effect + "," + pricipal + "," + action + "," + resource + "}]}";
+            SetQueueAttributesRequest sqa_request = new SetQueueAttributesRequest();
+            sqa_request.Attribute = new List<Amazon.SQS.Model.Attribute>();
+            Amazon.SQS.Model.Attribute att = new Amazon.SQS.Model.Attribute();
+            att.Name = "Policy";
+            att.Value = myPolicy;
+
+            sqa_request.Attribute.Add(att);
+            sqa_request.QueueUrl = Q_url;
+            SetQueueAttributesResponse sqa_response = sqs_client.SetQueueAttributes(sqa_request);
+            return true;
+        }
+
+        public static bool Get_Q_Attribute(String Q_url, String att_name, out String att_value)
+        {
+            att_value = String.Empty;
+            List<Amazon.SQS.Model.Attribute> attributes;
+            if (!Get_All_Q_Attributes(Q_url, out attributes)) return false;
+            foreach (Amazon.SQS.Model.Attribute att in attributes)
+            {
+                if (att.Name == att_name)
+                {
+                    att_value = att.Value;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool Get_Q_arn(String Q_url, out String Q_arn)
+        {
+            return Get_Q_Attribute(Q_url, "QueueArn", out Q_arn);
         }
 
         public static bool Delete_all_msgs_from_Q(String Q_name)
@@ -139,13 +205,13 @@ namespace UtilsDLL
             Q_url = String.Empty;
             Q_arn = String.Empty;
 
-            foreach (String str in list_Qs_response.ListQueuesResult.QueueUrl)
+            foreach (String q_url in list_Qs_response.ListQueuesResult.QueueUrl)
             {
-                if (str.EndsWith(Q_name))
+                if (q_url.EndsWith(Q_name))
                 {
                     Q_found = true;
-                    Q_url = str;
-                    if (!Get_Q_arn(Q_name, out Q_arn))
+                    Q_url = q_url;
+                    if (!Get_Q_arn(q_url, out Q_arn))
                     {
                         Console.WriteLine("Get_Q_arn(Q_name="+Q_name+", out Q_arn) failed!!!");
                         return false;

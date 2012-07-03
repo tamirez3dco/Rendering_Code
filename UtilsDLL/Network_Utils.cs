@@ -23,5 +23,11 @@ namespace UtilsDLL
             return (host_ip != null);
         }
 
+
+        public static bool Get_DNS(out String dns)
+        {
+            dns = Dns.GetHostName();
+            return true;
+        }
     }
 }
