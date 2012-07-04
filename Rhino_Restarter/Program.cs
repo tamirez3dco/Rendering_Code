@@ -75,6 +75,8 @@ namespace Rhino_Restarter
                     Console.WriteLine("UtilsDLL.SQS_Utils.Create_Q(my_Q_name="+my_Q_name+") failed!!!");
                     return;
                 }
+                Console.WriteLine("Q named:" + my_Q_name + " was just created. Waiting 60 seconds before continuing");
+                Thread.Sleep(60000);
             }
 
 
