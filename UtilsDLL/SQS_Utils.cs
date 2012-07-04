@@ -147,24 +147,8 @@ namespace UtilsDLL
             return Get_Q_Attribute(Q_url, "QueueArn", out Q_arn);
         }
 
-        public static bool Delete_all_msgs_from_Q(String Q_name)
+        public static bool Delete_all_msgs_from_Q(String Q_url)
         {
-            bool Q_found;
-            String Q_url = String.Empty;
-            String Q_arn = String.Empty;
-            if (!Find_Q_By_name(Q_name, out Q_found, out Q_url, out Q_arn))
-            {
-                Console.WriteLine("UtilsDLL.SQS_Utils.Find_Q_By_name(" + Q_name + ",*,*) failed!!!");
-                return false;
-            }
-
-            if (!Q_found)
-            {
-                Console.WriteLine("UtilsDLL.SQS_Utils.Find_Q_By_name(" + Q_name + ",*,*) succeeded but Q not found!!");
-                return false;
-            }
-
-
             while (true)
             {
                 Message msg;

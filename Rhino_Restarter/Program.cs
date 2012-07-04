@@ -84,7 +84,7 @@ namespace Rhino_Restarter
                 return;
             }
             
-            if (!UtilsDLL.SQS_Utils.Delete_all_msgs_from_Q(my_Q_name))
+            if (!UtilsDLL.SQS_Utils.Delete_all_msgs_from_Q(my_Q_url))
             {
                 Console.WriteLine("UtilsDLL.SQS_Utils.Delete_all_msgs_from_Q(my_Q_name=" + my_Q_name + ") failed!!!");
                 return;
