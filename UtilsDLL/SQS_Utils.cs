@@ -76,14 +76,6 @@ namespace UtilsDLL
                     Console.WriteLine("Get_Q_arn(Q_name=" + Q_name + ", out Q_arn) failed!!!");
                     return false;
                 }
-                Amazon.SQS.Model.AddPermissionRequest addPremissionRequest = new Amazon.SQS.Model.AddPermissionRequest();
-                addPremissionRequest.ActionName = new List<string>();
-                addPremissionRequest.ActionName.Add("*");
-                addPremissionRequest.AWSAccountId = new List<string>();
-                addPremissionRequest.AWSAccountId.Add("*");
-
-                sqs_client.AddPermission(addPremissionRequest);
-
                 return true;
             }
             return false;
