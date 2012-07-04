@@ -25,15 +25,34 @@ namespace Rhino_Restarter
     {
         public static void Main(string[] args)
         {
-            // Get my DNS
-            String dns;
-            UtilsDLL.Network_Utils.Get_DNS(out dns);
-            // Get my external IP
-            IPAddress host_ip;
-            if (!UtilsDLL.Network_Utils.GetIP(out host_ip))
+            if (!UtilsDLL.CFG.Turn_String_Into_CFG(args))
             {
-                Console.WriteLine("UtilsDLL.NetworkUtils.GetIP() failed!!!");
+                Console.WriteLine("UtilsDLL.CFG.Turn_String_Into_CFG(args[0]=" + args[0] + ") failed!!!");
                 return;
+            }
+
+            String dns = null;
+            IPAddress host_ip = null;
+            if ((bool)UtilsDLL.CFG.Cfg_dict["is_AWS"])
+            {
+                String ip_str;
+                if (!UtilsDLL.AWS_Utils.Get_My_IP_AND_DNS(out ip_str,out dns))
+                {
+                    Console.WriteLine("UtilsDLL.AWS_Utils.Get_My_IP_AND_DNS() failed!!!");
+                    return;
+                }
+                host_ip = IPAddress.Parse(ip_str);
+            }
+            else
+            {
+                // Get my DNS
+                UtilsDLL.Network_Utils.Get_DNS(out dns);
+                // Get my external IP
+                if (!UtilsDLL.Network_Utils.GetIP(out host_ip))
+                {
+                    Console.WriteLine("UtilsDLL.NetworkUtils.GetIP() failed!!!");
+                    return;
+                }
             }
 
             String my_Q_name = "restart_"+host_ip.ToString().Replace('.', '-');

@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AWS_Utils.cs" />
+    <Compile Include="CFG.cs" />
     <Compile Include="Network_Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SNS_Utils.cs" />

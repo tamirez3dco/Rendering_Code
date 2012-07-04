@@ -73,7 +73,7 @@ namespace UtilsDLL
             {
                 if (!Get_Q_arn(Q_url, out Q_arn))
                 {
-                    Console.WriteLine("Get_Q_arn(Q_name="+Q_name+", out Q_arn) failed!!!");
+                    Console.WriteLine("Get_Q_arn(Q_name=" + Q_name + ", out Q_arn) failed!!!");
                     return false;
                 }
                 Amazon.SQS.Model.AddPermissionRequest addPremissionRequest = new Amazon.SQS.Model.AddPermissionRequest();
@@ -83,7 +83,7 @@ namespace UtilsDLL
                 addPremissionRequest.AWSAccountId.Add("*");
 
                 sqs_client.AddPermission(addPremissionRequest);
-                
+
                 return true;
             }
             return false;
@@ -92,7 +92,7 @@ namespace UtilsDLL
         public static bool stam(String Q_url)
         {
             GetQueueAttributesRequest gqa_request = new GetQueueAttributesRequest();
-            gqa_request.AttributeName = new List<String>(new String[]{"All"});
+            gqa_request.AttributeName = new List<String>(new String[] { "All" });
             gqa_request.QueueUrl = Q_url;
             GetQueueAttributesResponse gqa_response = sqs_client.GetQueueAttributes(gqa_request);
             return true;
@@ -112,15 +112,15 @@ namespace UtilsDLL
 
         public static bool Add_Q_Premissions_Everybody(String Q_url)
         {
-            String sid ="\"Sid\":\""+Q_url+"\"";
+            String sid = "\"Sid\":\"" + Q_url + "\"";
             String effect = "\"Effect\":\"Allow\"";
             String pricipal = "\"Principal\":{\"AWS\":\"*\"}";
             String action = "\"Action\":\"SQS:*\"";
             String Q_arn;
-            if (!Get_Q_arn(Q_url,out Q_arn)) return false;
-            String resource = "\"Resource\":\"" + Q_arn+"\"";
+            if (!Get_Q_arn(Q_url, out Q_arn)) return false;
+            String resource = "\"Resource\":\"" + Q_arn + "\"";
 
-            String myPolicy = "{\"Version\":\"2008-10-17\",\"Id\":\"" + Q_arn+"/SQSDefaultPolicy\",\"Statement\":[{"+
+            String myPolicy = "{\"Version\":\"2008-10-17\",\"Id\":\"" + Q_arn + "/SQSDefaultPolicy\",\"Statement\":[{" +
                 sid + "," + effect + "," + pricipal + "," + action + "," + resource + "}]}";
             SetQueueAttributesRequest sqa_request = new SetQueueAttributesRequest();
             sqa_request.Attribute = new List<Amazon.SQS.Model.Attribute>();
@@ -160,15 +160,15 @@ namespace UtilsDLL
             bool Q_found;
             String Q_url = String.Empty;
             String Q_arn = String.Empty;
-            if (!Find_Q_By_name(Q_name,out Q_found,out Q_url,out Q_arn))
+            if (!Find_Q_By_name(Q_name, out Q_found, out Q_url, out Q_arn))
             {
-                Console.WriteLine("UtilsDLL.SQS_Utils.Find_Q_By_name("+Q_name+",*,*) failed!!!");
+                Console.WriteLine("UtilsDLL.SQS_Utils.Find_Q_By_name(" + Q_name + ",*,*) failed!!!");
                 return false;
             }
 
             if (!Q_found)
             {
-                Console.WriteLine("UtilsDLL.SQS_Utils.Find_Q_By_name("+Q_name+",*,*) succeeded but Q not found!!");
+                Console.WriteLine("UtilsDLL.SQS_Utils.Find_Q_By_name(" + Q_name + ",*,*) succeeded but Q not found!!");
                 return false;
             }
 
@@ -190,7 +190,7 @@ namespace UtilsDLL
                     return false;
                 }
             }
-            
+
             return true;
         }
 
@@ -213,7 +213,7 @@ namespace UtilsDLL
                     Q_url = q_url;
                     if (!Get_Q_arn(q_url, out Q_arn))
                     {
-                        Console.WriteLine("Get_Q_arn(Q_name="+Q_name+", out Q_arn) failed!!!");
+                        Console.WriteLine("Get_Q_arn(Q_name=" + Q_name + ", out Q_arn) failed!!!");
                         return false;
                     }
                     break;

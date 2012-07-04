@@ -8,7 +8,7 @@ using System.Web.Script.Serialization;
 
 namespace UtilsDLL
 {
-    class AWS_Utils
+    public class AWS_Utils
     {
         public static bool Get_Launch_Specific_Data(out String user_data)
         {
