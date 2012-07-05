@@ -63,6 +63,7 @@ namespace AWS_Batch_Tester
                         double propValue = Math.Round(initialValue + ((i) % 10) * delta, 1);
                         //double propValue = (i % 2 == 0) ? 0.1 : 0.9;
                         paramsDict[property_textBox.Text] = propValue;
+                        paramsDict["textParam"] = "textValue";
                         dict["params"] = paramsDict;
                         //List<String> bakeries = new List<String>();
                         //bakeries.Add(bake_textBox.Text);

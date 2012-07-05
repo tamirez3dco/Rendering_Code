@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AWS_Batch_Tester", "AWS_Batch_Tester.csproj", "{3C39C898-54CB-4E05-95B4-B64E1A53B667}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Semaphore_Check", "..\Semaphore_Check\Semaphore_Check.csproj", "{4FD029CA-FFC4-4258-8193-A6135F2EE68E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -13,6 +15,10 @@ Global
 		{3C39C898-54CB-4E05-95B4-B64E1A53B667}.Debug|x86.Build.0 = Debug|x86
 		{3C39C898-54CB-4E05-95B4-B64E1A53B667}.Release|x86.ActiveCfg = Release|x86
 		{3C39C898-54CB-4E05-95B4-B64E1A53B667}.Release|x86.Build.0 = Release|x86
+		{4FD029CA-FFC4-4258-8193-A6135F2EE68E}.Debug|x86.ActiveCfg = Debug|x86
+		{4FD029CA-FFC4-4258-8193-A6135F2EE68E}.Debug|x86.Build.0 = Debug|x86
+		{4FD029CA-FFC4-4258-8193-A6135F2EE68E}.Release|x86.ActiveCfg = Release|x86
+		{4FD029CA-FFC4-4258-8193-A6135F2EE68E}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
