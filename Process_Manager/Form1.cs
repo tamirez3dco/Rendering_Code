@@ -10,6 +10,7 @@ using System.Threading;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.IO;
+using UtilsDLL;
 
 
 namespace Process_Manager
@@ -35,24 +36,31 @@ namespace Process_Manager
 
             for (int i = 0; i < 5; i++)
             {
-                AnonymousPipeServerStream pipeServer = new AnonymousPipeServerStream(PipeDirection.In, HandleInheritability.Inheritable);
                 ProcessStartInfo psi = new ProcessStartInfo();
-                psi.Arguments = i.ToString() + " " + pipeServer.GetClientHandleAsString();
+                psi.Arguments = i.ToString();
                 psi.FileName = @"C:\Amit\Rendering_Code\Runer_Process\bin\Debug\Runer_Process.exe";
                 psi.UseShellExecute = true;
 
                 Process p = Process.Start(psi);
 
-                MyStreamReader_Thread localListener = new MyStreamReader_Thread();
-                localListener.id = i;
-                localListener.sr = new StreamReader(pipeServer);
-                ThreadStart ts = new ThreadStart(localListener.listener);
-                new Thread(ts).Start();
-
-                pipeServer.DisposeLocalCopyOfClientHandle();
             }
 
 
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            switch (m.Msg)
+            {
+                    
+                case Win32_API.WM_COPYDATA:
+                    COPYDATASTRUCT mystr = new COPYDATASTRUCT();
+                    Type mytype = mystr.GetType();
+                    mystr = (COPYDATASTRUCT)m.GetLParam(mytype);
+                    Console.WriteLine("Got message("+m.WParam.ToInt32().ToString()+"):"+mystr.lpData);
+                    break;
+            }
+            base.WndProc(ref m);
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -68,23 +76,6 @@ namespace Process_Manager
 
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-        }
     }
 
-    public class MyStreamReader_Thread
-    {
-        public int id;
-        public StreamReader sr;
-
-        public void listener()
-        {
-            String temp;
-            while ((temp = sr.ReadLine()) != null)
-            {
-                Console.WriteLine("["+id+"] " + temp);
-            }
-        }
-    }
 }
