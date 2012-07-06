@@ -47,14 +47,28 @@
   <ItemGroup>
     <Compile Include="AWS_Utils.cs" />
     <Compile Include="CFG.cs" />
+    <Compile Include="Dirs.cs" />
     <Compile Include="Network_Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Rhino.cs" />
+    <Compile Include="S3_Utils.cs" />
     <Compile Include="SNS_Utils.cs" />
     <Compile Include="SQS_Utils.cs" />
     <Compile Include="Win32_API.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <COMReference Include="Rhino4">
+      <Guid>{E58A8035-577A-42E2-A560-1D3564C1F6C3}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -15,12 +15,46 @@ using Amazon.SQS.Model;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using System.Net;
+using System.Threading;
 
 namespace UtilsDLL
 {
     public class SQS_Utils
     {
         public static AmazonSQSClient sqs_client = new AmazonSQSClient();
+
+        public static bool Make_sure_Q_exists(string Q_name)
+        {
+            bool Q_found = false;
+            String Q_url = String.Empty;
+            String Q_arn = String.Empty;
+            if (!UtilsDLL.SQS_Utils.Find_Q_By_name(Q_name, out Q_found, out Q_url, out Q_arn))
+            {
+                Console.WriteLine("UtilsDLL.SQS_Utils.Find_Q_By_name(" + Q_name + ",*,*) failed!!!");
+                return false;
+            }
+
+
+            if (!Q_found)
+            {
+                // Create Q
+                if (!UtilsDLL.SQS_Utils.Create_Q(Q_name, out Q_url, out Q_arn))
+                {
+                    Console.WriteLine("UtilsDLL.SQS_Utils.Create_Q(my_Q_name=" + Q_name + ") failed!!!");
+                    return false;
+                }
+                Console.WriteLine("Q named:" + Q_name + " was just created. Waiting 60 seconds before continuing");
+                Thread.Sleep(60000);
+            }
+
+
+            if (!UtilsDLL.SQS_Utils.Add_Q_Premissions_Everybody(Q_url))
+            {
+                Console.WriteLine("UtilsDLL.SQS_Utils.Delete_all_msgs_from_Q(my_Q_name=" + Q_name + ") failed!!!");
+                return false;
+            }
+            return true;
+        }
 
         public static bool Get_Msg_From_Q(String q_url, out Message msg, out bool msg_found)
         {
