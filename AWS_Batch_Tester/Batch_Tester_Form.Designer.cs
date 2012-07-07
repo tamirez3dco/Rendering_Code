@@ -44,6 +44,7 @@
             this.button3 = new System.Windows.Forms.Button();
             this.operationTextBox = new System.Windows.Forms.TextBox();
             this.sceneTextBox = new System.Windows.Forms.TextBox();
+            this.name_textBox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // richTextBox1
@@ -178,17 +179,26 @@
             // 
             // sceneTextBox
             // 
-            this.sceneTextBox.Location = new System.Drawing.Point(99, 118);
+            this.sceneTextBox.Location = new System.Drawing.Point(123, 118);
             this.sceneTextBox.Name = "sceneTextBox";
-            this.sceneTextBox.Size = new System.Drawing.Size(75, 20);
+            this.sceneTextBox.Size = new System.Drawing.Size(43, 20);
             this.sceneTextBox.TabIndex = 18;
-            this.sceneTextBox.Text = "scene13.3dm";
+            this.sceneTextBox.Text = "rings";
+            // 
+            // name_textBox
+            // 
+            this.name_textBox.Location = new System.Drawing.Point(80, 118);
+            this.name_textBox.Name = "name_textBox";
+            this.name_textBox.Size = new System.Drawing.Size(37, 20);
+            this.name_textBox.TabIndex = 19;
+            this.name_textBox.Text = "tamir";
             // 
             // Batch_Tester_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(685, 577);
+            this.Controls.Add(this.name_textBox);
             this.Controls.Add(this.sceneTextBox);
             this.Controls.Add(this.operationTextBox);
             this.Controls.Add(this.button3);
@@ -231,5 +241,6 @@
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.TextBox operationTextBox;
         private System.Windows.Forms.TextBox sceneTextBox;
+        private System.Windows.Forms.TextBox name_textBox;
     }
 }

@@ -23,10 +23,28 @@ namespace UtilsDLL
     {
         public static AmazonSQSClient sqs_client = new AmazonSQSClient();
 
-        public static bool Make_sure_Q_exists(string Q_name)
+        public static string EncodeTo64(string toEncode)
+        {
+            byte[] toEncodeAsBytes
+                  = System.Text.ASCIIEncoding.ASCII.GetBytes(toEncode);
+            string returnValue
+                  = System.Convert.ToBase64String(toEncodeAsBytes);
+            return returnValue;
+        }
+
+        static public string DecodeFrom64(string encodedData)
+        {
+            byte[] encodedDataAsBytes
+                = System.Convert.FromBase64String(encodedData);
+            string returnValue =
+               System.Text.ASCIIEncoding.ASCII.GetString(encodedDataAsBytes);
+            return returnValue;
+        }
+
+        public static bool Make_sure_Q_exists(string Q_name, out String Q_url)
         {
             bool Q_found = false;
-            String Q_url = String.Empty;
+            Q_url = String.Empty;
             String Q_arn = String.Empty;
             if (!UtilsDLL.SQS_Utils.Find_Q_By_name(Q_name, out Q_found, out Q_url, out Q_arn))
             {
@@ -55,8 +73,40 @@ namespace UtilsDLL
             }
             return true;
         }
+        public static bool Send_Msg_To_Q(String q_url, String jsonMSg, bool encodeTo64)
+        {
+            try
+            {
+                SendMessageRequest sendMessageRequest = new SendMessageRequest();
+                sendMessageRequest.QueueUrl = q_url; //URL from initial queue creation
+                if (encodeTo64)
+                {
+                    sendMessageRequest.MessageBody = EncodeTo64(jsonMSg);
+                }
+                else
+                {
+                    sendMessageRequest.MessageBody = jsonMSg;
+                }
+                
 
-        public static bool Get_Msg_From_Q(String q_url, out Message msg, out bool msg_found)
+                Console.WriteLine("Before sending ready msg(" + sendMessageRequest.MessageBody + ").");
+                sqs_client.SendMessage(sendMessageRequest);
+                Console.WriteLine("After sending ready msg(" + sendMessageRequest.MessageBody + ").");
+            }
+            catch (AmazonSQSException ex)
+            {
+                Console.WriteLine("Caught Exception: " + ex.Message);
+                Console.WriteLine("Response Status Code: " + ex.StatusCode);
+                Console.WriteLine("Error Code: " + ex.ErrorCode);
+                Console.WriteLine("Error Type: " + ex.ErrorType);
+                Console.WriteLine("Request ID: " + ex.RequestId);
+                Console.WriteLine("XML: " + ex.XML);
+                return false;
+            }
+            return true;
+        }
+
+        public static bool Get_Msg_From_Q(String q_url, out Amazon.SQS.Model.Message msg, out bool msg_found)
         {
             msg_found = false;
             msg = null;

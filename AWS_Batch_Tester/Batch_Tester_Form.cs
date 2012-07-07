@@ -7,17 +7,16 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Web.Script.Serialization;
-
 using Amazon;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+
+using UtilsDLL;
 
 namespace AWS_Batch_Tester
 {
     public partial class Batch_Tester_Form : Form
     {
-        AmazonSQS client;
-        String requests_Q_url;
 
         public Batch_Tester_Form()
         {
@@ -28,6 +27,19 @@ namespace AWS_Batch_Tester
         {
             try
             {
+                String request_Q_url,request_Q_arn;
+                bool sqs_Q_found;
+                String Q_name = name_textBox.Text + "_" + sceneTextBox.Text + "_request";
+
+                if (!SQS_Utils.Find_Q_By_name(Q_name, out sqs_Q_found, out request_Q_url, out request_Q_arn))
+                {
+                    return;
+                }
+                if (!sqs_Q_found)
+                {
+                    return;
+                }
+
                 String[] layers = { "Default", "tamir1", "tamir2", "tamir3", "tamir4" };
                 int first_id = int.Parse(id_textBox.Text);
                 int num_msgs = int.Parse(id_till_textBox.Text);
@@ -37,7 +49,7 @@ namespace AWS_Batch_Tester
                 String[] optionalScenes = { "scene11.3dm", "scene13.3dm", "scene15.3dm", "scene17.3dm" };
                 for (int j = 0; j < Math.Ceiling((double)num_msgs / 10); j++)
                 {
-                    List<SendMessageBatchRequestEntry> msgEntries = new List<SendMessageBatchRequestEntry>();
+                    List<String> msgEntries = new List<String>();
                     for (int i = j * 10; i < Math.Min(num_msgs, (j + 1) * 10); i++)
                     {
                         Dictionary<String, Object> dict = new Dictionary<String, Object>();
@@ -45,8 +57,8 @@ namespace AWS_Batch_Tester
 
                         dict["gh_file"] = file_textBox.Text;
 
-                        //dict["scene"] = sceneTextBox.Text;
-                        dict["scene"] = "multiLayer.3dm";
+                        dict["scene"] = sceneTextBox.Text +".3dm";
+                        //dict["scene"] = "multiLayer.3dm";
                         //dict["scene"] = optionalScenes[(j/3)%optionalScenes.Length];
                         //if (i == 7) dict["scene"] = "no_such_file";
                         dict["item_id"] = (first_id + i).ToString();
@@ -63,7 +75,7 @@ namespace AWS_Batch_Tester
                         double propValue = Math.Round(initialValue + ((i) % 10) * delta, 1);
                         //double propValue = (i % 2 == 0) ? 0.1 : 0.9;
                         paramsDict[property_textBox.Text] = propValue;
-                        paramsDict["textParam"] = "textValue";
+                        //paramsDict["textParam"] = "textValue";
                         dict["params"] = paramsDict;
                         //List<String> bakeries = new List<String>();
                         //bakeries.Add(bake_textBox.Text);
@@ -73,16 +85,12 @@ namespace AWS_Batch_Tester
                         JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
                         string jsonString = serializer.Serialize((object)dict);
 
-                        SendMessageBatchRequestEntry entry = new SendMessageBatchRequestEntry();
-                        entry.MessageBody = Runing_Form.Utils.EncodeTo64(jsonString);
-                        entry.Id = i.ToString();
-                        msgEntries.Add(entry);
+                        msgEntries.Add(jsonString);
+                        if (!SQS_Utils.Send_Msg_To_Q(request_Q_url, jsonString, true))
+                        {
+                            return;
+                        }
                     }
-
-                    SendMessageBatchRequest sendMessageBatchRequest = new SendMessageBatchRequest();
-                    sendMessageBatchRequest.QueueUrl = requests_Q_url;
-                    sendMessageBatchRequest.Entries = msgEntries;
-                    client.SendMessageBatch(sendMessageBatchRequest);
                 }
             }
             catch (AmazonSQSException ex)
@@ -101,39 +109,6 @@ namespace AWS_Batch_Tester
 
         private void Batch_Tester_Form_Load(object sender, EventArgs e)
         {
-            JavaScriptSerializer serializer = new JavaScriptSerializer();
-            Runing_Form.Utils.CFG = serializer.DeserializeObject(Runing_Form.Utils.user_Data_String) as Dictionary<string, object>;
-
-
-
-            client = AWSClientFactory.CreateAmazonSQSClient();
-
-            requests_Q_url = null;
-            ListQueuesRequest listQueuesRequest = new ListQueuesRequest();
-            ListQueuesResponse listQueuesResponse = client.ListQueues(listQueuesRequest);
-            if (listQueuesResponse.IsSetListQueuesResult())
-            {
-                ListQueuesResult listQueuesResult = listQueuesResponse.ListQueuesResult;
-                foreach (String str in listQueuesResult.QueueUrl)
-                {
-                    Console.WriteLine("  QueueUrl: {0}", str);
-                    if (str.EndsWith('/' + (String)Runing_Form.Utils.CFG["request_Q_name"]))
-                    {
-                        requests_Q_url = str;
-                    }
-                }
-
-                if (requests_Q_url == null)
-                {
-                    MessageBox.Show("(requests_Q_url == null)");
-                    return;
-                }
-            }
-            else
-            {
-                MessageBox.Show("listQueuesResponse.IsSetListQueuesResult() == false");
-                return;
-            }
         }
 
         private void button3_Click(object sender, EventArgs e)
