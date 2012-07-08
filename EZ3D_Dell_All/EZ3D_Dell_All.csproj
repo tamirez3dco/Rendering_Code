@@ -33,7 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="RhinoCommon">
-      <HintPath>..\..\..\Program Files\Rhinoceros 5.0 90-Day Evaluation\System\RhinoCommon.dll</HintPath>
+      <HintPath>..\..\..\..\Program Files (x86)\Rhinoceros 5.0 90-Day Evaluation\System\RhinoCommon.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />

@@ -165,6 +165,9 @@ namespace Runer_Process
         static String error_Q_url;
         static String bucket_name;
         static int seconds_timeout;
+        static bool rhino_visible;
+
+        static CycleResult lastResult;
 
         static void Main(string[] args)
         {
@@ -189,6 +192,7 @@ namespace Runer_Process
             ready_Q_url = (String)params_dict["ready_Q_url"];
             error_Q_url = (String)params_dict["error_Q_url"];
             bucket_name = (String)params_dict["bucket_name"];
+            rhino_visible = (bool)params_dict["rhino_visible"];
             seconds_timeout = (int)params_dict["timeout"];
 
             // threading semaphore - named global across all machine
@@ -206,6 +210,8 @@ namespace Runer_Process
             }
 
 
+            UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "Waiting_Rhino");
+
             log("Before rhino gate.WaitOne() : " + DateTime.Now.ToString());
             // We load the Rhinos one bye one to make sure what is their PID
             // before loading Rhinos ...
@@ -214,7 +220,9 @@ namespace Runer_Process
             log("After rhino gate.WaitOne() : " + DateTime.Now.ToString());
             log("Before rhino creation : " + DateTime.Now.ToString());
 
-            if (!UtilsDLL.Rhino.start_a_SingleRhino(scene_fileName, true, out rhino_wrapper))
+            UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "Started_Rhino");
+
+            if (!UtilsDLL.Rhino.start_a_SingleRhino(scene_fileName, rhino_visible, out rhino_wrapper))
             {
                 log("startSingleRhino() failed");
                 MessageBox.Show("Basa");
@@ -225,7 +233,7 @@ namespace Runer_Process
             log("): After rhino creation : " + DateTime.Now.ToString());
             // get a list with new Rhino.. that was not there before..
 
-            UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "Finshed Rhino");
+            UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "Finished_Rhino " + rhino_wrapper.rhino_pid);
             //sw.Write("Finished Rhino startup");
 
             log("): Before rhino gate.Release() : " + DateTime.Now.ToString());
@@ -236,13 +244,20 @@ namespace Runer_Process
             while (true)
             {
                 log("): Before cycle gate.Wait one() : " + DateTime.Now.ToString());
+                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "Waiting gate");
                 make_cycle_gate.WaitOne();
                 log("): After cycle gate.Wait one() : " + DateTime.Now.ToString());
 
-                CycleResult res = single_cycle();
-
-                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "Finished cycle");
-
+                ThreadStart ts = new ThreadStart(single_cycle);
+                Thread thread = new Thread(ts);
+                thread.Start();
+                thread.Join(seconds_timeout * 1000);
+                if (lastResult == CycleResult.FAIL)
+                {
+                    // do NOT release the lock - simply send an error msg to the window and stop. Releasing will be done at Manager level
+                    UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "ERROR");
+                    return;
+                }
 
                 Console.WriteLine(id + "): Before cycle gate.Release() : " + DateTime.Now.ToString());
                 make_cycle_gate.Release();
@@ -252,10 +267,9 @@ namespace Runer_Process
 
         }
 
-        private static CycleResult single_cycle()
+        private static void single_cycle()
         {
-            UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "Started cycle");
-
+            lastResult = CycleResult.FAIL;
 
             // Get a single MSG from Queue_Requests
             bool msg_found;
@@ -263,7 +277,8 @@ namespace Runer_Process
             if (!SQS_Utils.Get_Msg_From_Q(request_Q_url, out msg, out msg_found))
             {
                 log("Get_Msg_From_Q() failed !!!");
-                return CycleResult.FAIL;
+                lastResult = CycleResult.FAIL;
+                return;
             }
 
             DateTime beforeProcessingTime = DateTime.Now;
@@ -271,7 +286,9 @@ namespace Runer_Process
             // if there is No Msg - Sleep & continue;
             if (!msg_found)
             {
-                return CycleResult.NO_MSG;
+                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "no_msg");
+                lastResult = CycleResult.NO_MSG;
+                return;
             }
 
 
@@ -280,20 +297,24 @@ namespace Runer_Process
             if (!deciferImageDataFromBody(msg.Body, out imageData))
             {
                 log("deciferImagesDataFromJSON(msg.Body=" + msg.Body + ", out imagesDatas) failed!!!");
-                //last_Response = THREAD_RESPONSE.FAIL;
-                return CycleResult.FAIL;
+                lastResult = CycleResult.FAIL;
+                return;
             }
 
             // Add Msg to Queue_Readies
             if (!Send_Msg_To_Readies_Q(RenderStatus.STARTED, imageData.item_id, beforeProcessingTime))
             {
                 log("Send_Msg_To_Readies_Q(status=STARTED,imageData.item_id=" + imageData.item_id + ") failed");
-                return CycleResult.FAIL;
+                lastResult = CycleResult.FAIL;
+                return;
             }
 
 
             if (imageData.operation == "render_model")
             {
+                // inform manager
+                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "render_model starting " + imageData.item_id);
+
                 DateTime beforeRhino = DateTime.Now;
                 // Process Msg to picture
                 String resultingLocalImageFilePath;
@@ -302,10 +323,15 @@ namespace Runer_Process
                 {
                     log("Process_Msg_Into_Image_File(msg) failed!!! (). ImageData=" + imageData.ToString());
                     Send_Msg_To_ERROR_Q(id, imageData.item_id);
-                    return CycleResult.FAIL;
+                    lastResult = CycleResult.FAIL;
+                    return;
                 }
 
                 DateTime afterRhino_Before_S3 = DateTime.Now;
+                if (imageData.item_id == "1005")
+                {
+                    MessageBox.Show("image " + imageData.item_id + " halting...");
+                }
 
                 String fileName_on_S3 = imageData.item_id.ToString() + ".jpg";
                 if (!S3_Utils.Write_File_To_S3(bucket_name, resultingLocalImageFilePath, fileName_on_S3))
@@ -313,7 +339,8 @@ namespace Runer_Process
                     String logLine = "Write_File_To_S3(resultingImagePath=" + resultingLocalImageFilePath + ", fileName_on_S3=" + fileName_on_S3 + ") failed !!!";
                     log(logLine);
                     Send_Msg_To_ERROR_Q(id, logLine);
-                    return CycleResult.FAIL;
+                    lastResult = CycleResult.FAIL;
+                    return;
                 }
 
                 DateTime afterS3_Before_SQS = DateTime.Now;
@@ -331,7 +358,8 @@ namespace Runer_Process
                         log(logLine);
                         Send_Msg_To_ERROR_Q(id, logLine);
                     }
-                    return CycleResult.FAIL;
+                    lastResult = CycleResult.FAIL;
+                    return;
                 }
 
                 // Add Msg to Queue_Readies
@@ -339,7 +367,8 @@ namespace Runer_Process
                 {
                     String logLine = "Send_Msg_To_Readies_Q(imageData.item_id=" + imageData.item_id + ") failed";
                     log(logLine);
-                    return CycleResult.FAIL;
+                    lastResult = CycleResult.FAIL;
+                    return;
                 }
 
                 DateTime afterSQS = DateTime.Now;
@@ -351,12 +380,15 @@ namespace Runer_Process
                 log("S3 Time=" + (afterS3_Before_SQS - afterRhino_Before_S3).TotalMilliseconds.ToString() + " millis");
                 log("SQS Time=" + (afterSQS - afterS3_Before_SQS).TotalMilliseconds.ToString() + " millis");
 
-                return CycleResult.SUCCESS;
+                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "render_model finished " + imageData.item_id);
+                lastResult = CycleResult.SUCCESS;
+                return;
             }
             else
             {
                 log("ERROR !!! - (" + imageData.operation + "=imageData.operation != \"render_model\")");
-                return CycleResult.FAIL;
+                lastResult = CycleResult.FAIL;
+                return;
             }
         }
 

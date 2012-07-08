@@ -22,6 +22,11 @@ namespace Process_Manager
         private static Semaphore make_cycle_gate;
 
         public static Dictionary<String, Object> params_dict;
+        private static int id_counter, seconds_timeout;
+        private static String error_Q_url, bucket_name;
+
+
+
 
         public Manager_Form(String scene_params_json)
         {
@@ -36,10 +41,6 @@ namespace Process_Manager
         private void button1_Click(object sender, EventArgs e)
         {
             UtilsDLL.Dirs.get_all_relevant_dirs();
-/*
-            bool b; String s;
-            UtilsDLL.S3_Utils.Find_Bucket("tamir_Bucket", out b, out s);
-*/
 
             load_rhino_gate = new Semaphore(0, 1, "load_rhino");
             make_cycle_gate = new Semaphore(0, 2, "make_cycle");
@@ -48,20 +49,20 @@ namespace Process_Manager
             make_cycle_gate.Release(2);
 
             String name = (String)params_dict["name"];
-            String bucket_name = name + "_Bucket";
+            bucket_name = name + "_Bucket";
             if (!S3_Utils.Make_Sure_Bucket_Exists(bucket_name))
             {
                 MessageBox.Show("S3_Utils.Make_Sure_Bucket_Exists(bucket_name="+bucket_name+") failed!!!");
                 return;
             }
-            int seconds_timeout = (int)params_dict["timeout"];
+            seconds_timeout = (int)params_dict["timeout"];
             int mult = (int)params_dict["mult"];
-            int id_counter = 0;
+            id_counter = 0;
             foreach (Object scene_obj in (Object[])params_dict["scenes"])
             {
                 String scene = (String)scene_obj;
                 String half_name = name + '_' + scene;
-                String request_Q_url, ready_Q_url, error_Q_url;
+                String request_Q_url, ready_Q_url;
                 if (!make_sure_SQS_Qs_exist(half_name,out request_Q_url,out ready_Q_url, out error_Q_url))
                 {
                     MessageBox.Show("!make_sure_SQS_Qs_exist(" + half_name + ") failed!!!");
@@ -70,7 +71,6 @@ namespace Process_Manager
 
                 for (int j = 0; j < mult; j++, id_counter++)
                 {
-                    ProcessStartInfo psi = new ProcessStartInfo();
                     Dictionary<String,Object> single_scene_params_dict = new Dictionary<string,object>();
                     single_scene_params_dict["id"] = id_counter;
                     single_scene_params_dict["scene"] = scene + ".3dm";
@@ -79,19 +79,97 @@ namespace Process_Manager
                     single_scene_params_dict["error_Q_url"] = error_Q_url;
                     single_scene_params_dict["bucket_name"] = bucket_name;
                     single_scene_params_dict["timeout"] = seconds_timeout;
-
-
-                    JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
-                    string jsonString = serializer.Serialize((object)single_scene_params_dict);
-
-
-                    psi.Arguments = jsonString.Replace("\"","\\\"");
-                    psi.FileName = @"C:\Amit\Rendering_Code\Runer_Process\bin\Debug\Runer_Process.exe";
-                    psi.UseShellExecute = true;
-                    Process p = Process.Start(psi);
+                    single_scene_params_dict["rhino_visible"] = false;
+                    
+                    Start_New_Runner(single_scene_params_dict);
                 }
             }
         }
+
+        private void Start_New_Runner(Dictionary<String, Object> single_scene_params_dict)
+        {
+            JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
+            string jsonString = serializer.Serialize((object)single_scene_params_dict);
+
+            ProcessStartInfo psi = new ProcessStartInfo();
+            psi.Arguments = jsonString.Replace("\"", "\\\"");
+            psi.FileName = @"C:\Inetpub\ftproot\Rendering_Code\Runer_Process\bin\Debug\Runer_Process.exe";
+            psi.UseShellExecute = true;
+            Process p = Process.Start(psi);
+
+            dataGridView1.Rows.Add(
+                single_scene_params_dict["id"],
+                single_scene_params_dict["scene"],
+                "Started",
+                String.Empty,
+                DateTime.Now.ToString(),
+                String.Empty,
+                p.Id,
+                single_scene_params_dict["request_Q_url"],
+                single_scene_params_dict["ready_Q_url"]);
+        }
+
+        private static char[] tokenizer = { ' ' };
+
+
+        private void change_grid_row(int runer_id, String msg)
+        {
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                int runer_id_from_row = (int)row.Cells[(int)ColumnsIndex.RUNER_ID].Value;
+                if (runer_id_from_row == runer_id)
+                {
+                    if (msg.StartsWith("render_model")) // need to adjust item_id
+                    {
+                        String[] tokens = msg.Split(tokenizer);
+                        String item_id = tokens[2];
+                        String modeling_state = tokens[1];
+                        String stateToWrite = modeling_state + " model";
+                        row.Cells[(int)ColumnsIndex.STATE].Value = stateToWrite;
+                        row.Cells[(int)ColumnsIndex.ITEM_ID].Value = item_id;
+                    }
+                    else if (msg.StartsWith("Finished_Rhino")) // need to adjust Rhino PID
+                    {
+                        String[] tokens = msg.Split(tokenizer);
+                        int rhino_pid = int.Parse(tokens[1]);
+                        row.Cells[(int)ColumnsIndex.RHINO_PID].Value = rhino_pid;
+                    }
+                    else if (msg.StartsWith("ERROR")) // need to kill correct Rhino process + correct runer process
+                    {
+                        int rhino_pid = (int)row.Cells[(int)ColumnsIndex.RHINO_PID].Value;
+                        int runer_pid = (int)row.Cells[(int)ColumnsIndex.RUNER_PID].Value;
+                        // color row to red
+                        row.DefaultCellStyle.BackColor = Color.Red;
+                        Kill_Process(rhino_pid);
+                        Kill_Process(runer_pid);
+                        row.Cells[(int)ColumnsIndex.STATE].Value = "killed";
+                        // release lock  (was not done by runer)
+                        make_cycle_gate.Release(1);
+
+                        // start a new process....
+                        Dictionary<String, Object> single_scene_params_dict = new Dictionary<string, object>();
+                        single_scene_params_dict["id"] = id_counter++;
+                        single_scene_params_dict["scene"] = (String)row.Cells[(int)ColumnsIndex.SCENE].Value;
+                        single_scene_params_dict["request_Q_url"] = row.Cells[(int)ColumnsIndex.REQUEST_URL].Value;
+                        single_scene_params_dict["ready_Q_url"] = row.Cells[(int)ColumnsIndex.READY_URL].Value;
+                        single_scene_params_dict["error_Q_url"] = error_Q_url;
+                        single_scene_params_dict["bucket_name"] = bucket_name;
+                        single_scene_params_dict["timeout"] = seconds_timeout;
+                        single_scene_params_dict["rhino_visible"] = false;
+
+                        Start_New_Runner(single_scene_params_dict);
+                    }
+                    else
+                    {
+                        row.Cells[2].Value = msg;
+                    }
+                    row.Cells[(int)ColumnsIndex.LAST_UPDATE].Value = DateTime.Now.ToString();
+                    dataGridView1.Refresh();
+                    return;
+                }
+            }
+        }
+
 
         private bool make_sure_SQS_Qs_exist(string half_name, out String request_Q_url, out String ready_Q_url, out String error_Q_url)
         {
@@ -117,7 +195,10 @@ namespace Process_Manager
                     COPYDATASTRUCT mystr = new COPYDATASTRUCT();
                     Type mytype = mystr.GetType();
                     mystr = (COPYDATASTRUCT)m.GetLParam(mytype);
-                    Console.WriteLine("Got message("+m.WParam.ToInt32().ToString()+"):"+mystr.lpData);
+                    String msg = mystr.lpData;
+                    int runer_id = m.WParam.ToInt32();
+                    Console.WriteLine("Got message("+runer_id.ToString()+"):"+msg);
+                    change_grid_row(runer_id, msg);
                     break;
             }
             base.WndProc(ref m);
@@ -137,11 +218,32 @@ namespace Process_Manager
         
         }
 
+        private void Kill_Process(int pid)
+        {
+            ProcessStartInfo psi = new ProcessStartInfo();
+            psi.FileName = "taskkill";
+            psi.Arguments = "/F /pid " + pid;
+            Process.Start(psi);
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
 
         }
 
+    }
+
+    public enum ColumnsIndex
+    {
+        RUNER_ID = 0,
+        SCENE = 1,
+        STATE = 2,
+        ITEM_ID = 3,
+        LAST_UPDATE = 4,
+        RHINO_PID = 5,
+        RUNER_PID = 6,
+        REQUEST_URL = 7,
+        READY_URL = 8
     }
 
 }

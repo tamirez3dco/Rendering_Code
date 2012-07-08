@@ -27,29 +27,6 @@ namespace UtilsDLL
             ERROR,
             SUCCESS
         }
-        public static Cycle_Result single_cycle(String Q_name, TimeSpan timeout)
-        {
-            // get SQS Qs urls
-
-            // try read SQS req msg
-
-            // if no msg return true
-
-
-            // SQS 1
-            // delete all, set layer etc...
-
-            // enter params
-
-            // script/grasshoppper
-
-            // render
-
-            // S3
-
-            //SQS 2
-            return Cycle_Result.SUCCESS;
-        }
 
         public static bool start_a_SingleRhino(String sceneFile_name, bool rhino_visible, out UtilsDLL.Rhino.Rhino_Wrapper newRhino)
         {
