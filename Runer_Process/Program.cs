@@ -46,7 +46,8 @@ namespace Runer_Process
     {
         NO_MSG,
         SUCCESS,
-        FAIL
+        FAIL,
+        FUCKUPS_DELETED
     }
 
     public enum RenderStatus
@@ -66,6 +67,7 @@ namespace Runer_Process
         public static String current_GH_file = String.Empty;
 
         public static Dictionary<String, Object> params_dict;
+
 
         static void log(String str)
         {
@@ -175,6 +177,8 @@ namespace Runer_Process
 
             whnd = UtilsDLL.Win32_API.FindWindow(null, "RhinoManager");
 
+            Fuckups_DB.Open_Connection();
+
             for (int i = 0; i < args.Length; i++)
             {
                 Console.WriteLine("args[" + i + "]=" + args[i]);
@@ -252,11 +256,15 @@ namespace Runer_Process
                 Thread thread = new Thread(ts);
                 thread.Start();
                 thread.Join(seconds_timeout * 1000);
-                if (lastResult == CycleResult.FAIL)
+                switch (lastResult)
                 {
-                    // do NOT release the lock - simply send an error msg to the window and stop. Releasing will be done at Manager level
-                    UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "ERROR");
-                    return;
+                    case CycleResult.FAIL:
+                        // do NOT release the lock - simply send an error msg to the window and stop. Releasing will be done at Manager level
+                        UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "ERROR");
+                        return;
+                    case CycleResult.FUCKUPS_DELETED:
+                        UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "FUCKUP DELETED");
+                        break;
                 }
 
                 Console.WriteLine(id + "): Before cycle gate.Release() : " + DateTime.Now.ToString());
@@ -301,6 +309,17 @@ namespace Runer_Process
                 return;
             }
 
+            int prevFuckups_this_image = Fuckups_DB.Get_Fuckups(imageData.item_id);
+            if (prevFuckups_this_image >= 2)
+            {
+                // send an error msg telling that this image was deleted
+                Send_Msg_To_ERROR_Q(id, "Item_id:" + imageData.item_id + " was deleted from request Q without rendering because prevFuckups_this_image=" + prevFuckups_this_image.ToString());
+                // delete the message...
+                Delete_Msg_From_Req_Q(msg);
+                lastResult = CycleResult.FUCKUPS_DELETED;
+                return;
+            }
+
             // Add Msg to Queue_Readies
             if (!Send_Msg_To_Readies_Q(RenderStatus.STARTED, imageData.item_id, beforeProcessingTime))
             {
@@ -328,9 +347,24 @@ namespace Runer_Process
                 }
 
                 DateTime afterRhino_Before_S3 = DateTime.Now;
-                if (imageData.item_id == "1005")
+                int id_as_int_debug;
+                if (int.TryParse(imageData.item_id,out id_as_int_debug))
                 {
-                    MessageBox.Show("image " + imageData.item_id + " halting...");
+                    if (id_as_int_debug % 10 == 5)
+                    {
+                        DialogResult dres = MessageBox.Show("image " + imageData.item_id + " halting...", "stam", MessageBoxButtons.YesNoCancel);
+                        if (DialogResult.Yes == dres)
+                        {
+                            Win32_API.Kill_Process(rhino_wrapper.rhino_pid);
+                            int pid = Process.GetCurrentProcess().Id;
+                            Win32_API.Kill_Process(pid);
+                        }
+                        else if (DialogResult.No == dres)
+                        {
+                            lastResult = CycleResult.FAIL;
+                            return;
+                        }
+                    }
                 }
 
                 String fileName_on_S3 = imageData.item_id.ToString() + ".jpg";

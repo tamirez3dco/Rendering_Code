@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
@@ -40,6 +41,8 @@
             this.rune_pid = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.requst_url = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ready_url = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.check_crashes_timer = new System.Windows.Forms.Timer(this.components);
+            this.button3 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -141,11 +144,28 @@
             this.ready_url.Name = "ready_url";
             this.ready_url.ReadOnly = true;
             // 
+            // check_crashes_timer
+            // 
+            this.check_crashes_timer.Enabled = true;
+            this.check_crashes_timer.Interval = 5000;
+            this.check_crashes_timer.Tick += new System.EventHandler(this.check_crashes_timer_Tick);
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(423, 419);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(107, 43);
+            this.button3.TabIndex = 3;
+            this.button3.Text = "button3";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
             // Manager_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1019, 486);
+            this.Controls.Add(this.button3);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
@@ -171,6 +191,8 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn rune_pid;
         private System.Windows.Forms.DataGridViewTextBoxColumn requst_url;
         private System.Windows.Forms.DataGridViewTextBoxColumn ready_url;
+        private System.Windows.Forms.Timer check_crashes_timer;
+        private System.Windows.Forms.Button button3;
     }
 }
 

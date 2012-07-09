@@ -25,9 +25,6 @@ namespace Process_Manager
         private static int id_counter, seconds_timeout;
         private static String error_Q_url, bucket_name;
 
-
-
-
         public Manager_Form(String scene_params_json)
         {
             InitializeComponent();
@@ -41,6 +38,10 @@ namespace Process_Manager
         private void button1_Click(object sender, EventArgs e)
         {
             UtilsDLL.Dirs.get_all_relevant_dirs();
+
+            Fuckups_DB.Open_Connection();
+            Fuckups_DB.Clear_DB();
+
 
             load_rhino_gate = new Semaphore(0, 1, "load_rhino");
             make_cycle_gate = new Semaphore(0, 2, "make_cycle");
@@ -136,12 +137,14 @@ namespace Process_Manager
                     }
                     else if (msg.StartsWith("ERROR")) // need to kill correct Rhino process + correct runer process
                     {
+                        Fuckups_DB.Add_Fuckup((String)row.Cells[(int)ColumnsIndex.ITEM_ID].Value);
+
                         int rhino_pid = (int)row.Cells[(int)ColumnsIndex.RHINO_PID].Value;
                         int runer_pid = (int)row.Cells[(int)ColumnsIndex.RUNER_PID].Value;
                         // color row to red
                         row.DefaultCellStyle.BackColor = Color.Red;
-                        Kill_Process(rhino_pid);
-                        Kill_Process(runer_pid);
+                        Win32_API.Kill_Process(rhino_pid);
+                        Win32_API.Kill_Process(runer_pid);
                         row.Cells[(int)ColumnsIndex.STATE].Value = "killed";
                         // release lock  (was not done by runer)
                         make_cycle_gate.Release(1);
@@ -159,9 +162,13 @@ namespace Process_Manager
 
                         Start_New_Runner(single_scene_params_dict);
                     }
+                    else if (msg.StartsWith("FUCKUP DELETED"))
+                    {
+                        row.Cells[(int)ColumnsIndex.STATE].Value = msg;
+                    }
                     else
                     {
-                        row.Cells[2].Value = msg;
+                        row.Cells[(int)ColumnsIndex.STATE].Value = msg;
                     }
                     row.Cells[(int)ColumnsIndex.LAST_UPDATE].Value = DateTime.Now.ToString();
                     dataGridView1.Refresh();
@@ -218,17 +225,57 @@ namespace Process_Manager
         
         }
 
-        private void Kill_Process(int pid)
-        {
-            ProcessStartInfo psi = new ProcessStartInfo();
-            psi.FileName = "taskkill";
-            psi.Arguments = "/F /pid " + pid;
-            Process.Start(psi);
-        }
 
         private void Form1_Load(object sender, EventArgs e)
         {
+        }
 
+        private void check_crashes_timer_Tick(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                String state = (String)row.Cells[(int)ColumnsIndex.STATE].Value;
+                if (state.Trim().ToLower() == "starting model")
+                {
+                    DateTime lastUpdate = DateTime.Parse((String)row.Cells[(int)ColumnsIndex.LAST_UPDATE].Value);
+                    TimeSpan diff = DateTime.Now - lastUpdate;
+                    if (diff.TotalSeconds > 55)
+                    {
+                        Fuckups_DB.Add_Fuckup((String)row.Cells[(int)ColumnsIndex.ITEM_ID].Value);
+                        int rhino_pid = (int)row.Cells[(int)ColumnsIndex.RHINO_PID].Value;
+                        int runer_pid = (int)row.Cells[(int)ColumnsIndex.RUNER_PID].Value;
+                        // color row to red
+                        row.DefaultCellStyle.BackColor = Color.Red;
+                        Win32_API.Kill_Process(rhino_pid);
+                        Win32_API.Kill_Process(runer_pid);
+                        row.Cells[(int)ColumnsIndex.STATE].Value = "killed";
+                        // release lock  (was not done by runer)
+                        make_cycle_gate.Release(1);
+
+                        // start a new process....
+                        Dictionary<String, Object> single_scene_params_dict = new Dictionary<string, object>();
+                        single_scene_params_dict["id"] = id_counter++;
+                        single_scene_params_dict["scene"] = (String)row.Cells[(int)ColumnsIndex.SCENE].Value;
+                        single_scene_params_dict["request_Q_url"] = row.Cells[(int)ColumnsIndex.REQUEST_URL].Value;
+                        single_scene_params_dict["ready_Q_url"] = row.Cells[(int)ColumnsIndex.READY_URL].Value;
+                        single_scene_params_dict["error_Q_url"] = error_Q_url;
+                        single_scene_params_dict["bucket_name"] = bucket_name;
+                        single_scene_params_dict["timeout"] = seconds_timeout;
+                        single_scene_params_dict["rhino_visible"] = false;
+
+                        Start_New_Runner(single_scene_params_dict);
+
+                    }
+                }
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            Fuckups_DB.Open_Connection();
+            Fuckups_DB.Add_Fuckup("aaaa");
+            //int fuckers = Fuckups_DB.Get_Fuckups("aaaa");
+            //Fuckups_DB.Clear_DB();
         }
 
     }

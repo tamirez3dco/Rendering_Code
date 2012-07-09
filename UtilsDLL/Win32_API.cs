@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace UtilsDLL
 {
@@ -38,6 +39,14 @@ namespace UtilsDLL
 
         [DllImport("User32.dll")]
         public static extern Int32 FindWindow(String lpClassName, String lpWindowName);
+
+        public static void Kill_Process(int pid)
+        {
+            ProcessStartInfo psi = new ProcessStartInfo();
+            psi.FileName = "taskkill";
+            psi.Arguments = "/F /pid " + pid;
+            Process.Start(psi);
+        }
 
     }
 }
