@@ -24,6 +24,7 @@ namespace Runer_Process
         public Size imageSize = new Size();
         public String operation;
         public String layerName = String.Empty;
+        public bool getSTL = false;
 
 
         public override string ToString()
@@ -33,6 +34,7 @@ namespace Runer_Process
             res += "rhino_fileName=" + scene + Environment.NewLine;
             res += "bake=" + bake + Environment.NewLine;
             res += "imageSize=" + imageSize.ToString() + Environment.NewLine;
+            res += "getSTL=" + getSTL + Environment.NewLine;
             res += "params:" + Environment.NewLine;
             foreach (String key in propValues.Keys)
             {
@@ -141,6 +143,10 @@ namespace Runer_Process
             else
             {
                 imageData.layerName = (String)jsonDict["layer_name"];
+            }
+            if (jsonDict.ContainsKey("getSTL"))
+            {
+                imageData.getSTL = (bool)jsonDict["getSTL"];
             }
 
 
@@ -346,6 +352,15 @@ namespace Runer_Process
                     return;
                 }
 
+                TimeSpan stl_timespan = new TimeSpan(0,0,0,99);
+                if (imageData.getSTL)
+                {
+                    DateTime beforeSTL = DateTime.Now;
+                    String resulting_3dm_path = resultingLocalImageFilePath.Replace(".jpg",".3dm");
+                    rhino_wrapper.rhino_app.RunScript("-SaveAs " + resulting_3dm_path, 1);
+                    stl_timespan = DateTime.Now - beforeSTL;
+                }
+
                 DateTime afterRhino_Before_S3 = DateTime.Now;
                 int id_as_int_debug;
                 if (int.TryParse(imageData.item_id,out id_as_int_debug))
@@ -411,6 +426,10 @@ namespace Runer_Process
                 log("Wait time=" + waitTime.TotalMilliseconds.ToString() + " millis");
                 log("Rhino build time=" + buildTime.TotalMilliseconds.ToString() + " millis");
                 log("Render time=" + renderTime.TotalMilliseconds.ToString() + " millis");
+                if (imageData.getSTL)
+                {
+                    log("getSTL time=" + stl_timespan.TotalMilliseconds.ToString() + " millis");
+                }
                 log("S3 Time=" + (afterS3_Before_SQS - afterRhino_Before_S3).TotalMilliseconds.ToString() + " millis");
                 log("SQS Time=" + (afterSQS - afterS3_Before_SQS).TotalMilliseconds.ToString() + " millis");
 
@@ -447,13 +466,13 @@ namespace Runer_Process
             buildTime = new TimeSpan();
             waitTime = new TimeSpan();
 
-            if (!DeleteAll())
+            if (!UtilsDLL.Rhino.DeleteAll(rhino_wrapper))
             {
                 log("ERROR!!: DeleteAll() failed !!!");
                 return false;
             }
 
-            if (!setDefaultLayer(imageData.layerName))
+            if (!UtilsDLL.Rhino.setDefaultLayer(rhino_wrapper, imageData.layerName))
             {
                 log("ERROR!!: setDefaultLayer(layerName=" + imageData.layerName + ") failed !!!");
                 return false;
@@ -470,7 +489,7 @@ namespace Runer_Process
                 }
                 else
                 {
-                    if (!Open_GH_File(Dirs.GH_DirPath + Path.DirectorySeparatorChar + imageData.gh_fileName))
+                    if (!UtilsDLL.Rhino.Open_GH_File(rhino_wrapper, Dirs.GH_DirPath + Path.DirectorySeparatorChar + imageData.gh_fileName))
                     {
                         logLine = "Open_GH_File(imageData[imageData.gh_filePath=" + imageData.gh_fileName + "); failed";
                         log(logLine);
@@ -480,7 +499,7 @@ namespace Runer_Process
                 }
 
 
-                if (!Set_GH_Params(imageData))
+                if (!UtilsDLL.Rhino.Set_GH_Params(rhino_wrapper,imageData.bake,imageData.propValues))
                 {
                     logLine = "Set_Params(imageData=" + imageData.ToString() + "]) failed !!!";
                     log(logLine);
@@ -489,7 +508,7 @@ namespace Runer_Process
             }
             else
             {
-                if (!Run_Script(imageData))
+                if (!UtilsDLL.Rhino.Run_Script(rhino_wrapper,imageData.gh_fileName,imageData.propValues))
                 {
                     logLine = "Run_Script(imageData=" + imageData.ToString() + "]) failed !!!";
                     log(logLine);
@@ -501,8 +520,8 @@ namespace Runer_Process
             buildTime = DateTime.Now - beforeTime;
 
 
-            String resultingImagePath;
-            if (!Render(imageData, out resultingImagePath))
+            String resultingImagePath = Dirs.images_DirPath + Path.DirectorySeparatorChar + "yofi_" + imageData.item_id + ".jpg";
+            if (!Rhino.Render(rhino_wrapper, imageData.imageSize, resultingImagePath))
             {
                 log("Render(imageData=" + imageData.ToString() + ") failed !!!");
                 return false;
@@ -518,156 +537,10 @@ namespace Runer_Process
 
         }
 
-        private static bool Open_GH_File(string filePath)
-        {
-            log("Starting  Open_GH_File(*,filePath=" + filePath);
-            DateTime before = DateTime.Now;
-
-            try
-            {
-                rhino_wrapper.grasshopper.CloseAllDocuments();
-                Thread.Sleep(1000);
-                rhino_wrapper.grasshopper.OpenDocument(filePath);
-            }
-            catch (Exception e)
-            {
-                log("Exception=" + e.Message);
-                return false;
-            }
-
-            log("Finished succefully  Open_GH_File(*,filePath=" + filePath + ((int)(DateTime.Now - before).TotalMilliseconds) + " miliseconds after Starting");
-            return true;
-
-        }
-
-        private static bool Render(ImageDataRequest imageData, out string resultingImagePath)
-        {
-            resultingImagePath = Dirs.images_DirPath + Path.DirectorySeparatorChar + "yofi_" + imageData.item_id + ".jpg";
-            try
-            {
-
-                DateTime beforeTime = DateTime.Now;
-                String captureCommand = "-FlamingoRenderTo f " + resultingImagePath + " " + imageData.imageSize.Width + " " + imageData.imageSize.Height;
-                int captureCommandRes = rhino_wrapper.rhino_app.RunScript(captureCommand, 1);
-
-                int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
-                log("After rendering by: " + captureCommand + "  into" + resultingImagePath + " After " + fromStart + " milliseconds");
-            }
-            catch (Exception e)
-            {
-                log("Excpetion in Render(imageData=" + imageData.ToString() + ", String outputPath=" + resultingImagePath + ", e.Message=" + e.Message);
-                return false;
-            }
-
-            return true;
-
-        }
-
-        private static bool Run_Script(ImageDataRequest imageData)
-        {
-            log("Starting Run_Script_And_Render(ImageData imageData=" + imageData.ToString() + "))");
-            DateTime beforeTime = DateTime.Now;
-            try
-            {
-                String commParams = "";
-                List<String> stringValues = new List<string>();
-                foreach (String paramName in imageData.propValues.Keys)
-                {
-                    Object propValue = imageData.propValues[paramName];
-                    Type propValueType = propValue.GetType();
-                    if (propValueType == typeof(Double) || propValueType == typeof(Decimal))
-                    {
-                        commParams = commParams + " " + paramName + "=" + imageData.propValues[paramName].ToString();
-                    }
-                    else if (propValue.GetType() == typeof(String))
-                    {
-                        stringValues.Add((String)propValue);
-                    }
-                }
-
-                //String runCommand = "vase1 rad1=0.2 rad2=0.42 rad3=0.6 rad4=0.5 Enter";
-                String runCommand = imageData.gh_fileName + " " + commParams + " Enter";
-                foreach (String value in stringValues)
-                {
-                    runCommand += " " + value + " Enter";
-                }
-                rhino_wrapper.rhino_app.RunScript(runCommand, 1);
-            }
-            catch (Exception e)
-            {
-                log("Exception in Run_Script_And_Render(). e.Message=" + e.Message);
-                return false;
-            }
 
 
-            int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
-            log("Script ran After " + fromStart + " milliseconds");
-
-            return true;
-
-        }
-
-        private static bool Set_GH_Params(ImageDataRequest imageData)
-        {
-            log("Starting Set_Params_And_Render(ImageData imageData=" + imageData.ToString() + ")");
-            DateTime beforeTime = DateTime.Now;
-            String logLine;
-            int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
-
-            foreach (String paramName in imageData.propValues.Keys)
-            {
-                Object value = imageData.propValues[paramName];
-                if (!rhino_wrapper.grasshopper.AssignDataToParameter(paramName, value))
-                {
-                    fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
-                    logLine = "grasshopper.AssignDataToParameter(paramName=" + paramName + ", value=" + value + ") returned false After " + fromStart + " milliseconds";
-                    log(logLine);
-                    return false;
-                }
-
-                fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
-                logLine = "After assigning param:" + paramName + " the value=" + value + " After " + fromStart + " milliseconds";
-                log(logLine);
-
-            }
-
-            rhino_wrapper.grasshopper.RunSolver(true);
-
-            Object objRes = rhino_wrapper.grasshopper.BakeDataInObject(imageData.bake);
-
-            fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
-            logLine = "After baking object:" + imageData.bake + " After " + fromStart + " milliseconds";
-            log(logLine);
-
-            return true;
-
-        }
-
-        private static bool setDefaultLayer(string layerName)
-        {
-            String setLayerCommand = "_EZ3DSilentChangeLayerCommand " + layerName;
-            int setLayerCommandRes = rhino_wrapper.rhino_app.RunScript(setLayerCommand, 1);
-            return true;
-        }
-
-        private static bool DeleteAll()
-        {
-            DateTime beforeTime = DateTime.Now;
-            String logLine;
-            int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
-            logLine = "Starting DeleteAll()";
-            log(logLine);
 
 
-            // Delete all
-            String deleteAllCommand = "EZ3DDellAllCommand";
-            int deleteAllCommanddRes = rhino_wrapper.rhino_app.RunScript(deleteAllCommand, 1);
-            fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
-            logLine = "deleteAllCommanddRes=" + deleteAllCommanddRes + " After " + fromStart + " milliseconds";
-            log(logLine);
-            return true;
-
-        }
 
 
         private static bool Send_Msg_To_Readies_Q(RenderStatus renderStatus, string item_id, DateTime beforeProcessingTime)

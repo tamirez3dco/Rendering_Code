@@ -6,6 +6,7 @@ using Rhino4;
 using System.Threading;
 using System.Diagnostics;
 using System.IO;
+using System.Drawing;
 
 namespace UtilsDLL
 {
@@ -27,6 +28,61 @@ namespace UtilsDLL
             ERROR,
             SUCCESS
         }
+
+        private static void log(String str)
+        {
+            Console.WriteLine(str);
+        }
+
+        public static bool DeleteAll(Rhino_Wrapper rhino_wrapper)
+        {
+            DateTime beforeTime = DateTime.Now;
+            String logLine;
+            int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
+            logLine = "Starting DeleteAll()";
+            log(logLine);
+
+
+            // Delete all
+            String deleteAllCommand = "EZ3DDellAllCommand";
+            int deleteAllCommanddRes = rhino_wrapper.rhino_app.RunScript(deleteAllCommand, 1);
+            fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
+            logLine = "deleteAllCommanddRes=" + deleteAllCommanddRes + " After " + fromStart + " milliseconds";
+            log(logLine);
+            return true;
+
+        }
+
+        public static bool setDefaultLayer(Rhino_Wrapper rhino_wrapper,  string layerName)
+        {
+            String setLayerCommand = "_EZ3DSilentChangeLayerCommand " + layerName;
+            int setLayerCommandRes = rhino_wrapper.rhino_app.RunScript(setLayerCommand, 1);
+            return true;
+        }
+
+
+        public static bool Open_GH_File(Rhino_Wrapper rhino_wrapper, string filePath)
+        {
+            log("Starting  Open_GH_File(*,filePath=" + filePath);
+            DateTime before = DateTime.Now;
+
+            try
+            {
+                rhino_wrapper.grasshopper.CloseAllDocuments();
+                Thread.Sleep(1000);
+                rhino_wrapper.grasshopper.OpenDocument(filePath);
+            }
+            catch (Exception e)
+            {
+                log("Exception=" + e.Message);
+                return false;
+            }
+
+            log("Finished succefully  Open_GH_File(*,filePath=" + filePath + ((int)(DateTime.Now - before).TotalMilliseconds) + " miliseconds after Starting");
+            return true;
+
+        }
+
 
         public static bool start_a_SingleRhino(String sceneFile_name, bool rhino_visible, out UtilsDLL.Rhino.Rhino_Wrapper newRhino)
         {
@@ -106,6 +162,135 @@ namespace UtilsDLL
 
             // load scene
             return true;
+        }
+
+
+        public static bool Render(Rhino_Wrapper rhino_wrapper, Size size, string resultingImagePath)
+        {
+            try
+            {
+
+                DateTime beforeTime = DateTime.Now;
+                String captureCommand = "-FlamingoRenderTo f " + resultingImagePath + " " + size.Width + " " + size.Height;
+                int captureCommandRes = rhino_wrapper.rhino_app.RunScript(captureCommand, 1);
+
+                int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
+                log("After rendering by: " + captureCommand + "  into" + resultingImagePath + " After " + fromStart + " milliseconds");
+            }
+            catch (Exception e)
+            {
+                log("Excpetion in Render(imageData=" + resultingImagePath + ", String outputPath=" + resultingImagePath + ", e.Message=" + e.Message);
+                return false;
+            }
+
+            return true;
+
+        }
+
+        public static bool Unify_1(Rhino_Wrapper rhino_wrapper)
+        {
+            int res;
+            res = rhino_wrapper.rhino_app.RunScript("SelPolysrf", 1);
+            res = rhino_wrapper.rhino_app.RunScript("BooleanUnion", 1);
+            if (res != 1) return false;
+            res = rhino_wrapper.rhino_app.RunScript("SelSrf", 1);
+            res = rhino_wrapper.rhino_app.RunScript("BooleanUnion", 1);
+            if (res != 1) return false;
+            res = rhino_wrapper.rhino_app.RunScript("SelPolysrf", 1);
+            res = rhino_wrapper.rhino_app.RunScript("BooleanUnion", 1);
+            if (res != 1) return false;
+
+            return true;
+        }
+
+        public static bool save_stl(Rhino_Wrapper rhino_wrapper, string filePath)
+        {
+            String command = "-SaveAs " + filePath + " Enter Enter";
+            rhino_wrapper.rhino_app.RunScript(command, 1);
+            return true;
+        }
+
+
+        public static bool Set_GH_Params(Rhino_Wrapper rhino_wrapper, String bake, Dictionary<String,Object> parameters)
+        {
+            log("Starting Set_GH_Params()");
+            DateTime beforeTime = DateTime.Now;
+            String logLine;
+            int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
+
+            foreach (String paramName in parameters.Keys)
+            {
+                Object value = parameters[paramName];
+                if (!rhino_wrapper.grasshopper.AssignDataToParameter(paramName, value))
+                {
+                    fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
+                    logLine = "grasshopper.AssignDataToParameter(paramName=" + paramName + ", value=" + value + ") returned false After " + fromStart + " milliseconds";
+                    log(logLine);
+                    return false;
+                }
+
+                fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
+                logLine = "After assigning param:" + paramName + " the value=" + value + " After " + fromStart + " milliseconds";
+                log(logLine);
+
+            }
+
+            rhino_wrapper.grasshopper.RunSolver(true);
+
+            Object objRes = rhino_wrapper.grasshopper.BakeDataInObject(bake);
+
+            fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
+            logLine = "After baking object:" + bake + " After " + fromStart + " milliseconds";
+            log(logLine);
+
+            return true;
+
+        }
+
+
+
+
+        public static bool Run_Script(Rhino_Wrapper rhino_wrapper, String scriptName, Dictionary<String,Object> parameters)
+        {
+            DateTime beforeTime = DateTime.Now;
+            try
+            {
+                String commParams = "";
+                List<String> stringValues = new List<string>();
+                foreach (String paramName in  parameters.Keys)
+                {
+                    Object propValue = parameters[paramName];
+                    Type propValueType = propValue.GetType();
+                    if (propValueType == typeof(Double) || propValueType == typeof(Decimal))
+                    {
+                        commParams = commParams + " " + paramName + "=" + parameters[paramName].ToString();
+                    }
+                    else if (propValue.GetType() == typeof(String))
+                    {
+                        stringValues.Add((String)propValue);
+                    }
+                }
+
+                //String runCommand = "vase1 rad1=0.2 rad2=0.42 rad3=0.6 rad4=0.5 Enter";
+                String runCommand = scriptName + " " + commParams + " Enter";
+                foreach (String value in stringValues)
+                {
+                    runCommand += " " + value + " Enter";
+                }
+                rhino_wrapper.rhino_app.RunScript(runCommand, 1);
+            }
+            catch (Exception e)
+            {
+                log("Exception in Run_Script_And_Render(). e.Message=" + e.Message);
+                return false;
+            }
+
+
+            int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
+            log("Script ran After " + fromStart + " milliseconds");
+
+            return true;
+
         }
 
     }

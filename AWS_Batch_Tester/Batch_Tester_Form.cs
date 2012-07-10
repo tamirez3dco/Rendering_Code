@@ -63,6 +63,8 @@ namespace AWS_Batch_Tester
                         //if (i == 7) dict["scene"] = "no_such_file";
                         dict["item_id"] = (first_id + i).ToString();
 
+                        dict["getSTL"] = getSTL_checkBox.Checked;
+
 
                         //String layerName = (layers[i % layers.Length]);
                         //if (i <= 7) dict["layer_name"] = layerName;
