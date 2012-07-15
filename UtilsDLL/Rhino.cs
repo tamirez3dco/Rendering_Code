@@ -53,7 +53,7 @@ namespace UtilsDLL
 
         }
 
-        public static bool setDefaultLayer(Rhino_Wrapper rhino_wrapper,  string layerName)
+        public static bool setDefaultLayer(Rhino_Wrapper rhino_wrapper, string layerName)
         {
             String setLayerCommand = "_EZ3DSilentChangeLayerCommand " + layerName;
             int setLayerCommandRes = rhino_wrapper.rhino_app.RunScript(setLayerCommand, 1);
@@ -147,7 +147,7 @@ namespace UtilsDLL
             String sceneFilePath = UtilsDLL.Dirs.scenes_DirPath + Path.DirectorySeparatorChar + sceneFile_name;
             if (!File.Exists(sceneFilePath))
             {
-                Console.WriteLine("ERROR!!: sceneFilePath="+sceneFilePath+" does not exists");
+                Console.WriteLine("ERROR!!: sceneFilePath=" + sceneFilePath + " does not exists");
                 return false;
             }
 
@@ -165,10 +165,15 @@ namespace UtilsDLL
         }
 
 
-        public static bool Render(Rhino_Wrapper rhino_wrapper, Size size, string resultingImagePath)
+        public static bool Render(Rhino_Wrapper rhino_wrapper, String viewName, Size size, string resultingImagePath)
         {
             try
             {
+                if (!SetView(rhino_wrapper, viewName))
+                {
+                    log("Rhino.SetView(viewName=" + viewName + ") failed!!!");
+                    return false;
+                }
 
                 DateTime beforeTime = DateTime.Now;
                 String captureCommand = "-FlamingoRenderTo f " + resultingImagePath + " " + size.Width + " " + size.Height;
@@ -187,20 +192,59 @@ namespace UtilsDLL
 
         }
 
+
+        public static bool scaleAll(Rhino_Wrapper rhino_wrapper, double scaleRatio)
+        {
+            RhinoScript4.RhinoScript scripter = rhino_wrapper.rhino_app.GetScriptObject();
+            scripter.AllObjects(true, false, false);
+            //rhino_wrapper.rhino_app.RunScript("SelAll",1);
+            rhino_wrapper.rhino_app.RunScript("-Scale 0,0,0 " + scaleRatio.ToString(), 1);
+            return true;
+        }
+
+        public static bool SetView(Rhino_Wrapper rhino_wrapper, String viewName)
+        {
+            int intRes = rhino_wrapper.rhino_app.RunScript("-SetActiveViewport " + viewName, 1);
+            return (intRes == 1);
+        }
+
+        public static bool Open_3dm_file(Rhino_Wrapper rhino_wrapper, String tdm_filePath)
+        {
+            save_3dm(rhino_wrapper, "C:\\Temp\\stam.3dm");
+            rhino_wrapper.rhino_app.RunScript("-Open " + tdm_filePath, 1);
+            return true;
+        }
+
         public static bool Unify_1(Rhino_Wrapper rhino_wrapper)
         {
             int res;
             res = rhino_wrapper.rhino_app.RunScript("SelPolysrf", 1);
             res = rhino_wrapper.rhino_app.RunScript("BooleanUnion", 1);
             if (res != 1) return false;
+            if (count_objects(rhino_wrapper) == 1) return true;
             res = rhino_wrapper.rhino_app.RunScript("SelSrf", 1);
             res = rhino_wrapper.rhino_app.RunScript("BooleanUnion", 1);
             if (res != 1) return false;
+            if (count_objects(rhino_wrapper) == 1) return true;
             res = rhino_wrapper.rhino_app.RunScript("SelPolysrf", 1);
             res = rhino_wrapper.rhino_app.RunScript("BooleanUnion", 1);
-            if (res != 1) return false;
+            if (count_objects(rhino_wrapper) == 1) return true;
+            return false;
+        }
 
-            return true;
+        public static void stam(Rhino_Wrapper rhino_wrapper)
+        {
+            RhinoScript4.RhinoScript scripter = rhino_wrapper.rhino_app.GetScriptObject();
+            dynamic dyn = scripter.AllObjects();
+            String[] objStrings = (String[])dyn;
+            //scripter.GetObject(
+        }
+
+        public static int count_objects(Rhino_Wrapper rhino_wrapper)
+        {
+            RhinoScript4.RhinoScript scripter = rhino_wrapper.rhino_app.GetScriptObject();
+            Object[] objs = scripter.AllObjects();
+            return objs.Length;
         }
 
         public static bool save_stl(Rhino_Wrapper rhino_wrapper, string filePath)
@@ -210,8 +254,14 @@ namespace UtilsDLL
             return true;
         }
 
+        public static bool save_3dm(Rhino_Wrapper rhino_wrapper, string filePath)
+        {
+            String command = "-SaveAs " + filePath;
+            rhino_wrapper.rhino_app.RunScript(command, 1);
+            return true;
+        }
 
-        public static bool Set_GH_Params(Rhino_Wrapper rhino_wrapper, String bake, Dictionary<String,Object> parameters)
+        public static bool Set_GH_Params(Rhino_Wrapper rhino_wrapper, String bake, Dictionary<String, Object> parameters)
         {
             log("Starting Set_GH_Params()");
             DateTime beforeTime = DateTime.Now;
@@ -250,14 +300,14 @@ namespace UtilsDLL
 
 
 
-        public static bool Run_Script(Rhino_Wrapper rhino_wrapper, String scriptName, Dictionary<String,Object> parameters)
+        public static bool Run_Script(Rhino_Wrapper rhino_wrapper, String scriptName, Dictionary<String, Object> parameters)
         {
             DateTime beforeTime = DateTime.Now;
             try
             {
                 String commParams = "";
                 List<String> stringValues = new List<string>();
-                foreach (String paramName in  parameters.Keys)
+                foreach (String paramName in parameters.Keys)
                 {
                     Object propValue = parameters[paramName];
                     Type propValueType = propValue.GetType();

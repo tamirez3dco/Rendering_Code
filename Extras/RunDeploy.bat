@@ -1,4 +1,7 @@
-taskkill /F /IM Runing_Form.exe
-cd ..\Runing_Form\bin\Debug
-Runing_Form.exe "{\"num_of_rhino_instances\":2,\"visible_rhino\":false,\"scene\":\"rings.3dm\",\"request_Q_name\":\"deploy_request\",\"ready_Q_name\":\"deploy_ready\",\"s3_bucketName\":\"deploy_Bucket\",\"Timeout_seconds\":45,\"is_amazon_machine\":true}"
+set name=Process_Manager
+taskkill /F /IM %name%.exe
+taskkill /F /IM Runer_Process.exe
+taskkill /F /IM Rhino4.exe
+cd ..\%name%\bin\Debug
+%name%.exe "{\"mult\":2,\"scenes\":[\"rings\",\"vases\"],\"name\":\"deploy\",\"timeout\":45}
 pause

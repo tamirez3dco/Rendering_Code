@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Diagnostics;
 
 namespace UtilsDLL
 {
@@ -96,6 +97,53 @@ namespace UtilsDLL
             if (!get_pythonscripts_files_Dir(out PythonScripts_DirPath_Git)) return false;
 
             PythonScripts_DirPath_Actual = @"C:\Users\" + System.Environment.UserName + @"\AppData\Roaming\McNeel\Rhinoceros\5.0\Plug-ins\PythonPlugins\quest {4aa421bc-1d5d-4d9e-9e48-91bf91516ffa}\dev";
+            return true;
+        }
+
+        public static bool Refresh_Rhino_GH_Data_From_Github()
+        {
+            // Pull data (all under ftproot/Rendering_Data from GitHub)
+            DirectoryInfo currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
+
+            String renderingDataFolderPath = currentDir.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar + "Extras";
+            try
+            {
+                ProcessStartInfo psi = new ProcessStartInfo("stash.bat");
+                psi.WorkingDirectory = renderingDataFolderPath;
+
+                Process p = Process.Start(psi);
+                //p.WaitForInputIdle();
+                p.WaitForExit();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in Refresh_Rhino_GH_Data_From_Github(1). e.Message=" + e.Message);
+            }
+
+
+            try
+            {
+                ProcessStartInfo psi = new ProcessStartInfo("pullData.bat");
+                psi.WorkingDirectory = renderingDataFolderPath;
+
+                Process p = Process.Start(psi);
+                p.WaitForExit();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in Refresh_Rhino_GH_Data_From_Github(2). e.Message=" + e.Message);
+            }
+
+
+
+            // copy PythonScripts to correct location
+            DirectoryInfo pythonScriptsGitDirectory = new DirectoryInfo(PythonScripts_DirPath_Git);
+            FileInfo[] pythonFiles = pythonScriptsGitDirectory.GetFiles("*.py");
+            foreach (FileInfo pythonFile in pythonFiles)
+            {
+                String destFileName = PythonScripts_DirPath_Actual + Path.DirectorySeparatorChar + pythonFile.Name;
+                pythonFile.CopyTo(destFileName, true);
+            }
             return true;
         }
 

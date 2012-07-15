@@ -155,7 +155,7 @@ namespace Rhino_Restarter
                     {
                         Console.WriteLine("Performing RhinoRestart at time="+DateTime.Now.ToString());
                         last_restart_time = DateTime.Now;
-                        Directory.SetCurrentDirectory(@"C:\inetpub\ftproot\Rendering_Code\Runing_Form");
+                        Directory.SetCurrentDirectory(@"C:\inetpub\ftproot\Rendering_Code\Process_Manager");
                         ProcessStartInfo psi = new ProcessStartInfo(@"C:\inetpub\ftproot\Rendering_Code\Extras\RunDeploy.bat");
                         Process p = Process.Start(psi);
                     }

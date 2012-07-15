@@ -24,6 +24,7 @@ namespace Runer_Process
         public Size imageSize = new Size();
         public String operation;
         public String layerName = String.Empty;
+        public String viewName = String.Empty;
         public bool getSTL = false;
 
 
@@ -144,12 +145,21 @@ namespace Runer_Process
             {
                 imageData.layerName = (String)jsonDict["layer_name"];
             }
+
             if (jsonDict.ContainsKey("getSTL"))
             {
                 imageData.getSTL = (bool)jsonDict["getSTL"];
             }
 
 
+            if (!jsonDict.ContainsKey("view_name"))
+            {
+                imageData.viewName = "Render";
+            }
+            else
+            {
+                imageData.viewName = (String)jsonDict["view_name"];
+            }
 
             if (!jsonDict.ContainsKey("params"))
             {
@@ -362,25 +372,6 @@ namespace Runer_Process
                 }
 
                 DateTime afterRhino_Before_S3 = DateTime.Now;
-                int id_as_int_debug;
-                if (int.TryParse(imageData.item_id,out id_as_int_debug))
-                {
-                    if (id_as_int_debug % 10 == 5)
-                    {
-                        DialogResult dres = MessageBox.Show("image " + imageData.item_id + " halting...", "stam", MessageBoxButtons.YesNoCancel);
-                        if (DialogResult.Yes == dres)
-                        {
-                            Win32_API.Kill_Process(rhino_wrapper.rhino_pid);
-                            int pid = Process.GetCurrentProcess().Id;
-                            Win32_API.Kill_Process(pid);
-                        }
-                        else if (DialogResult.No == dres)
-                        {
-                            lastResult = CycleResult.FAIL;
-                            return;
-                        }
-                    }
-                }
 
                 String fileName_on_S3 = imageData.item_id.ToString() + ".jpg";
                 if (!S3_Utils.Write_File_To_S3(bucket_name, resultingLocalImageFilePath, fileName_on_S3))
@@ -521,7 +512,7 @@ namespace Runer_Process
 
 
             String resultingImagePath = Dirs.images_DirPath + Path.DirectorySeparatorChar + "yofi_" + imageData.item_id + ".jpg";
-            if (!Rhino.Render(rhino_wrapper, imageData.imageSize, resultingImagePath))
+            if (!Rhino.Render(rhino_wrapper, imageData.viewName, imageData.imageSize, resultingImagePath))
             {
                 log("Render(imageData=" + imageData.ToString() + ") failed !!!");
                 return false;

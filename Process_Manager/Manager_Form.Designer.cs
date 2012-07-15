@@ -29,32 +29,23 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.check_crashes_timer = new System.Windows.Forms.Timer(this.components);
+            this.button3 = new System.Windows.Forms.Button();
             this.runer_id = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.scene_column = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.state = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.item_id = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.LastDuration = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.updateTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.rhino_pid = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.rune_pid = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.requst_url = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ready_url = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.check_crashes_timer = new System.Windows.Forms.Timer(this.components);
-            this.button3 = new System.Windows.Forms.Button();
+            this.startCycleTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
-            // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(165, 400);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(154, 74);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "Start All";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // button2
             // 
@@ -77,16 +68,34 @@
             this.scene_column,
             this.state,
             this.item_id,
+            this.LastDuration,
             this.updateTime,
             this.rhino_pid,
             this.rune_pid,
             this.requst_url,
-            this.ready_url});
-            this.dataGridView1.Location = new System.Drawing.Point(2, 12);
+            this.ready_url,
+            this.startCycleTime});
+            this.dataGridView1.Location = new System.Drawing.Point(12, 12);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.Size = new System.Drawing.Size(947, 242);
             this.dataGridView1.TabIndex = 2;
+            // 
+            // check_crashes_timer
+            // 
+            this.check_crashes_timer.Enabled = true;
+            this.check_crashes_timer.Interval = 5000;
+            this.check_crashes_timer.Tick += new System.EventHandler(this.check_crashes_timer_Tick);
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(423, 419);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(107, 43);
+            this.button3.TabIndex = 3;
+            this.button3.Text = "button3";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // runer_id
             // 
@@ -112,6 +121,12 @@
             this.item_id.Name = "item_id";
             this.item_id.ReadOnly = true;
             this.item_id.Width = 200;
+            // 
+            // LastDuration
+            // 
+            this.LastDuration.HeaderText = "last Duration";
+            this.LastDuration.Name = "LastDuration";
+            this.LastDuration.ReadOnly = true;
             // 
             // updateTime
             // 
@@ -144,21 +159,11 @@
             this.ready_url.Name = "ready_url";
             this.ready_url.ReadOnly = true;
             // 
-            // check_crashes_timer
+            // startCycleTime
             // 
-            this.check_crashes_timer.Enabled = true;
-            this.check_crashes_timer.Interval = 5000;
-            this.check_crashes_timer.Tick += new System.EventHandler(this.check_crashes_timer_Tick);
-            // 
-            // button3
-            // 
-            this.button3.Location = new System.Drawing.Point(423, 419);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(107, 43);
-            this.button3.TabIndex = 3;
-            this.button3.Text = "button3";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
+            this.startCycleTime.HeaderText = "start Time";
+            this.startCycleTime.Name = "startCycleTime";
+            this.startCycleTime.ReadOnly = true;
             // 
             // Manager_Form
             // 
@@ -168,7 +173,6 @@
             this.Controls.Add(this.button3);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.button2);
-            this.Controls.Add(this.button1);
             this.Name = "Manager_Form";
             this.Text = "RhinoManager";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -179,20 +183,21 @@
 
         #endregion
 
-        private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.DataGridView dataGridView1;
+        private System.Windows.Forms.Timer check_crashes_timer;
+        private System.Windows.Forms.Button button3;
         private System.Windows.Forms.DataGridViewTextBoxColumn runer_id;
         private System.Windows.Forms.DataGridViewTextBoxColumn scene_column;
         private System.Windows.Forms.DataGridViewTextBoxColumn state;
         private System.Windows.Forms.DataGridViewTextBoxColumn item_id;
+        private System.Windows.Forms.DataGridViewTextBoxColumn LastDuration;
         private System.Windows.Forms.DataGridViewTextBoxColumn updateTime;
         private System.Windows.Forms.DataGridViewTextBoxColumn rhino_pid;
         private System.Windows.Forms.DataGridViewTextBoxColumn rune_pid;
         private System.Windows.Forms.DataGridViewTextBoxColumn requst_url;
         private System.Windows.Forms.DataGridViewTextBoxColumn ready_url;
-        private System.Windows.Forms.Timer check_crashes_timer;
-        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.DataGridViewTextBoxColumn startCycleTime;
     }
 }
 

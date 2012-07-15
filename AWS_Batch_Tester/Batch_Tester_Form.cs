@@ -56,7 +56,7 @@ namespace AWS_Batch_Tester
 
 
                         dict["gh_file"] = file_textBox.Text;
-
+                        dict["view_name"] = viewTextBox.Text;
                         dict["scene"] = sceneTextBox.Text +".3dm";
                         //dict["scene"] = "multiLayer.3dm";
                         //dict["scene"] = optionalScenes[(j/3)%optionalScenes.Length];

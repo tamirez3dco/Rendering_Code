@@ -35,9 +35,13 @@ namespace Process_Manager
 
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private bool startAll()
         {
             UtilsDLL.Dirs.get_all_relevant_dirs();
+
+            killAll();
+
+            Dirs.Refresh_Rhino_GH_Data_From_Github();
 
             Fuckups_DB.Open_Connection();
             Fuckups_DB.Clear_DB();
@@ -54,7 +58,7 @@ namespace Process_Manager
             if (!S3_Utils.Make_Sure_Bucket_Exists(bucket_name))
             {
                 MessageBox.Show("S3_Utils.Make_Sure_Bucket_Exists(bucket_name="+bucket_name+") failed!!!");
-                return;
+                return false;
             }
             seconds_timeout = (int)params_dict["timeout"];
             int mult = (int)params_dict["mult"];
@@ -63,15 +67,15 @@ namespace Process_Manager
             {
                 String scene = (String)scene_obj;
                 String request_Q_url, ready_Q_url;
-                if (!make_sure_SQS_Qs_exist(name,scene,out request_Q_url,out ready_Q_url, out error_Q_url))
+                if (!make_sure_SQS_Qs_exist(name, scene, out request_Q_url, out ready_Q_url, out error_Q_url))
                 {
                     MessageBox.Show("!make_sure_SQS_Qs_exist(" + name + "," + scene + ") failed!!!");
-                    return;
+                    return false;
                 }
 
                 for (int j = 0; j < mult; j++, id_counter++)
                 {
-                    Dictionary<String,Object> single_scene_params_dict = new Dictionary<string,object>();
+                    Dictionary<String, Object> single_scene_params_dict = new Dictionary<string, object>();
                     single_scene_params_dict["id"] = id_counter;
                     single_scene_params_dict["scene"] = scene + ".3dm";
                     single_scene_params_dict["request_Q_url"] = request_Q_url;
@@ -80,11 +84,13 @@ namespace Process_Manager
                     single_scene_params_dict["bucket_name"] = bucket_name;
                     single_scene_params_dict["timeout"] = seconds_timeout;
                     single_scene_params_dict["rhino_visible"] = false;
-                    
+
                     Start_New_Runner(single_scene_params_dict);
                 }
             }
+            return true;
         }
+
 
         private void Start_New_Runner(Dictionary<String, Object> single_scene_params_dict)
         {
@@ -101,6 +107,7 @@ namespace Process_Manager
                 single_scene_params_dict["id"],
                 single_scene_params_dict["scene"],
                 "Started",
+                String.Empty,
                 String.Empty,
                 DateTime.Now.ToString(),
                 String.Empty,
@@ -124,7 +131,18 @@ namespace Process_Manager
                         String[] tokens = msg.Split(tokenizer);
                         String item_id = tokens[2];
                         String modeling_state = tokens[1];
+                        if (modeling_state == "starting")
+                        {
+                            row.Cells[(int)ColumnsIndex.START_CYCLE_TIME].Value = DateTime.Now.ToString();
+                        }
+                        else // "finished"
+                        {
+                            DateTime startCycleTime = DateTime.Parse((String)(row.Cells[(int)ColumnsIndex.START_CYCLE_TIME].Value));
+                            TimeSpan cycleDuration = DateTime.Now - startCycleTime;
+                            row.Cells[(int)ColumnsIndex.LAST_DURATION].Value = String.Format("{0:0.00}", cycleDuration.TotalSeconds);
+                        }
                         String stateToWrite = modeling_state + " model";
+                        
                         row.Cells[(int)ColumnsIndex.STATE].Value = stateToWrite;
                         row.Cells[(int)ColumnsIndex.ITEM_ID].Value = item_id;
                     }
@@ -161,11 +179,7 @@ namespace Process_Manager
 
                         Start_New_Runner(single_scene_params_dict);
                     }
-                    else if (msg.StartsWith("FUCKUP DELETED"))
-                    {
-                        row.Cells[(int)ColumnsIndex.STATE].Value = msg;
-                    }
-                    else
+                    else //("FUCKUP DELETED") or other)
                     {
                         row.Cells[(int)ColumnsIndex.STATE].Value = msg;
                     }
@@ -212,6 +226,13 @@ namespace Process_Manager
 
         private void button2_Click(object sender, EventArgs e)
         {
+            killAll();
+        
+        }
+
+
+        public void killAll()
+        {
             ProcessStartInfo psi = new ProcessStartInfo();
             psi.FileName = "taskkill";
             psi.Arguments = "/F /IM Runer_Process.exe";
@@ -220,13 +241,11 @@ namespace Process_Manager
             psi.FileName = "taskkill";
             psi.Arguments = "/F /IM Rhino4.exe";
             Process.Start(psi);
-        
-        
+
         }
-
-
         private void Form1_Load(object sender, EventArgs e)
         {
+            startAll();
         }
 
         private void check_crashes_timer_Tick(object sender, EventArgs e)
@@ -282,14 +301,16 @@ namespace Process_Manager
     public enum ColumnsIndex
     {
         RUNER_ID = 0,
-        SCENE = 1,
-        STATE = 2,
-        ITEM_ID = 3,
-        LAST_UPDATE = 4,
-        RHINO_PID = 5,
-        RUNER_PID = 6,
-        REQUEST_URL = 7,
-        READY_URL = 8
+        SCENE,
+        STATE,
+        ITEM_ID,
+        LAST_DURATION,
+        LAST_UPDATE,
+        RHINO_PID,
+        RUNER_PID,
+        REQUEST_URL,
+        READY_URL,
+        START_CYCLE_TIME
     }
 
 }

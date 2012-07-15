@@ -46,6 +46,7 @@
             this.sceneTextBox = new System.Windows.Forms.TextBox();
             this.name_textBox = new System.Windows.Forms.TextBox();
             this.getSTL_checkBox = new System.Windows.Forms.CheckBox();
+            this.viewTextBox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // richTextBox1
@@ -64,7 +65,7 @@
             this.richTextBox2.TabIndex = 1;
             this.richTextBox2.Tag = "";
             this.richTextBox2.Text = "[{\"gh_file\":\"20091109_ghx060019_Surfaces_Introduction.ghx\",\"item_id\":502,\"tamir_c" +
-    "urveLength\":0,\"tamir_PipeRadius\":0.25,\"bake\":\"Pipe\"}]";
+                "urveLength\":0,\"tamir_PipeRadius\":0.25,\"bake\":\"Pipe\"}]";
             // 
             // button1
             // 
@@ -204,11 +205,20 @@
             this.getSTL_checkBox.Text = "getSTL";
             this.getSTL_checkBox.UseVisualStyleBackColor = true;
             // 
+            // viewTextBox
+            // 
+            this.viewTextBox.Location = new System.Drawing.Point(190, 118);
+            this.viewTextBox.Name = "viewTextBox";
+            this.viewTextBox.Size = new System.Drawing.Size(75, 20);
+            this.viewTextBox.TabIndex = 21;
+            this.viewTextBox.Text = "Render";
+            // 
             // Batch_Tester_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(685, 577);
+            this.Controls.Add(this.viewTextBox);
             this.Controls.Add(this.getSTL_checkBox);
             this.Controls.Add(this.name_textBox);
             this.Controls.Add(this.sceneTextBox);
@@ -255,5 +265,6 @@
         private System.Windows.Forms.TextBox sceneTextBox;
         private System.Windows.Forms.TextBox name_textBox;
         private System.Windows.Forms.CheckBox getSTL_checkBox;
+        private System.Windows.Forms.TextBox viewTextBox;
     }
 }
