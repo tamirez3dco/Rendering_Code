@@ -325,7 +325,7 @@ namespace UtilsDLL
                 String runCommand = scriptName + " " + commParams + " Enter";
                 foreach (String value in stringValues)
                 {
-                    runCommand += " " + value + " Enter";
+                    runCommand += " \"" + value + "\" Enter";
                 }
                 rhino_wrapper.rhino_app.RunScript(runCommand, 1);
             }
