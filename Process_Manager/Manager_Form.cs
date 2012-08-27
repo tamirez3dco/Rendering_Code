@@ -37,58 +37,67 @@ namespace Process_Manager
 
         private bool startAll()
         {
-            UtilsDLL.Dirs.get_all_relevant_dirs();
-
-            killAll();
-
-            Dirs.Refresh_Rhino_GH_Data_From_Github();
-
-            Fuckups_DB.Open_Connection();
-            Fuckups_DB.Clear_DB();
-
-
-            load_rhino_gate = new Semaphore(0, 1, "load_rhino");
-            make_cycle_gate = new Semaphore(0, 2, "make_cycle");
-
-            load_rhino_gate.Release(1);
-            make_cycle_gate.Release(2);
-
-            String name = (String)params_dict["name"];
-            bucket_name = name + "_Bucket";
-            if (!S3_Utils.Make_Sure_Bucket_Exists(bucket_name))
+            try
             {
-                MessageBox.Show("S3_Utils.Make_Sure_Bucket_Exists(bucket_name="+bucket_name+") failed!!!");
-                return false;
-            }
-            seconds_timeout = (int)params_dict["timeout"];
-            int mult = (int)params_dict["mult"];
-            id_counter = 0;
-            foreach (Object scene_obj in (Object[])params_dict["scenes"])
-            {
-                String scene = (String)scene_obj;
-                String request_Q_url, ready_Q_url;
-                if (!make_sure_SQS_Qs_exist(name, scene, out request_Q_url, out ready_Q_url, out error_Q_url))
+                UtilsDLL.Dirs.get_all_relevant_dirs();
+
+                killAll();
+
+                Dirs.Refresh_Rhino_GH_Data_From_Github();
+
+                Fuckups_DB.Open_Connection();
+                Fuckups_DB.Clear_DB();
+
+
+                load_rhino_gate = new Semaphore(0, 1, "load_rhino");
+                make_cycle_gate = new Semaphore(0, 2, "make_cycle");
+
+                load_rhino_gate.Release(1);
+                make_cycle_gate.Release(2);
+
+                String name = (String)params_dict["name"];
+                bucket_name = name + "_Bucket";
+                if (!S3_Utils.Make_Sure_Bucket_Exists(bucket_name))
                 {
-                    MessageBox.Show("!make_sure_SQS_Qs_exist(" + name + "," + scene + ") failed!!!");
+                    MessageBox.Show("S3_Utils.Make_Sure_Bucket_Exists(bucket_name=" + bucket_name + ") failed!!!");
                     return false;
                 }
-
-                for (int j = 0; j < mult; j++, id_counter++)
+                seconds_timeout = (int)params_dict["timeout"];
+                int mult = (int)params_dict["mult"];
+                id_counter = 0;
+                foreach (Object scene_obj in (Object[])params_dict["scenes"])
                 {
-                    Dictionary<String, Object> single_scene_params_dict = new Dictionary<string, object>();
-                    single_scene_params_dict["id"] = id_counter;
-                    single_scene_params_dict["scene"] = scene + ".3dm";
-                    single_scene_params_dict["request_Q_url"] = request_Q_url;
-                    single_scene_params_dict["ready_Q_url"] = ready_Q_url;
-                    single_scene_params_dict["error_Q_url"] = error_Q_url;
-                    single_scene_params_dict["bucket_name"] = bucket_name;
-                    single_scene_params_dict["timeout"] = seconds_timeout;
-                    single_scene_params_dict["rhino_visible"] = false;
+                    String scene = (String)scene_obj;
+                    String request_Q_url, ready_Q_url;
+                    if (!make_sure_SQS_Qs_exist(name, scene, out request_Q_url, out ready_Q_url, out error_Q_url))
+                    {
+                        MessageBox.Show("!make_sure_SQS_Qs_exist(" + name + "," + scene + ") failed!!!");
+                        return false;
+                    }
 
-                    Start_New_Runner(single_scene_params_dict);
+                    for (int j = 0; j < mult; j++, id_counter++)
+                    {
+                        Dictionary<String, Object> single_scene_params_dict = new Dictionary<string, object>();
+                        single_scene_params_dict["id"] = id_counter;
+                        single_scene_params_dict["scene"] = scene + ".3dm";
+                        single_scene_params_dict["request_Q_url"] = request_Q_url;
+                        single_scene_params_dict["ready_Q_url"] = ready_Q_url;
+                        single_scene_params_dict["error_Q_url"] = error_Q_url;
+                        single_scene_params_dict["bucket_name"] = bucket_name;
+                        single_scene_params_dict["timeout"] = seconds_timeout;
+                        single_scene_params_dict["rhino_visible"] = false;
+
+                        Start_New_Runner(single_scene_params_dict);
+                    }
                 }
+                return true;
             }
-            return true;
+
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+                return false;
+            }
         }
 
 
