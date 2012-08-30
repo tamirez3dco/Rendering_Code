@@ -87,20 +87,26 @@ namespace UtilsDLL
                 {
                     sendMessageRequest.MessageBody = jsonMSg;
                 }
-                
+
 
                 Console.WriteLine("Before sending ready msg(" + sendMessageRequest.MessageBody + ").");
                 sqs_client.SendMessage(sendMessageRequest);
                 Console.WriteLine("After sending ready msg(" + sendMessageRequest.MessageBody + ").");
             }
-            catch (AmazonSQSException ex)
+            catch (Exception e)
             {
-                Console.WriteLine("Caught Exception: " + ex.Message);
-                Console.WriteLine("Response Status Code: " + ex.StatusCode);
-                Console.WriteLine("Error Code: " + ex.ErrorCode);
-                Console.WriteLine("Error Type: " + ex.ErrorType);
-                Console.WriteLine("Request ID: " + ex.RequestId);
-                Console.WriteLine("XML: " + ex.XML);
+                Console.WriteLine("Caught Exception: " + e.Message);
+
+                Type exType = e.GetType();
+                if (exType == typeof(AmazonSQSException))
+                {
+                    AmazonSQSException ex = (AmazonSQSException)e;
+                    Console.WriteLine("Response Status Code: " + ex.StatusCode);
+                    Console.WriteLine("Error Code: " + ex.ErrorCode);
+                    Console.WriteLine("Error Type: " + ex.ErrorType);
+                    Console.WriteLine("Request ID: " + ex.RequestId);
+                    Console.WriteLine("XML: " + ex.XML);
+                }
                 return false;
             }
             return true;
@@ -130,14 +136,20 @@ namespace UtilsDLL
                 }
 
             }
-            catch (AmazonSQSException ex)
+            catch (Exception e)
             {
-                Console.WriteLine("Caught Exception: " + ex.Message);
-                Console.WriteLine("Response Status Code: " + ex.StatusCode);
-                Console.WriteLine("Error Code: " + ex.ErrorCode);
-                Console.WriteLine("Error Type: " + ex.ErrorType);
-                Console.WriteLine("Request ID: " + ex.RequestId);
-                Console.WriteLine("XML: " + ex.XML);
+                Console.WriteLine("Caught Exception: " + e.Message);
+
+                Type exType = e.GetType();
+                if (exType == typeof(AmazonSQSException))
+                {
+                    AmazonSQSException ex = (AmazonSQSException)e;
+                    Console.WriteLine("Response Status Code: " + ex.StatusCode);
+                    Console.WriteLine("Error Code: " + ex.ErrorCode);
+                    Console.WriteLine("Error Type: " + ex.ErrorType);
+                    Console.WriteLine("Request ID: " + ex.RequestId);
+                    Console.WriteLine("XML: " + ex.XML);
+                }
                 return false;
             }
             return true;
@@ -295,14 +307,20 @@ namespace UtilsDLL
                 sqs_client.DeleteMessage(deleteRequest);
 
             }
-            catch (AmazonSQSException ex)
+            catch (Exception e)
             {
-                Console.WriteLine("Caught Exception: " + ex.Message);
-                Console.WriteLine("Response Status Code: " + ex.StatusCode);
-                Console.WriteLine("Error Code: " + ex.ErrorCode);
-                Console.WriteLine("Error Type: " + ex.ErrorType);
-                Console.WriteLine("Request ID: " + ex.RequestId);
-                Console.WriteLine("XML: " + ex.XML);
+                Console.WriteLine("Caught Exception: " + e.Message);
+
+                Type exType = e.GetType();
+                if (exType == typeof(AmazonSQSException))
+                {
+                    AmazonSQSException ex = (AmazonSQSException)e;
+                    Console.WriteLine("Response Status Code: " + ex.StatusCode);
+                    Console.WriteLine("Error Code: " + ex.ErrorCode);
+                    Console.WriteLine("Error Type: " + ex.ErrorType);
+                    Console.WriteLine("Request ID: " + ex.RequestId);
+                    Console.WriteLine("XML: " + ex.XML);
+                }
                 return false;
             }
             return true;

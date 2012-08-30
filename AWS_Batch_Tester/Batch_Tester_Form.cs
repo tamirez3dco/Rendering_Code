@@ -71,13 +71,13 @@ namespace AWS_Batch_Tester
 
 
                         dict["params"] = new Dictionary<String, Object>();
-                        dict["width"] = 350;
-                        dict["height"] = 400;
+                        dict["width"] = 180;
+                        dict["height"] = 180;
                         Dictionary<String, Object> paramsDict = new Dictionary<String, Object>();
                         double propValue = Math.Round(initialValue + ((i) % 10) * delta, 1);
                         //double propValue = (i % 2 == 0) ? 0.1 : 0.9;
                         paramsDict[property_textBox.Text] = propValue;
-                        //paramsDict["textParam"] = "textValue";
+                        //paramsDict["textParam"] = "Ahlan Wasahalan";
                         dict["params"] = paramsDict;
                         //List<String> bakeries = new List<String>();
                         //bakeries.Add(bake_textBox.Text);

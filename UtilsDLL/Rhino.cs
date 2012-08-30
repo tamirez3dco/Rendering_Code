@@ -135,14 +135,14 @@ namespace UtilsDLL
             Console.WriteLine("Starting Grasshopper at " + DateTime.Now);
             newRhino.rhino_app.RunScript("_Grasshopper", 0);
             Thread.Sleep(1000);
-
             newRhino.grasshopper = newRhino.rhino_app.GetPlugInObject("b45a29b1-4343-4035-989e-044e8580d9cf", "00000000-0000-0000-0000-000000000000") as dynamic;
             if (newRhino.grasshopper == null)
             {
                 Console.WriteLine("ERROR!!: (grasshopper == null)");
                 return false;
             }
-            newRhino.grasshopper.HideEditor();
+            
+            if (!rhino_visible) newRhino.grasshopper.HideEditor();
 
             String sceneFilePath = UtilsDLL.Dirs.scenes_DirPath + Path.DirectorySeparatorChar + sceneFile_name;
             if (!File.Exists(sceneFilePath))
