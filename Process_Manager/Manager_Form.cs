@@ -192,6 +192,16 @@ namespace Process_Manager
                     {
                         row.Cells[(int)ColumnsIndex.STATE].Value = msg;
                     }
+
+                    if (msg.StartsWith("DELAYER_ON"))
+                    {
+                        row.DefaultCellStyle.BackColor = Color.Yellow;
+                    }
+                    if (msg.StartsWith("DELAYER_OFF"))
+                    {
+                        row.DefaultCellStyle.BackColor = Color.White;
+                    }
+
                     row.Cells[(int)ColumnsIndex.LAST_UPDATE].Value = DateTime.Now.ToString();
                     dataGridView1.Refresh();
                     return;
