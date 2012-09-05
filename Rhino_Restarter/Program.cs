@@ -166,7 +166,7 @@ namespace Rhino_Restarter
                     }
                 }
 
-                Thread.Sleep(2000);
+                Thread.Sleep(5000);
                 TimeSpan timeFromLastMsg = DateTime.Now - lastMsgTime;
                 if (timeFromLastMsg.TotalSeconds > 60)
                 {
