@@ -49,11 +49,13 @@ namespace Process_Manager
                 Fuckups_DB.Clear_DB();
 
 
+                int mult = (int)params_dict["mult"];
+
                 load_rhino_gate = new Semaphore(0, 1, "load_rhino");
-                make_cycle_gate = new Semaphore(0, 2, "make_cycle");
+                make_cycle_gate = new Semaphore(0, mult, "make_cycle");
 
                 load_rhino_gate.Release(1);
-                make_cycle_gate.Release(2);
+                make_cycle_gate.Release(mult);
 
                 String name = (String)params_dict["name"];
                 bucket_name = name + "_Bucket";
@@ -63,7 +65,6 @@ namespace Process_Manager
                     return false;
                 }
                 seconds_timeout = (int)params_dict["timeout"];
-                int mult = (int)params_dict["mult"];
                 id_counter = 0;
                 foreach (Object scene_obj in (Object[])params_dict["scenes"])
                 {
