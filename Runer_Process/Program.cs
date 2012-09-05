@@ -71,6 +71,8 @@ namespace Runer_Process
 
         public static Dictionary<String, Object> params_dict;
 
+        private static DateTime last_msg_receive_time;
+        private static bool delayer = false;
 
         static void log(String str)
         {
@@ -260,6 +262,7 @@ namespace Runer_Process
             load_rhino_gate.Release();
             log("): After rhino gate.Release() : " + DateTime.Now.ToString());
 
+            last_msg_receive_time = DateTime.Now;
 
             while (true)
             {
@@ -281,11 +284,34 @@ namespace Runer_Process
                     case CycleResult.FUCKUPS_DELETED:
                         UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "FUCKUP DELETED");
                         break;
+                    case CycleResult.NO_MSG:
+                        TimeSpan timeFromLastMsg = DateTime.Now - last_msg_receive_time;
+                        if (timeFromLastMsg.TotalSeconds > 60)
+                        {
+                            if (!delayer)
+                            {
+                                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "DELAYER_ON");
+                            }
+                            delayer = true;
+                        }
+                        break;
+                    default:
+                        if (delayer)
+                        {
+                            UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "DELAYER_OFF");
+                        }
+                        delayer = false;
+                        last_msg_receive_time = DateTime.Now;
+                        break;
                 }
 
                 Console.WriteLine(id + "): Before cycle gate.Release() : " + DateTime.Now.ToString());
                 make_cycle_gate.Release();
                 Console.WriteLine(id + "): After cycle gate.Release() : " + DateTime.Now.ToString());
+                if (delayer)
+                {
+                    Thread.Sleep(2000);
+                }
             }
 
 
