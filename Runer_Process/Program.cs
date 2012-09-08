@@ -73,6 +73,8 @@ namespace Runer_Process
 
         private static DateTime last_msg_receive_time;
         private static bool delayer = false;
+        private static bool useLowPrioirty_Q = false;
+
 
         static void log(String str)
         {
@@ -181,6 +183,7 @@ namespace Runer_Process
         static int id;
         static String scene_fileName;
         static String request_Q_url;
+        static String request_lowpriority_Q_url;
         static String ready_Q_url;
         static String error_Q_url;
         static String bucket_name;
@@ -211,6 +214,7 @@ namespace Runer_Process
             id = (int)params_dict["id"];
             scene_fileName = (String)params_dict["scene"];
             request_Q_url = (String)params_dict["request_Q_url"];
+            request_lowpriority_Q_url = (String)params_dict["request_lowpriority_Q_url"];
             ready_Q_url = (String)params_dict["ready_Q_url"];
             error_Q_url = (String)params_dict["error_Q_url"];
             bucket_name = (String)params_dict["bucket_name"];
@@ -296,12 +300,15 @@ namespace Runer_Process
                         }
                         break;
                     default:
-                        if (delayer)
+                        if (!useLowPrioirty_Q)
                         {
-                            UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "DELAYER_OFF");
+                            if (delayer)
+                            {
+                                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "DELAYER_OFF");
+                            }
+                            delayer = false;
+                            last_msg_receive_time = DateTime.Now;
                         }
-                        delayer = false;
-                        last_msg_receive_time = DateTime.Now;
                         break;
                 }
 
@@ -310,7 +317,7 @@ namespace Runer_Process
                 Console.WriteLine(id + "): After cycle gate.Release() : " + DateTime.Now.ToString());
                 if (delayer)
                 {
-                    Thread.Sleep(2000);
+                    if (!useLowPrioirty_Q) Thread.Sleep(2000);
                 }
             }
 
@@ -324,6 +331,7 @@ namespace Runer_Process
             // Get a single MSG from Queue_Requests
             bool msg_found;
             Amazon.SQS.Model.Message msg;
+            useLowPrioirty_Q = false;
             if (!SQS_Utils.Get_Msg_From_Q(request_Q_url, out msg, out msg_found))
             {
                 log("Get_Msg_From_Q() failed !!!");
@@ -332,13 +340,33 @@ namespace Runer_Process
             }
 
             DateTime beforeProcessingTime = DateTime.Now;
-
             // if there is No Msg - Sleep & continue;
             if (!msg_found)
             {
-                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "no_msg");
-                lastResult = CycleResult.NO_MSG;
-                return;
+                if (delayer) // this means we may also check on the lowprioirty Q
+                {
+                    bool lowPrioirty_msg_found = false;
+                    if (!SQS_Utils.Get_Msg_From_Q(request_lowpriority_Q_url, out msg, out lowPrioirty_msg_found))
+                    {
+                        log("Get_Msg_From_Q(lowprioirty) failed !!!");
+                        lastResult = CycleResult.FAIL;
+                        return;
+                    }
+
+                    if (!lowPrioirty_msg_found)
+                    {
+                        UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "no_msg");
+                        lastResult = CycleResult.NO_MSG;
+                        return;
+                    }
+                    useLowPrioirty_Q = true;
+                }
+                else
+                {
+                    UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "no_msg");
+                    lastResult = CycleResult.NO_MSG;
+                    return; 
+                }
             }
 
 
@@ -357,7 +385,7 @@ namespace Runer_Process
                 // send an error msg telling that this image was deleted
                 Send_Msg_To_ERROR_Q(id, "Item_id:" + imageData.item_id + " was deleted from request Q without rendering because prevFuckups_this_image=" + prevFuckups_this_image.ToString());
                 // delete the message...
-                Delete_Msg_From_Req_Q(msg);
+                Delete_Msg_From_Req_Q(msg,useLowPrioirty_Q);
                 lastResult = CycleResult.FUCKUPS_DELETED;
                 return;
             }
@@ -412,7 +440,7 @@ namespace Runer_Process
                 DateTime afterS3_Before_SQS = DateTime.Now;
 
                 // Delete Msg From Queue_Requests
-                if (!Delete_Msg_From_Req_Q(msg))
+                if (!Delete_Msg_From_Req_Q(msg,useLowPrioirty_Q))
                 {
                     String logLine = "Delete_Msg_From_Req_Q(item_id=" + imageData.item_id + ") failed!!!";
                     log(logLine);
@@ -462,8 +490,9 @@ namespace Runer_Process
             }
         }
 
-        private static bool Delete_Msg_From_Req_Q(Amazon.SQS.Model.Message msg)
+        private static bool Delete_Msg_From_Req_Q(Amazon.SQS.Model.Message msg, bool useLowPrioirty_Q)
         {
+            if (useLowPrioirty_Q) return SQS_Utils.Delete_Msg_From_Q(request_lowpriority_Q_url, msg);
             return SQS_Utils.Delete_Msg_From_Q(request_Q_url, msg);
         }
 
