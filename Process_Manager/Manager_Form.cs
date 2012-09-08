@@ -69,8 +69,8 @@ namespace Process_Manager
                 foreach (Object scene_obj in (Object[])params_dict["scenes"])
                 {
                     String scene = (String)scene_obj;
-                    String request_Q_url, ready_Q_url;
-                    if (!make_sure_SQS_Qs_exist(name, scene, out request_Q_url, out ready_Q_url, out error_Q_url))
+                    String request_Q_url, ready_Q_url, requests_lowprioirty_Q_url;
+                    if (!make_sure_SQS_Qs_exist(name, scene, out request_Q_url,out requests_lowprioirty_Q_url, out ready_Q_url, out error_Q_url))
                     {
                         MessageBox.Show("!make_sure_SQS_Qs_exist(" + name + "," + scene + ") failed!!!");
                         return false;
@@ -82,6 +82,7 @@ namespace Process_Manager
                         single_scene_params_dict["id"] = id_counter;
                         single_scene_params_dict["scene"] = scene + ".3dm";
                         single_scene_params_dict["request_Q_url"] = request_Q_url;
+                        single_scene_params_dict["request_lowpriority_Q_url"] = requests_lowprioirty_Q_url;
                         single_scene_params_dict["ready_Q_url"] = ready_Q_url;
                         single_scene_params_dict["error_Q_url"] = error_Q_url;
                         single_scene_params_dict["bucket_name"] = bucket_name;
@@ -211,13 +212,16 @@ namespace Process_Manager
         }
 
 
-        private bool make_sure_SQS_Qs_exist(string name, string scene, out String request_Q_url, out String ready_Q_url, out String error_Q_url)
+        private bool make_sure_SQS_Qs_exist(string name, string scene, out String request_Q_url, out String request_lowpriority_Q_url, out String ready_Q_url, out String error_Q_url)
         {
             request_Q_url = String.Empty;
             ready_Q_url = String.Empty;
             error_Q_url = String.Empty;
+            request_lowpriority_Q_url = String.Empty;
             String sqs_request_q_name = name +'_' + scene +'_' + "request";
             if (!SQS_Utils.Make_sure_Q_exists(sqs_request_q_name, out request_Q_url)) return false;
+            String sqs_requests_low_priority_q_name = name + "_lowpriority_" + scene + '_' + "request";
+            if (!SQS_Utils.Make_sure_Q_exists(sqs_requests_low_priority_q_name, out request_lowpriority_Q_url)) return false;
             String sqs_ready_q_name = name + '_' + "ready";
             if (!SQS_Utils.Make_sure_Q_exists(sqs_ready_q_name, out ready_Q_url)) return false;
             String sqs_error_q_name = "GENERAL_ERROR";
