@@ -261,6 +261,16 @@ namespace UtilsDLL
             return true;
         }
 
+        public static bool Solve_And_Bake(Rhino_Wrapper rhino_wrapper, String bake)
+        {
+
+            rhino_wrapper.grasshopper.RunSolver(true);
+
+            Object objRes = rhino_wrapper.grasshopper.BakeDataInObject(bake);
+
+            return true;
+        }
+
         public static bool Set_GH_Params(Rhino_Wrapper rhino_wrapper, String bake, Dictionary<String, Object> parameters)
         {
             log("Starting Set_GH_Params()");
@@ -268,8 +278,10 @@ namespace UtilsDLL
             String logLine;
             int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
 
+
             foreach (String paramName in parameters.Keys)
             {
+
                 Object value = parameters[paramName];
                 if (!rhino_wrapper.grasshopper.AssignDataToParameter(paramName, value))
                 {
@@ -284,11 +296,11 @@ namespace UtilsDLL
                 log(logLine);
 
             }
-
+/*
             rhino_wrapper.grasshopper.RunSolver(true);
 
             Object objRes = rhino_wrapper.grasshopper.BakeDataInObject(bake);
-
+*/
             fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
             logLine = "After baking object:" + bake + " After " + fromStart + " milliseconds";
             log(logLine);
@@ -298,6 +310,31 @@ namespace UtilsDLL
         }
 
 
+        public static bool Set_GH_Params_To_TXT_File(Rhino_Wrapper rhino_wrapper, Dictionary<String, Object> parameters)
+        {
+            for (int tries = 0; tries < 5; tries++)
+            {
+                try
+                {
+                    using (StreamWriter sw = new StreamWriter(UtilsDLL.Dirs.GH_DirPath + Path.DirectorySeparatorChar + "args_" + rhino_wrapper.rhino_pid + ".txt"))
+                    {
+                        foreach (Object val in parameters.Values)
+                        {
+                            sw.WriteLine(val);
+                        }
+                    }
+
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    log("Exception in Set_GH_Params_To_TXT_File(). e.Message=" + e.Message);
+                }
+            }
+
+            return false;
+
+        }
 
 
         public static bool Run_Script(Rhino_Wrapper rhino_wrapper, String scriptName, Dictionary<String, Object> parameters)
