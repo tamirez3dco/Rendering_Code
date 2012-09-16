@@ -42,8 +42,10 @@
             this.rhino_pid = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.rune_pid = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.requst_url = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Request_LP_URL = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ready_url = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.startCycleTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.entireJSON = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -73,8 +75,10 @@
             this.rhino_pid,
             this.rune_pid,
             this.requst_url,
+            this.Request_LP_URL,
             this.ready_url,
-            this.startCycleTime});
+            this.startCycleTime,
+            this.entireJSON});
             this.dataGridView1.Location = new System.Drawing.Point(12, 12);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
@@ -153,6 +157,12 @@
             this.requst_url.Name = "requst_url";
             this.requst_url.ReadOnly = true;
             // 
+            // Request_LP_URL
+            // 
+            this.Request_LP_URL.HeaderText = "LP_URL";
+            this.Request_LP_URL.Name = "Request_LP_URL";
+            this.Request_LP_URL.ReadOnly = true;
+            // 
             // ready_url
             // 
             this.ready_url.HeaderText = "Ready Q";
@@ -164,6 +174,13 @@
             this.startCycleTime.HeaderText = "start Time";
             this.startCycleTime.Name = "startCycleTime";
             this.startCycleTime.ReadOnly = true;
+            // 
+            // entireJSON
+            // 
+            this.entireJSON.HeaderText = "Entire JSON";
+            this.entireJSON.Name = "entireJSON";
+            this.entireJSON.ReadOnly = true;
+            this.entireJSON.Width = 1000;
             // 
             // Manager_Form
             // 
@@ -196,8 +213,10 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn rhino_pid;
         private System.Windows.Forms.DataGridViewTextBoxColumn rune_pid;
         private System.Windows.Forms.DataGridViewTextBoxColumn requst_url;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Request_LP_URL;
         private System.Windows.Forms.DataGridViewTextBoxColumn ready_url;
         private System.Windows.Forms.DataGridViewTextBoxColumn startCycleTime;
+        private System.Windows.Forms.DataGridViewTextBoxColumn entireJSON;
     }
 }
 

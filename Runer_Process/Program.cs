@@ -26,7 +26,7 @@ namespace Runer_Process
         public String layerName = String.Empty;
         public String viewName = String.Empty;
         public bool getSTL = false;
-
+        public String entireJSON;
 
         public override string ToString()
         {
@@ -87,7 +87,7 @@ namespace Runer_Process
             imageData = new ImageDataRequest();
 
             String jsonString = SQS_Utils.DecodeFrom64(msgBody);
-
+            imageData.entireJSON = jsonString;
             JavaScriptSerializer serializer = new JavaScriptSerializer();
             var jsonObject = serializer.DeserializeObject(jsonString) as Dictionary<string, object>;
             Dictionary<String, Object> jsonDict = (Dictionary<String, Object>)jsonObject;
@@ -401,8 +401,9 @@ namespace Runer_Process
 
             if (imageData.operation == "render_model")
             {
+                Console.WriteLine("EntireJSON = " + imageData.entireJSON);
                 // inform manager
-                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "render_model starting " + imageData.item_id);
+                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "render_model starting " + imageData.item_id + " " + imageData.entireJSON);
 
                 DateTime beforeRhino = DateTime.Now;
                 // Process Msg to picture
