@@ -124,6 +124,7 @@ namespace Process_Manager
                 String.Empty,
                 p.Id,
                 single_scene_params_dict["request_Q_url"],
+                single_scene_params_dict["request_lowpriority_Q_url"],
                 single_scene_params_dict["ready_Q_url"]);
         }
 
@@ -142,9 +143,17 @@ namespace Process_Manager
                         String[] tokens = msg.Split(tokenizer);
                         String item_id = tokens[2];
                         String modeling_state = tokens[1];
+
+                        String entireJSONReq = String.Empty;
+                        for (int i = 3; i < tokens.Length; i++)
+                        {
+                            entireJSONReq += tokens[i] + " ";
+                        }
+
                         if (modeling_state == "starting")
                         {
                             row.Cells[(int)ColumnsIndex.START_CYCLE_TIME].Value = DateTime.Now.ToString();
+                            row.Cells[(int)ColumnsIndex.JSON_REQUEST].Value = entireJSONReq;
                         }
                         else // "finished"
                         {
@@ -182,6 +191,8 @@ namespace Process_Manager
                         single_scene_params_dict["id"] = id_counter++;
                         single_scene_params_dict["scene"] = (String)row.Cells[(int)ColumnsIndex.SCENE].Value;
                         single_scene_params_dict["request_Q_url"] = row.Cells[(int)ColumnsIndex.REQUEST_URL].Value;
+                        single_scene_params_dict["request_lowpriority_Q_url"] = row.Cells[(int)ColumnsIndex.REQUEST_URL].Value; 
+
                         single_scene_params_dict["ready_Q_url"] = row.Cells[(int)ColumnsIndex.READY_URL].Value;
                         single_scene_params_dict["error_Q_url"] = error_Q_url;
                         single_scene_params_dict["bucket_name"] = bucket_name;
@@ -333,8 +344,10 @@ namespace Process_Manager
         RHINO_PID,
         RUNER_PID,
         REQUEST_URL,
+        REQUEST_LOWPRIORITY_URL,
         READY_URL,
-        START_CYCLE_TIME
+        START_CYCLE_TIME,
+        JSON_REQUEST
     }
 
 }
