@@ -76,9 +76,14 @@ namespace AWS_Batch_Tester
                         Dictionary<String, Object> paramsDict = new Dictionary<String, Object>();
                         double propValue = Math.Round(initialValue + ((i) % 10) * delta, 1);
                         //double propValue = (i % 2 == 0) ? 0.1 : 0.9;
-                        paramsDict["a1"] = Math.Round(initialValue + ((i+3) % 10) * delta, 1);
-                        paramsDict["a2"] = Math.Round(initialValue + ((i+2) % 10) * delta, 1); ;
-                        paramsDict["a3"] = Math.Round(initialValue + ((i) % 10) * delta, 1); ;
+                        paramsDict["a1"] = 0.5;
+                        paramsDict["a2"] = 0.5;
+                        paramsDict["a3"] = 0.1;
+                        paramsDict["a4"] = 0.1;
+                        paramsDict["a5"] = 0.5;
+                        paramsDict["a6"] = 0.5;
+                        paramsDict["a7"] = 0.5;
+                        paramsDict[property_textBox.Text] = 0.2 * i;
                         //paramsDict["textParam"] = "Ahlan Wasahalan";
                         dict["params"] = paramsDict;
                         //List<String> bakeries = new List<String>();

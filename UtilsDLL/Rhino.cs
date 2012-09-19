@@ -318,8 +318,13 @@ namespace UtilsDLL
                 {
                     using (StreamWriter sw = new StreamWriter(UtilsDLL.Dirs.GH_DirPath + Path.DirectorySeparatorChar + "args_" + rhino_wrapper.rhino_pid + ".txt"))
                     {
-                        foreach (Object val in parameters.Values)
+                        String[] keys = new String[parameters.Count];
+                        parameters.Keys.CopyTo(keys, 0);
+                        Array.Sort(keys);
+                        for (int i = 0 ; i < keys.Length ; i++)
                         {
+                            String key = keys[i];
+                            Object val = parameters[key];
                             sw.WriteLine(val);
                         }
                     }

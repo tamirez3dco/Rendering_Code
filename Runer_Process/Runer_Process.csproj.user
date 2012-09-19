@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <StartArguments>{\"id\":99,\"scene\":\"rings.3dm\",\"rhino_visible\":true,\"request_lowpriority_Q_url\":\"https://queue.amazonaws.com/884861915686/deploy_rings_request\",\"request_Q_url\":\"https://queue.amazonaws.com/884861915686/deploy_rings_request\",\"ready_Q_url\":\"https://queue.amazonaws.com/884861915686/tamir_ready\",\"error_Q_url\":\"https://queue.amazonaws.com/884861915686/GENERAL_ERROR\",\"bucket_name\":\"tamir_Bucket\",\"timeout\":90}</StartArguments>
+    <StartArguments>{\"id\":99,\"scene\":\"cases.3dm\",\"rhino_visible\":true,\"request_lowpriority_Q_url\":\"https://queue.amazonaws.com/884861915686/tamir_cases_request\",\"request_Q_url\":\"https://queue.amazonaws.com/884861915686/tamir_cases_request\",\"ready_Q_url\":\"https://queue.amazonaws.com/884861915686/tamir_ready\",\"error_Q_url\":\"https://queue.amazonaws.com/884861915686/GENERAL_ERROR\",\"bucket_name\":\"tamir_Bucket\",\"timeout\":90}</StartArguments>
   </PropertyGroup>
 </Project>
