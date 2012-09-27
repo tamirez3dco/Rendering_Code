@@ -180,7 +180,7 @@
             this.entireJSON.HeaderText = "Entire JSON";
             this.entireJSON.Name = "entireJSON";
             this.entireJSON.ReadOnly = true;
-            this.entireJSON.Width = 1000;
+            this.entireJSON.Width = 2000;
             // 
             // Manager_Form
             // 

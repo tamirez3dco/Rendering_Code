@@ -187,6 +187,8 @@ namespace Runer_Process
         static String ready_Q_url;
         static String error_Q_url;
         static String bucket_name;
+        static String stl_bucket_name;
+
         static int seconds_timeout;
         static bool rhino_visible;
 
@@ -218,6 +220,7 @@ namespace Runer_Process
             ready_Q_url = (String)params_dict["ready_Q_url"];
             error_Q_url = (String)params_dict["error_Q_url"];
             bucket_name = (String)params_dict["bucket_name"];
+            stl_bucket_name = (String)params_dict["stl_bucket_name"];
             rhino_visible = (bool)params_dict["rhino_visible"];
             seconds_timeout = (int)params_dict["timeout"];
 
@@ -421,9 +424,19 @@ namespace Runer_Process
                 if (imageData.getSTL)
                 {
                     DateTime beforeSTL = DateTime.Now;
-                    String resulting_3dm_path = resultingLocalImageFilePath.Replace(".jpg",".3dm");
-                    rhino_wrapper.rhino_app.RunScript("-SaveAs " + resulting_3dm_path, 1);
+                    String resulting_3dm_path = resultingLocalImageFilePath.Replace(".jpg",".stl");
+                    rhino_wrapper.rhino_app.RunScript("-SaveAs " + resulting_3dm_path +" Enter Enter", 1);
                     stl_timespan = DateTime.Now - beforeSTL;
+
+                    String stl_fileName_on_S3 = imageData.item_id.ToString() + ".stl";
+                    if (!S3_Utils.Write_File_To_S3(stl_bucket_name, resulting_3dm_path, stl_fileName_on_S3))
+                    {
+                        String logLine = "Write_File_To_S3(resulting_3dm_path=" + resulting_3dm_path + ", stl_fileName_on_S3=" + stl_fileName_on_S3 + ") failed !!!";
+                        log(logLine);
+                        Send_Msg_To_ERROR_Q(id, logLine);
+                        lastResult = CycleResult.FAIL;
+                        return;
+                    }
                 }
 
                 DateTime afterRhino_Before_S3 = DateTime.Now;
@@ -437,6 +450,7 @@ namespace Runer_Process
                     lastResult = CycleResult.FAIL;
                     return;
                 }
+
 
                 DateTime afterS3_Before_SQS = DateTime.Now;
 

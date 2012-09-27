@@ -23,7 +23,7 @@ namespace Process_Manager
 
         public static Dictionary<String, Object> params_dict;
         private static int id_counter, seconds_timeout;
-        private static String error_Q_url, bucket_name;
+        private static String error_Q_url, bucket_name, stl_bucket_name;
 
         public Manager_Form(String scene_params_json)
         {
@@ -59,9 +59,15 @@ namespace Process_Manager
 
                 String name = (String)params_dict["name"];
                 bucket_name = name + "_Bucket";
+                stl_bucket_name = name + "_stl_Bucket";
                 if (!S3_Utils.Make_Sure_Bucket_Exists(bucket_name))
                 {
                     MessageBox.Show("S3_Utils.Make_Sure_Bucket_Exists(bucket_name=" + bucket_name + ") failed!!!");
+                    return false;
+                }
+                if (!S3_Utils.Make_Sure_Bucket_Exists(stl_bucket_name))
+                {
+                    MessageBox.Show("S3_Utils.Make_Sure_Bucket_Exists(stl_bucket_name=" + stl_bucket_name + ") failed!!!");
                     return false;
                 }
                 seconds_timeout = (int)params_dict["timeout"];
@@ -86,6 +92,8 @@ namespace Process_Manager
                         single_scene_params_dict["ready_Q_url"] = ready_Q_url;
                         single_scene_params_dict["error_Q_url"] = error_Q_url;
                         single_scene_params_dict["bucket_name"] = bucket_name;
+                        single_scene_params_dict["stl_bucket_name"] = stl_bucket_name;
+
                         single_scene_params_dict["timeout"] = seconds_timeout;
                         single_scene_params_dict["rhino_visible"] = false;
 
@@ -196,6 +204,7 @@ namespace Process_Manager
                         single_scene_params_dict["ready_Q_url"] = row.Cells[(int)ColumnsIndex.READY_URL].Value;
                         single_scene_params_dict["error_Q_url"] = error_Q_url;
                         single_scene_params_dict["bucket_name"] = bucket_name;
+                        single_scene_params_dict["stl_bucket_name"] = stl_bucket_name;
                         single_scene_params_dict["timeout"] = seconds_timeout;
                         single_scene_params_dict["rhino_visible"] = false;
 
@@ -313,6 +322,7 @@ namespace Process_Manager
                         single_scene_params_dict["ready_Q_url"] = row.Cells[(int)ColumnsIndex.READY_URL].Value;
                         single_scene_params_dict["error_Q_url"] = error_Q_url;
                         single_scene_params_dict["bucket_name"] = bucket_name;
+                        single_scene_params_dict["stl_bucket_name"] = stl_bucket_name;
                         single_scene_params_dict["timeout"] = seconds_timeout;
                         single_scene_params_dict["rhino_visible"] = false;
 

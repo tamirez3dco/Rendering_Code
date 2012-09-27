@@ -69,6 +69,8 @@ namespace AWS_Batch_Tester
                         //String layerName = (layers[i % layers.Length]);
                         //if (i <= 7) dict["layer_name"] = layerName;
 
+                        String layerName = "Clay";
+                        dict["layer_name"] = layerName;
 
                         dict["params"] = new Dictionary<String, Object>();
                         dict["width"] = 180;
@@ -76,14 +78,14 @@ namespace AWS_Batch_Tester
                         Dictionary<String, Object> paramsDict = new Dictionary<String, Object>();
                         double propValue = Math.Round(initialValue + ((i) % 10) * delta, 1);
                         //double propValue = (i % 2 == 0) ? 0.1 : 0.9;
-                        paramsDict["a1"] = 0.5;
+                        paramsDict["a1"] = 0.9;
                         paramsDict["a2"] = 0.5;
-                        paramsDict["a3"] = 0.1;
-                        paramsDict["a4"] = 0.1;
+                        paramsDict["a3"] = 0.01;
+                        paramsDict["a4"] = 0.01;
                         paramsDict["a5"] = 0.5;
                         paramsDict["a6"] = 0.5;
                         paramsDict["a7"] = 0.5;
-                        paramsDict[property_textBox.Text] = 0.2 * i;
+                        paramsDict[property_textBox.Text] = 0.16 * i;
                         //paramsDict["textParam"] = "Ahlan Wasahalan";
                         dict["params"] = paramsDict;
                         //List<String> bakeries = new List<String>();
