@@ -59,7 +59,7 @@ namespace Process_Manager
 
                 String name = (String)params_dict["name"];
                 bucket_name = name + "_Bucket";
-                stl_bucket_name = name + "_stl_bucket";
+                stl_bucket_name = name + "_stl_Bucket";
                 if (!S3_Utils.Make_Sure_Bucket_Exists(bucket_name))
                 {
                     MessageBox.Show("S3_Utils.Make_Sure_Bucket_Exists(bucket_name=" + bucket_name + ") failed!!!");
