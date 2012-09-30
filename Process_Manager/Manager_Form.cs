@@ -209,7 +209,7 @@ namespace Process_Manager
                         single_scene_params_dict["bucket_name"] = bucket_name;
                         single_scene_params_dict["stl_bucket_name"] = stl_bucket_name;
                         single_scene_params_dict["timeout"] = seconds_timeout;
-                        single_scene_params_dict["rhino_visible"] = false;
+                        single_scene_params_dict["rhino_visible"] = rhino_visible;
 
                         Start_New_Runner(single_scene_params_dict);
                     }
@@ -327,7 +327,7 @@ namespace Process_Manager
                         single_scene_params_dict["bucket_name"] = bucket_name;
                         single_scene_params_dict["stl_bucket_name"] = stl_bucket_name;
                         single_scene_params_dict["timeout"] = seconds_timeout;
-                        single_scene_params_dict["rhino_visible"] = false;
+                        single_scene_params_dict["rhino_visible"] = rhino_visible;
 
                         Start_New_Runner(single_scene_params_dict);
 
