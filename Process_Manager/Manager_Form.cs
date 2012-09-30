@@ -24,6 +24,7 @@ namespace Process_Manager
         public static Dictionary<String, Object> params_dict;
         private static int id_counter, seconds_timeout;
         private static String error_Q_url, bucket_name, stl_bucket_name;
+        private static bool rhino_visible = false;
 
         public Manager_Form(String scene_params_json)
         {
@@ -71,6 +72,7 @@ namespace Process_Manager
                     return false;
                 }
                 seconds_timeout = (int)params_dict["timeout"];
+                rhino_visible = (bool)(params_dict["rhino_visible"]); ;
                 id_counter = 0;
                 foreach (Object scene_obj in (Object[])params_dict["scenes"])
                 {
@@ -81,6 +83,7 @@ namespace Process_Manager
                         MessageBox.Show("!make_sure_SQS_Qs_exist(" + name + "," + scene + ") failed!!!");
                         return false;
                     }
+
 
                     for (int j = 0; j < mult; j++, id_counter++)
                     {
@@ -95,7 +98,7 @@ namespace Process_Manager
                         single_scene_params_dict["stl_bucket_name"] = stl_bucket_name;
 
                         single_scene_params_dict["timeout"] = seconds_timeout;
-                        single_scene_params_dict["rhino_visible"] = false;
+                        single_scene_params_dict["rhino_visible"] = rhino_visible;
 
                         Start_New_Runner(single_scene_params_dict);
                     }
@@ -335,10 +338,7 @@ namespace Process_Manager
 
         private void button3_Click(object sender, EventArgs e)
         {
-            Fuckups_DB.Open_Connection();
-            Fuckups_DB.Add_Fuckup("aaaa");
-            //int fuckers = Fuckups_DB.Get_Fuckups("aaaa");
-            //Fuckups_DB.Clear_DB();
+
         }
 
     }

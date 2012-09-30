@@ -31,8 +31,6 @@
             this.components = new System.ComponentModel.Container();
             this.button2 = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.check_crashes_timer = new System.Windows.Forms.Timer(this.components);
-            this.button3 = new System.Windows.Forms.Button();
             this.runer_id = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.scene_column = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.state = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -46,6 +44,8 @@
             this.ready_url = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.startCycleTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.entireJSON = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.check_crashes_timer = new System.Windows.Forms.Timer(this.components);
+            this.button3 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -84,22 +84,6 @@
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.Size = new System.Drawing.Size(947, 242);
             this.dataGridView1.TabIndex = 2;
-            // 
-            // check_crashes_timer
-            // 
-            this.check_crashes_timer.Enabled = true;
-            this.check_crashes_timer.Interval = 5000;
-            this.check_crashes_timer.Tick += new System.EventHandler(this.check_crashes_timer_Tick);
-            // 
-            // button3
-            // 
-            this.button3.Location = new System.Drawing.Point(423, 419);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(107, 43);
-            this.button3.TabIndex = 3;
-            this.button3.Text = "button3";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // runer_id
             // 
@@ -181,6 +165,22 @@
             this.entireJSON.Name = "entireJSON";
             this.entireJSON.ReadOnly = true;
             this.entireJSON.Width = 2000;
+            // 
+            // check_crashes_timer
+            // 
+            this.check_crashes_timer.Enabled = true;
+            this.check_crashes_timer.Interval = 5000;
+            this.check_crashes_timer.Tick += new System.EventHandler(this.check_crashes_timer_Tick);
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(72, 416);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(129, 44);
+            this.button3.TabIndex = 3;
+            this.button3.Text = "Flip Rhino Visibility";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // Manager_Form
             // 
