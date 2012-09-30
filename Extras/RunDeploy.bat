@@ -3,5 +3,5 @@ taskkill /F /IM %name%.exe
 taskkill /F /IM Runer_Process.exe
 taskkill /F /IM Rhino4.exe
 cd ..\%name%\bin\Debug
-%name%.exe "{\"rhino_visible\":true,\"mult\":1,\"scenes\":[\"rings\",\"vases\",\"cases\"],\"name\":\"deploy\",\"timeout\":90}
+%name%.exe "{\"rhino_visible\":false,\"mult\":3,\"scenes\":[\"rings\",\"vases\",\"cases\"],\"name\":\"deploy\",\"timeout\":90}
 pause
