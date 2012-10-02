@@ -202,7 +202,7 @@ namespace Process_Manager
                         single_scene_params_dict["id"] = id_counter++;
                         single_scene_params_dict["scene"] = (String)row.Cells[(int)ColumnsIndex.SCENE].Value;
                         single_scene_params_dict["request_Q_url"] = row.Cells[(int)ColumnsIndex.REQUEST_URL].Value;
-                        single_scene_params_dict["request_lowpriority_Q_url"] = row.Cells[(int)ColumnsIndex.REQUEST_URL].Value; 
+                        single_scene_params_dict["request_lowpriority_Q_url"] = row.Cells[(int)ColumnsIndex.REQUEST_LOWPRIORITY_URL].Value; 
 
                         single_scene_params_dict["ready_Q_url"] = row.Cells[(int)ColumnsIndex.READY_URL].Value;
                         single_scene_params_dict["error_Q_url"] = error_Q_url;
@@ -323,6 +323,7 @@ namespace Process_Manager
                         single_scene_params_dict["scene"] = (String)row.Cells[(int)ColumnsIndex.SCENE].Value;
                         single_scene_params_dict["request_Q_url"] = row.Cells[(int)ColumnsIndex.REQUEST_URL].Value;
                         single_scene_params_dict["ready_Q_url"] = row.Cells[(int)ColumnsIndex.READY_URL].Value;
+                        single_scene_params_dict["request_lowpriority_Q_url"] = row.Cells[(int)ColumnsIndex.REQUEST_LOWPRIORITY_URL].Value;
                         single_scene_params_dict["error_Q_url"] = error_Q_url;
                         single_scene_params_dict["bucket_name"] = bucket_name;
                         single_scene_params_dict["stl_bucket_name"] = stl_bucket_name;
