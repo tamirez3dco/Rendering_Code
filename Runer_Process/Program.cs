@@ -541,14 +541,14 @@ namespace Runer_Process
 
             if (imageData.gh_fileName.EndsWith(".gh") || imageData.gh_fileName.EndsWith(".ghx"))
             {
-
+                /*
                 if (!UtilsDLL.Rhino.Set_GH_Params_To_TXT_File(rhino_wrapper, imageData.propValues))
                 {
                     logLine = "Set_Params(imageData=" + imageData.ToString() + "]) failed !!!";
                     log(logLine);
                     return false;
                 }
-
+                */
                 if (current_GH_file == imageData.gh_fileName)
                 {
                     logLine = "Skipping Open_GH_File(imageData[imageData.gh_filePath=" + imageData.gh_fileName + ")";
@@ -565,14 +565,14 @@ namespace Runer_Process
                     current_GH_file = imageData.gh_fileName;
                 }
 
-/*
+
                 if (!UtilsDLL.Rhino.Set_GH_Params(rhino_wrapper,imageData.bake,imageData.propValues))
                 {
                     logLine = "Set_Params(imageData=" + imageData.ToString() + "]) failed !!!";
                     log(logLine);
                     return false;
                 }
- */
+ 
                 if (!UtilsDLL.Rhino.Solve_And_Bake(rhino_wrapper, imageData.bake))
                 {
                     logLine = "Solve_And_Bake(imageData=" + imageData.ToString() + "]) failed !!!";
