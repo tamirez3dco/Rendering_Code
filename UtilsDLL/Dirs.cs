@@ -54,6 +54,19 @@ namespace UtilsDLL
             return true;
         }
 
+        public static bool get_empty_Images_files_Dir(out String image_DirPath)
+        {
+            image_DirPath = null;
+            DirectoryInfo dir = new DirectoryInfo(Directory.GetCurrentDirectory());
+            image_DirPath = dir.Parent.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar + "empty_images_comparer";
+            if (!Directory.Exists(image_DirPath))
+            {
+                  return false;
+            }
+            Console.WriteLine("image_DirPath = " + image_DirPath);
+            return true;
+        }
+
         public static bool get_tempImages_files_Dir(out String image_DirPath)
         {
             image_DirPath = null;
@@ -86,6 +99,7 @@ namespace UtilsDLL
         public static String scenes_DirPath;
         public static String GH_DirPath;
         public static String images_DirPath;
+        public static String empty_images_DirPath;
         public static String PythonScripts_DirPath_Git;
         public static String PythonScripts_DirPath_Actual;
 
@@ -94,6 +108,7 @@ namespace UtilsDLL
             if (!get_Scenes_Dir(out scenes_DirPath)) return false;
             if (!get_grasshopper_files_Dir(out GH_DirPath)) return false;
             if (!get_tempImages_files_Dir(out images_DirPath)) return false;
+            if (!get_empty_Images_files_Dir(out empty_images_DirPath)) return false;
             if (!get_pythonscripts_files_Dir(out PythonScripts_DirPath_Git)) return false;
 
             PythonScripts_DirPath_Actual = @"C:\Users\" + System.Environment.UserName + @"\AppData\Roaming\McNeel\Rhinoceros\5.0\Plug-ins\PythonPlugins\quest {4aa421bc-1d5d-4d9e-9e48-91bf91516ffa}\dev";

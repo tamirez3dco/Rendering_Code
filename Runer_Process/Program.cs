@@ -11,6 +11,7 @@ using UtilsDLL;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
 using System.Drawing;
+using System.Net;
 
 namespace Runer_Process
 {
@@ -27,6 +28,8 @@ namespace Runer_Process
         public String viewName = String.Empty;
         public bool getSTL = false;
         public String entireJSON;
+        public DateTime creationTime;
+        public int retries;
 
         public override string ToString()
         {
@@ -36,6 +39,8 @@ namespace Runer_Process
             res += "bake=" + bake + Environment.NewLine;
             res += "imageSize=" + imageSize.ToString() + Environment.NewLine;
             res += "getSTL=" + getSTL + Environment.NewLine;
+            res += "creationTime=" + creationTime.ToShortTimeString() + Environment.NewLine;
+            res += "retries=" + retries.ToString() + Environment.NewLine;
             res += "params:" + Environment.NewLine;
             foreach (String key in propValues.Keys)
             {
@@ -50,7 +55,8 @@ namespace Runer_Process
         NO_MSG,
         SUCCESS,
         FAIL,
-        FUCKUPS_DELETED
+        FUCKUPS_DELETED,
+        TIMEOUT
     }
 
     public enum RenderStatus
@@ -176,9 +182,19 @@ namespace Runer_Process
                 Dictionary<String, Double> paramValues = new Dictionary<string, double>();
                 imageData.propValues = (Dictionary<String, Object>)jsonDict["params"];
             }
+
+            if (!jsonDict.ContainsKey("retries"))
+            {
+                imageData.retries = 1;
+            }
+            else
+            {
+                imageData.retries = (int)jsonDict["retries"];
+            }
+
+            imageData.creationTime = DateTime.Now;
             return true;
         }
-
 
         static int id;
         static String scene_fileName;
@@ -191,11 +207,20 @@ namespace Runer_Process
 
         static int seconds_timeout;
         static bool rhino_visible;
-
+        static IPAddress external_ip;
         static CycleResult lastResult;
+        static String lastLogMsg;
+        static ImageDataRequest lastIDR;
+        static Dictionary<String,Dictionary<String,Dictionary<String,Color[]>>> emptyShortCuts;
 
         static void Main(string[] args)
         {
+            if (!UtilsDLL.Network_Utils.GetIP(out external_ip))
+            {
+                MessageBox.Show("UtilsDLL.Network_Utils.GetIP() failed!!!. Can not proceed !! Aborting.");
+                return;
+            }
+
             UtilsDLL.Dirs.get_all_relevant_dirs();
 
             whnd = UtilsDLL.Win32_API.FindWindow(null, "RhinoManager");
@@ -223,6 +248,12 @@ namespace Runer_Process
             stl_bucket_name = (String)params_dict["stl_bucket_name"];
             rhino_visible = (bool)params_dict["rhino_visible"];
             seconds_timeout = (int)params_dict["timeout"];
+
+
+            if (!read_empty_images_of_scene(scene_fileName, out emptyShortCuts))
+            {
+                return;
+            }
 
             // threading semaphore - named global across all machine
             if (id == 99)
@@ -277,7 +308,7 @@ namespace Runer_Process
                 UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "Waiting gate");
                 make_cycle_gate.WaitOne();
                 log("): After cycle gate.Wait one() : " + DateTime.Now.ToString());
-
+                DateTime beforeProcessingTime = DateTime.Now;
                 ThreadStart ts = new ThreadStart(single_cycle);
                 Thread thread = new Thread(ts);
                 thread.Start();
@@ -285,11 +316,32 @@ namespace Runer_Process
                 switch (lastResult)
                 {
                     case CycleResult.FAIL:
+                    case CycleResult.TIMEOUT:
                         // do NOT release the lock - simply send an error msg to the window and stop. Releasing will be done at Manager level
-                        UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "ERROR");
+                        String msgToSend = String.Empty;
+                        if (lastResult == CycleResult.TIMEOUT) msgToSend += "TIMEOUT!!! ";
+                        msgToSend += lastLogMsg;
+                        UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "ERROR " + msgToSend);
                         return;
                     case CycleResult.FUCKUPS_DELETED:
                         UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "FUCKUP DELETED");
+                        if (lastIDR == null)
+                        {
+                            Send_Msg_To_ERROR_Q(lastLogMsg);
+                        }
+                        else
+                        {
+                            TimeSpan duration = DateTime.Now - lastIDR.creationTime;
+                            Dictionary<String,Object> dict = new Dictionary<string,object>();
+                            dict["item_id"] = lastIDR.item_id;
+                            dict["url"] = @"http://s3.amazonaws.com/" + bucket_name + @"/" + lastIDR.item_id + ".jpg";
+                            dict["duration"] = Math.Round(duration.TotalSeconds, 3);
+                            dict["server"] = external_ip.ToString();
+                            dict["instance_id"] = id;
+                            dict["status"] = "ERROR";
+
+                            Send_Dict_Msg_To_Readies_Q(dict);
+                        }
                         break;
                     case CycleResult.NO_MSG:
                         TimeSpan timeFromLastMsg = DateTime.Now - last_msg_receive_time;
@@ -327,9 +379,60 @@ namespace Runer_Process
 
         }
 
+        private static bool read_empty_images_of_scene(String scene, out Dictionary<String,Dictionary<String,Dictionary<String,Color[]>>> shortCuts)
+        {
+            shortCuts = new Dictionary<string, Dictionary<string, Dictionary<string, Color[]>>>();
+            try
+            {
+                DirectoryInfo dir = new DirectoryInfo(UtilsDLL.Dirs.empty_images_DirPath);
+                DirectoryInfo[] dirs = dir.GetDirectories(scene);
+                if (dirs.Length != 1) return false;
+//                foreach (DirectoryInfo gh_dir in dirs[0].GetDirectories())
+//                {
+                    foreach (DirectoryInfo size_dir in dirs[0].GetDirectories())
+                    {
+                        shortCuts[size_dir.Name] = new Dictionary<string, Dictionary<string, Color[]>>();
+                        foreach (DirectoryInfo view_dir in size_dir.GetDirectories())
+                        {
+                            shortCuts[size_dir.Name][view_dir.Name] = new Dictionary<string, Color[]>();
+                            foreach (FileInfo emptyImageFile in view_dir.GetFiles("*.jpg"))
+                            {
+                                Color[] shortCut;
+                                if (!UtilsDLL.Image_Utils.shortCut(emptyImageFile.FullName, out shortCut))
+                                {
+                                    return false;
+                                }
+                                shortCuts[size_dir.Name][view_dir.Name][emptyImageFile.Name] = shortCut;
+
+                            }
+                        }
+                    }
+//                }
+
+
+                FileInfo[] files = dir.GetFiles("*.jpg");
+                foreach (FileInfo file in files)
+                {
+                    if (file.Name.StartsWith(scene))
+                    {
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+                return false;
+            }
+            
+            return true;
+        }
+
         private static void single_cycle()
         {
-            lastResult = CycleResult.FAIL;
+            lastResult = CycleResult.TIMEOUT;
+            lastLogMsg = "Starting single_cycle";
+            lastIDR = null;
 
             // Get a single MSG from Queue_Requests
             bool msg_found;
@@ -337,7 +440,8 @@ namespace Runer_Process
             useLowPrioirty_Q = false;
             if (!SQS_Utils.Get_Msg_From_Q(request_Q_url, out msg, out msg_found))
             {
-                log("Get_Msg_From_Q() failed !!!");
+                lastLogMsg = "Get_Msg_From_Q() failed !!!";
+                log(lastLogMsg);
                 lastResult = CycleResult.FAIL;
                 return;
             }
@@ -351,13 +455,15 @@ namespace Runer_Process
                     bool lowPrioirty_msg_found = false;
                     if (!SQS_Utils.Get_Msg_From_Q(request_lowpriority_Q_url, out msg, out lowPrioirty_msg_found))
                     {
-                        log("Get_Msg_From_Q(lowprioirty) failed !!!");
+                        lastLogMsg = "Get_Msg_From_Q(lowprioirty) failed !!!";
+                        log(lastLogMsg);
                         lastResult = CycleResult.FAIL;
                         return;
                     }
 
                     if (!lowPrioirty_msg_found)
                     {
+                        lastLogMsg = "No MSG";
                         UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "no_msg");
                         lastResult = CycleResult.NO_MSG;
                         return;
@@ -366,6 +472,7 @@ namespace Runer_Process
                 }
                 else
                 {
+                    lastLogMsg = "No MSG";
                     UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "no_msg");
                     lastResult = CycleResult.NO_MSG;
                     return; 
@@ -377,16 +484,19 @@ namespace Runer_Process
             ImageDataRequest imageData = null;
             if (!deciferImageDataFromBody(msg.Body, out imageData))
             {
-                log("deciferImagesDataFromJSON(msg.Body=" + msg.Body + ", out imagesDatas) failed!!!");
+                lastLogMsg = "deciferImagesDataFromJSON(msg.Body=" + msg.Body + ", out imagesDatas) failed!!!";
+                log(lastLogMsg);
                 lastResult = CycleResult.FAIL;
                 return;
             }
 
+            lastIDR = imageData;
+
             int prevFuckups_this_image = Fuckups_DB.Get_Fuckups(imageData.item_id);
-            if (prevFuckups_this_image >= 2)
+            if (prevFuckups_this_image >= imageData.retries)
             {
                 // send an error msg telling that this image was deleted
-                Send_Msg_To_ERROR_Q(id, "Item_id:" + imageData.item_id + " was deleted from request Q without rendering because prevFuckups_this_image=" + prevFuckups_this_image.ToString());
+//                Send_Msg_To_ERROR_Q(imageData.item_id, "Item_id:" + imageData.item_id + " was deleted from request Q without rendering because prevFuckups_this_image=" + prevFuckups_this_image.ToString(), beforeProcessingTime);
                 // delete the message...
                 Delete_Msg_From_Req_Q(msg,useLowPrioirty_Q);
                 lastResult = CycleResult.FUCKUPS_DELETED;
@@ -394,9 +504,19 @@ namespace Runer_Process
             }
 
             // Add Msg to Queue_Readies
-            if (!Send_Msg_To_Readies_Q(RenderStatus.STARTED, imageData.item_id, beforeProcessingTime))
+            DateTime current = DateTime.Now;
+            TimeSpan duration = current - beforeProcessingTime;
+            Dictionary<String, Object> tempDict = new Dictionary<string, object>();
+            tempDict["item_id"] = imageData.item_id;
+            //dict["url"] = @"http://" + Utils.my_ip + @"/testim/yofi_" + item_id + ".jpg";
+            tempDict["url"] = @"http://s3.amazonaws.com/" + bucket_name + @"/" + imageData.item_id + ".jpg";
+            tempDict["duration"] = Math.Round(duration.TotalSeconds, 3);
+            tempDict["status"] = RenderStatus.STARTED.ToString();
+
+            if (!Send_Dict_Msg_To_Readies_Q(tempDict))
             {
-                log("Send_Msg_To_Readies_Q(status=STARTED,imageData.item_id=" + imageData.item_id + ") failed");
+                lastLogMsg = "Send_Msg_To_Readies_Q(status=STARTED,imageData.item_id=" + imageData.item_id + ") failed";
+                log(lastLogMsg);
                 lastResult = CycleResult.FAIL;
                 return;
             }
@@ -414,8 +534,88 @@ namespace Runer_Process
                 TimeSpan renderTime, buildTime, waitTime;
                 if (!Process_Into_Image_File(imageData, out resultingLocalImageFilePath, out renderTime, out buildTime, out waitTime))
                 {
-                    log("Process_Msg_Into_Image_File(msg) failed!!! (). ImageData=" + imageData.ToString());
-                    Send_Msg_To_ERROR_Q(id, imageData.item_id);
+                    String logLine = "Process_Msg_Into_Image_File(msg) failed!!! (). ImageData=" + imageData.ToString();
+                    lastLogMsg = logLine;
+                    log(logLine);
+//                    Send_Msg_To_ERROR_Q(imageData.item_id, logLine, beforeProcessingTime);
+                    lastResult = CycleResult.FAIL;
+                    return;
+                }
+
+
+                // check with empty images
+                Color[] shortCut;
+                if (!UtilsDLL.Image_Utils.shortCut(resultingLocalImageFilePath,out shortCut))
+                {
+                    String logLine = "UtilsDLL.Image_Utils.shortCut(file=" + resultingLocalImageFilePath+"  failed!!! ().";
+                    lastLogMsg = logLine;
+                    log(logLine);
+                    lastResult = CycleResult.FAIL;
+                    return;
+                }
+
+                
+
+                String size_key = imageData.imageSize.Width + "_" + imageData.imageSize.Height;
+                if (!emptyShortCuts.ContainsKey(size_key))
+                {
+                    String logLine = "Found no empty image file to compare to (size_key=" + size_key + " )!!";
+                    lastLogMsg = logLine;
+                    log(logLine);
+                    lastResult = CycleResult.FAIL;
+                    return;
+                }
+
+                if (!emptyShortCuts[size_key].ContainsKey(imageData.viewName))
+                {
+                    String logLine = "Found no empty image file to compare to (viewName=" + imageData.viewName + " )!!";
+                    lastLogMsg = logLine;
+                    log(logLine);
+                    lastResult = CycleResult.FAIL;
+                    return;
+                }
+
+                if (emptyShortCuts[size_key][imageData.viewName].Count == 0)
+                {
+                    String logLine = "Found no empty image file to compare to (Count==0)!!";
+                    lastLogMsg = logLine;
+                    log(logLine);
+                    lastResult = CycleResult.FAIL;
+                    return;
+                }
+
+                foreach (String key in emptyShortCuts[size_key][imageData.viewName].Keys)
+                {
+                    Color[] emptyImageSC = emptyShortCuts[size_key][imageData.viewName][key];
+                    bool compRes = false;
+                    if (!UtilsDLL.Image_Utils.compare_shortcuts(shortCut, emptyImageSC, out compRes))
+                    {
+                        String logLine = "Failed because comparing failed rendered image (" + resultingLocalImageFilePath + ") to  file:" + imageData.gh_fileName + Path.DirectorySeparatorChar + size_key + Path.DirectorySeparatorChar + imageData.viewName + Path.DirectorySeparatorChar + key;
+                        lastLogMsg = logLine;
+                        log(logLine);
+                        lastResult = CycleResult.FAIL;
+                        return;
+                    }
+                    if (compRes)
+                    {
+                        String logLine = "Failed because rendered image (" + resultingLocalImageFilePath + ") identical to empty image file:" + imageData.gh_fileName + Path.DirectorySeparatorChar + size_key + Path.DirectorySeparatorChar + imageData.viewName + Path.DirectorySeparatorChar + key;
+                        lastLogMsg = logLine;
+                        log(logLine);
+                        lastResult = CycleResult.FAIL;
+                        return;
+                    }
+                }
+                
+
+
+
+                if (imageData.item_id.EndsWith("22"))
+                {
+                    String logLine = "Delibiretly failing item - ends with 22. ImageData=" + imageData.ToString();
+                    lastLogMsg = logLine;
+                    log(logLine);
+                    MessageBox.Show(logLine);
+//                    Send_Msg_To_ERROR_Q(imageData.item_id, logLine, beforeProcessingTime);
                     lastResult = CycleResult.FAIL;
                     return;
                 }
@@ -433,7 +633,8 @@ namespace Runer_Process
                     {
                         String logLine = "Write_File_To_S3(resulting_3dm_path=" + resulting_3dm_path + ", stl_fileName_on_S3=" + stl_fileName_on_S3 + ") failed !!!";
                         log(logLine);
-                        Send_Msg_To_ERROR_Q(id, logLine);
+                        lastLogMsg = logLine;
+//                        Send_Msg_To_ERROR_Q(imageData.item_id, logLine, beforeProcessingTime);
                         lastResult = CycleResult.FAIL;
                         return;
                     }
@@ -446,7 +647,8 @@ namespace Runer_Process
                 {
                     String logLine = "Write_File_To_S3(resultingImagePath=" + resultingLocalImageFilePath + ", fileName_on_S3=" + fileName_on_S3 + ") failed !!!";
                     log(logLine);
-                    Send_Msg_To_ERROR_Q(id, logLine);
+                    lastLogMsg = logLine;
+//                    Send_Msg_To_ERROR_Q(imageData.item_id, logLine, beforeProcessingTime);
                     lastResult = CycleResult.FAIL;
                     return;
                 }
@@ -459,17 +661,22 @@ namespace Runer_Process
                 {
                     String logLine = "Delete_Msg_From_Req_Q(item_id=" + imageData.item_id + ") failed!!!";
                     log(logLine);
-                    Send_Msg_To_ERROR_Q(id, logLine);
-
+                    lastLogMsg = logLine;
+//                    Send_Msg_To_ERROR_Q(imageData.item_id, logLine, beforeProcessingTime);
+/*
                     if (!Send_Msg_To_Readies_Q(RenderStatus.ERROR, imageData.item_id, beforeProcessingTime))
                     {
                         logLine = ("Send_Msg_To_Readies_Q(status=ERROR,imageData.item_id=" + imageData.item_id + ") failed");
                         log(logLine);
-                        Send_Msg_To_ERROR_Q(id, logLine);
+                        Send_Msg_To_ERROR_Q(imageData.item_id, logLine, beforeProcessingTime);
                     }
+ */
                     lastResult = CycleResult.FAIL;
                     return;
                 }
+
+
+
 
                 // Add Msg to Queue_Readies
                 if (!Send_Msg_To_Readies_Q(RenderStatus.FINISHED, imageData.item_id, beforeProcessingTime))
@@ -499,7 +706,8 @@ namespace Runer_Process
             }
             else
             {
-                log("ERROR !!! - (" + imageData.operation + "=imageData.operation != \"render_model\")");
+                lastLogMsg = "ERROR !!! - (" + imageData.operation + "=imageData.operation != \"render_model\")";
+                log(lastLogMsg);
                 lastResult = CycleResult.FAIL;
                 return;
             }
@@ -511,7 +719,7 @@ namespace Runer_Process
             return SQS_Utils.Delete_Msg_From_Q(request_Q_url, msg);
         }
 
-        private static void Send_Msg_To_ERROR_Q(int id, string err_msg)
+        private static void Send_Msg_To_ERROR_Q(string err_msg)
         {
             SQS_Utils.Send_Msg_To_Q(error_Q_url, err_msg, false);
         }
@@ -541,14 +749,14 @@ namespace Runer_Process
 
             if (imageData.gh_fileName.EndsWith(".gh") || imageData.gh_fileName.EndsWith(".ghx"))
             {
-                /*
+/*
                 if (!UtilsDLL.Rhino.Set_GH_Params_To_TXT_File(rhino_wrapper, imageData.propValues))
                 {
                     logLine = "Set_Params(imageData=" + imageData.ToString() + "]) failed !!!";
                     log(logLine);
                     return false;
                 }
-                */
+*/
                 if (current_GH_file == imageData.gh_fileName)
                 {
                     logLine = "Skipping Open_GH_File(imageData[imageData.gh_filePath=" + imageData.gh_fileName + ")";
@@ -566,13 +774,12 @@ namespace Runer_Process
                 }
 
 
-                if (!UtilsDLL.Rhino.Set_GH_Params(rhino_wrapper,imageData.bake,imageData.propValues))
+                if (!UtilsDLL.Rhino.Set_GH_Params(rhino_wrapper,imageData.propValues))
                 {
                     logLine = "Set_Params(imageData=" + imageData.ToString() + "]) failed !!!";
                     log(logLine);
                     return false;
                 }
- 
                 if (!UtilsDLL.Rhino.Solve_And_Bake(rhino_wrapper, imageData.bake))
                 {
                     logLine = "Solve_And_Bake(imageData=" + imageData.ToString() + "]) failed !!!";
@@ -637,6 +844,14 @@ namespace Runer_Process
             return SQS_Utils.Send_Msg_To_Q(ready_Q_url, jsonString, true);
         }
 
+        private static bool Send_Dict_Msg_To_Readies_Q(Dictionary<String,Object> dict)
+        {
+
+            JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
+            string jsonString = serializer.Serialize((object)dict);
+
+            return SQS_Utils.Send_Msg_To_Q(ready_Q_url, jsonString, true);
+        }
 
     }
 }

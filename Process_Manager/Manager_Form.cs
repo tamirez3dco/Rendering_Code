@@ -44,7 +44,21 @@ namespace Process_Manager
 
                 killAll();
 
-                Dirs.Refresh_Rhino_GH_Data_From_Github();
+                bool refresh_rhino_data = true;
+                if (params_dict.ContainsKey("refresh_rhino_data")) refresh_rhino_data = (bool)params_dict["refresh_rhino_data"];
+                if (refresh_rhino_data)
+                {
+                    Dirs.Refresh_Rhino_GH_Data_From_Github();
+
+                    ProcessStartInfo psi = new ProcessStartInfo();
+                    psi.FileName = @"C:\Inetpub\ftproot\Rendering_Code\EmptyImagesConstructor\bin\Debug\EmptyImagesConstructor.exe";
+                    psi.UseShellExecute = true;
+                    Process p = Process.Start(psi);
+                    p.WaitForExit();
+                }
+
+
+                killAll();
 
                 Fuckups_DB.Open_Connection();
                 Fuckups_DB.Clear_DB();
@@ -186,6 +200,8 @@ namespace Process_Manager
                     else if (msg.StartsWith("ERROR")) // need to kill correct Rhino process + correct runer process
                     {
                         Fuckups_DB.Add_Fuckup((String)row.Cells[(int)ColumnsIndex.ITEM_ID].Value);
+
+                        row.Cells[(int)ColumnsIndex.ERROR_LINE].Value = msg;
 
                         int rhino_pid = (int)row.Cells[(int)ColumnsIndex.RHINO_PID].Value;
                         int runer_pid = (int)row.Cells[(int)ColumnsIndex.RUNER_PID].Value;
@@ -358,7 +374,8 @@ namespace Process_Manager
         REQUEST_LOWPRIORITY_URL,
         READY_URL,
         START_CYCLE_TIME,
-        JSON_REQUEST
+        JSON_REQUEST,
+        ERROR_LINE
     }
 
 }

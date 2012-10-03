@@ -271,7 +271,7 @@ namespace UtilsDLL
             return true;
         }
 
-        public static bool Set_GH_Params(Rhino_Wrapper rhino_wrapper, String bake, Dictionary<String, Object> parameters)
+        public static bool Set_GH_Params(Rhino_Wrapper rhino_wrapper, Dictionary<String, Object> parameters)
         {
             log("Starting Set_GH_Params()");
             DateTime beforeTime = DateTime.Now;
@@ -296,14 +296,6 @@ namespace UtilsDLL
                 log(logLine);
 
             }
-/*
-            rhino_wrapper.grasshopper.RunSolver(true);
-
-            Object objRes = rhino_wrapper.grasshopper.BakeDataInObject(bake);
-*/
-            fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
-            logLine = "After baking object:" + bake + " After " + fromStart + " milliseconds";
-            log(logLine);
 
             return true;
 

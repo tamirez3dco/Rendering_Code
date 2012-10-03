@@ -31,6 +31,7 @@
             this.components = new System.ComponentModel.Container();
             this.button2 = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.check_crashes_timer = new System.Windows.Forms.Timer(this.components);
             this.runer_id = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.scene_column = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.state = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -44,8 +45,7 @@
             this.ready_url = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.startCycleTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.entireJSON = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.check_crashes_timer = new System.Windows.Forms.Timer(this.components);
-            this.button3 = new System.Windows.Forms.Button();
+            this.logColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -78,12 +78,19 @@
             this.Request_LP_URL,
             this.ready_url,
             this.startCycleTime,
-            this.entireJSON});
+            this.entireJSON,
+            this.logColumn});
             this.dataGridView1.Location = new System.Drawing.Point(12, 12);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.Size = new System.Drawing.Size(947, 242);
             this.dataGridView1.TabIndex = 2;
+            // 
+            // check_crashes_timer
+            // 
+            this.check_crashes_timer.Enabled = true;
+            this.check_crashes_timer.Interval = 5000;
+            this.check_crashes_timer.Tick += new System.EventHandler(this.check_crashes_timer_Tick);
             // 
             // runer_id
             // 
@@ -166,28 +173,18 @@
             this.entireJSON.ReadOnly = true;
             this.entireJSON.Width = 2000;
             // 
-            // check_crashes_timer
+            // logColumn
             // 
-            this.check_crashes_timer.Enabled = true;
-            this.check_crashes_timer.Interval = 5000;
-            this.check_crashes_timer.Tick += new System.EventHandler(this.check_crashes_timer_Tick);
-            // 
-            // button3
-            // 
-            this.button3.Location = new System.Drawing.Point(72, 416);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(129, 44);
-            this.button3.TabIndex = 3;
-            this.button3.Text = "Flip Rhino Visibility";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
+            this.logColumn.HeaderText = "ERROR";
+            this.logColumn.Name = "logColumn";
+            this.logColumn.ReadOnly = true;
+            this.logColumn.Width = 2000;
             // 
             // Manager_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1019, 486);
-            this.Controls.Add(this.button3);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.button2);
             this.Name = "Manager_Form";
@@ -203,7 +200,6 @@
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.Timer check_crashes_timer;
-        private System.Windows.Forms.Button button3;
         private System.Windows.Forms.DataGridViewTextBoxColumn runer_id;
         private System.Windows.Forms.DataGridViewTextBoxColumn scene_column;
         private System.Windows.Forms.DataGridViewTextBoxColumn state;
@@ -217,6 +213,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn ready_url;
         private System.Windows.Forms.DataGridViewTextBoxColumn startCycleTime;
         private System.Windows.Forms.DataGridViewTextBoxColumn entireJSON;
+        private System.Windows.Forms.DataGridViewTextBoxColumn logColumn;
     }
 }
 

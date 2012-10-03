@@ -47,6 +47,7 @@
             this.name_textBox = new System.Windows.Forms.TextBox();
             this.getSTL_checkBox = new System.Windows.Forms.CheckBox();
             this.viewTextBox = new System.Windows.Forms.TextBox();
+            this.button4 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // richTextBox1
@@ -99,7 +100,7 @@
             this.property_textBox.Name = "property_textBox";
             this.property_textBox.Size = new System.Drawing.Size(75, 20);
             this.property_textBox.TabIndex = 8;
-            this.property_textBox.Text = "a1";
+            this.property_textBox.Text = "a2";
             // 
             // value_textBox
             // 
@@ -213,11 +214,22 @@
             this.viewTextBox.TabIndex = 21;
             this.viewTextBox.Text = "Render";
             // 
+            // button4
+            // 
+            this.button4.Location = new System.Drawing.Point(335, 159);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(96, 39);
+            this.button4.TabIndex = 22;
+            this.button4.Text = "button4";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
+            // 
             // Batch_Tester_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(685, 577);
+            this.Controls.Add(this.button4);
             this.Controls.Add(this.viewTextBox);
             this.Controls.Add(this.getSTL_checkBox);
             this.Controls.Add(this.name_textBox);
@@ -266,5 +278,6 @@
         private System.Windows.Forms.TextBox name_textBox;
         private System.Windows.Forms.CheckBox getSTL_checkBox;
         private System.Windows.Forms.TextBox viewTextBox;
+        private System.Windows.Forms.Button button4;
     }
 }

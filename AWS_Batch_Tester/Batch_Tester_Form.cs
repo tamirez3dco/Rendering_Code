@@ -47,6 +47,10 @@ namespace AWS_Batch_Tester
                 double delta = double.Parse(delta_textBox.Text);
                 //[{"gh_file":"brace1.gh","item_id":501,"NumCircles":0.5,"bake":"Bracelet"}]
                 String[] optionalScenes = { "scene11.3dm", "scene13.3dm", "scene15.3dm", "scene17.3dm" };
+
+                
+                
+
                 for (int j = 0; j < Math.Ceiling((double)num_msgs / 10); j++)
                 {
                     List<String> msgEntries = new List<String>();
@@ -64,6 +68,7 @@ namespace AWS_Batch_Tester
                         dict["item_id"] = (first_id + i).ToString();
 
                         dict["getSTL"] = getSTL_checkBox.Checked;
+                        dict["retries"] = 2;
 
 
                         //String layerName = (layers[i % layers.Length]);
@@ -76,15 +81,17 @@ namespace AWS_Batch_Tester
                         dict["width"] = 180;
                         dict["height"] = 180;
                         Dictionary<String, Object> paramsDict = new Dictionary<String, Object>();
-                        double propValue = Math.Round(initialValue + ((i) % 10) * delta, 1);
+                        double propValue = Math.Round(initialValue + ((i+1) % 10) * delta, 1);
                         //double propValue = (i % 2 == 0) ? 0.1 : 0.9;
+
                         paramsDict["a1"] = 0.4;
                         paramsDict["a2"] = 0.1;
                         paramsDict["a3"] = 0.1;
                         paramsDict["a4"] = 0.5;
                         paramsDict["a5"] = 0.5;
                         paramsDict["a6"] = 0.5;
-                        paramsDict[property_textBox.Text] = 0.16 * i;
+
+                        paramsDict[property_textBox.Text] = propValue;
                         //paramsDict["textParam"] = "Ahlan Wasahalan";
                         dict["params"] = paramsDict;
                         //List<String> bakeries = new List<String>();
@@ -129,6 +136,99 @@ namespace AWS_Batch_Tester
         private void button2_Click(object sender, EventArgs e)
         {
             richTextBox4.Text = Runing_Form.Utils.DecodeFrom64(richTextBox3.Text);
+        }
+
+        void all()
+        {
+            try
+            {
+                String request_Q_url,request_Q_arn;
+                bool sqs_Q_found;
+                String Q_name = "tamir_cases_request";
+
+                if (!SQS_Utils.Find_Q_By_name(Q_name, out sqs_Q_found, out request_Q_url, out request_Q_arn))
+                {
+                    return;
+                }
+                if (!sqs_Q_found)
+                {
+                    return;
+                }
+
+
+                int steps = 5;
+                double step = 1.0 / (double)steps;
+
+                Dictionary<String, Object> dict = new Dictionary<String, Object>();
+                dict["params"] = new Dictionary<String, Object>();
+                dict["width"] = 180;
+                dict["height"] = 180;
+                dict["getSTL"] = false;
+                dict["gh_file"] = "iPhone_scales.gh";
+                dict["view_name"] = "Render";
+                dict["scene"] = "cases.3dm";
+                dict["layer_name"] = "Clay";
+                dict["retries"] = 3;
+                Dictionary<String, Object> paramsDict = new Dictionary<String, Object>();
+                
+                dict["bake"] = bake_textBox.Text;
+                dict["operation"] = "render_model";
+
+                for (int s1 = 0; s1 <= steps; s1++)
+                {
+                    paramsDict["a2"] = step * s1;
+
+                    for (int s2 = 0; s2 <= steps; s2++)
+                    {
+                        paramsDict["a3"] = step * s2;
+
+//                        for (int s3 = 0; s3 <= steps; s3++)
+//                        {
+//                            paramsDict["a3"] = step * s3;
+                        paramsDict["a1"] = 0.4;
+
+                        
+                        /*
+                            paramsDict["a3"] = 0.5;
+                            paramsDict["a4"] = 0.5;
+                            paramsDict["a5"] = 0.5;
+                            paramsDict["a6"] = 0.5;
+ */ 
+//                            dict["item_id"] = s1.ToString() +"_" + s2.ToString() +"_" + s3.ToString();
+                            dict["item_id"] = s1.ToString() +"_" + s2.ToString();
+                            dict["params"] = paramsDict;
+
+                            JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
+                            string jsonString = serializer.Serialize((object)dict);
+
+                            if (!SQS_Utils.Send_Msg_To_Q(request_Q_url, jsonString, true))
+                            {
+                                return;
+                            }
+
+//                        }
+
+                    }
+                }
+
+            }
+            catch (AmazonSQSException ex)
+            {
+                MessageBox.Show("Caught Exception: " + ex.Message);
+                Console.WriteLine("Response Status Code: " + ex.StatusCode);
+                Console.WriteLine("Error Code: " + ex.ErrorCode);
+                Console.WriteLine("Error Type: " + ex.ErrorType);
+                Console.WriteLine("Request ID: " + ex.RequestId);
+                Console.WriteLine("XML: " + ex.XML);
+                return;
+            }
+            return;
+
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            all();
         }
     }
 }
