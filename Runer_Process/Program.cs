@@ -608,7 +608,7 @@ namespace Runer_Process
                 
 
 
-
+/*
                 if (imageData.item_id.EndsWith("22"))
                 {
                     String logLine = "Delibiretly failing item - ends with 22. ImageData=" + imageData.ToString();
@@ -619,7 +619,7 @@ namespace Runer_Process
                     lastResult = CycleResult.FAIL;
                     return;
                 }
-
+*/
                 TimeSpan stl_timespan = new TimeSpan(0,0,0,99);
                 if (imageData.getSTL)
                 {
@@ -771,6 +771,14 @@ namespace Runer_Process
                         return false;
                     }
                     current_GH_file = imageData.gh_fileName;
+
+                    if (!UtilsDLL.Rhino.DeleteAll(rhino_wrapper))
+                    {
+                        log("ERROR!!: DeleteAll(after new GH file) failed !!!");
+                        return false;
+                    }
+                
+                
                 }
 
 

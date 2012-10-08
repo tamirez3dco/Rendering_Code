@@ -24,15 +24,19 @@ namespace LibTester
             Console.WriteLine(procs.Length + " previous Rhino processes remaind alive");
             UtilsDLL.Dirs.get_all_relevant_dirs();
 
-/*
+
 
             Rhino5Application rhino_app = new Rhino5Application();
             rhino_app.Visible = 1;
             rhino_app.RunScript("_Grasshopper", 0);
             dynamic grasshopper = rhino_app.GetPlugInObject("b45a29b1-4343-4035-989e-044e8580d9cf", "00000000-0000-0000-0000-000000000000") as dynamic;
-            grasshopper.OpenDocument(@"C:\inetpub\ftproot\Rendering_Data\GH_Def_files\iPhone-frames-trial-release.gh");
-            //bool res = grasshopper.AssignDataToParameter("Num", (Object)0.5);
-*/
+            grasshopper.OpenDocument(@"C:\inetpub\ftproot\Rendering_Data\GH_Def_files\test_str.gh");
+            bool res = grasshopper.AssignDataToParameter("Str", "sababa");
+
+            return;
+
+
+
 
             String[] allScenes = { "cases.3dm", "rings.3dm", "vases.3dm" };
 
@@ -47,6 +51,8 @@ namespace LibTester
                     Console.WriteLine("Basa");
                     return;
                 }
+
+               
 
                 int height = 180;
                 String size_key = height + "_" + height;

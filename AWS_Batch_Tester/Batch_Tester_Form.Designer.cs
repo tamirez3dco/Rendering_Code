@@ -48,6 +48,8 @@
             this.getSTL_checkBox = new System.Windows.Forms.CheckBox();
             this.viewTextBox = new System.Windows.Forms.TextBox();
             this.button4 = new System.Windows.Forms.Button();
+            this.textValue_textBox = new System.Windows.Forms.TextBox();
+            this.button5 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // richTextBox1
@@ -92,7 +94,7 @@
             this.file_textBox.Name = "file_textBox";
             this.file_textBox.Size = new System.Drawing.Size(75, 20);
             this.file_textBox.TabIndex = 7;
-            this.file_textBox.Text = "iPhone_Scales.gh";
+            this.file_textBox.Text = "iPhone_Scales_text1.gh";
             // 
             // property_textBox
             // 
@@ -224,11 +226,31 @@
             this.button4.UseVisualStyleBackColor = true;
             this.button4.Click += new System.EventHandler(this.button4_Click);
             // 
+            // textValue_textBox
+            // 
+            this.textValue_textBox.Location = new System.Drawing.Point(165, 66);
+            this.textValue_textBox.Name = "textValue_textBox";
+            this.textValue_textBox.Size = new System.Drawing.Size(100, 20);
+            this.textValue_textBox.TabIndex = 23;
+            this.textValue_textBox.Text = "textValue";
+            // 
+            // button5
+            // 
+            this.button5.Location = new System.Drawing.Point(190, 159);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(93, 36);
+            this.button5.TabIndex = 24;
+            this.button5.Text = "button5";
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
+            // 
             // Batch_Tester_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(685, 577);
+            this.Controls.Add(this.button5);
+            this.Controls.Add(this.textValue_textBox);
             this.Controls.Add(this.button4);
             this.Controls.Add(this.viewTextBox);
             this.Controls.Add(this.getSTL_checkBox);
@@ -279,5 +301,7 @@
         private System.Windows.Forms.CheckBox getSTL_checkBox;
         private System.Windows.Forms.TextBox viewTextBox;
         private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.TextBox textValue_textBox;
+        private System.Windows.Forms.Button button5;
     }
 }
