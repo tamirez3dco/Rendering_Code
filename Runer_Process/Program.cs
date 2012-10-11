@@ -30,6 +30,7 @@ namespace Runer_Process
         public String entireJSON;
         public DateTime creationTime;
         public int retries;
+        public String stl_to_load;
 
         public override string ToString()
         {
@@ -41,6 +42,7 @@ namespace Runer_Process
             res += "getSTL=" + getSTL + Environment.NewLine;
             res += "creationTime=" + creationTime.ToShortTimeString() + Environment.NewLine;
             res += "retries=" + retries.ToString() + Environment.NewLine;
+            res += "stl_to_load=" + stl_to_load;
             res += "params:" + Environment.NewLine;
             foreach (String key in propValues.Keys)
             {
@@ -191,6 +193,18 @@ namespace Runer_Process
             {
                 imageData.retries = (int)jsonDict["retries"];
             }
+
+
+            if (!jsonDict.ContainsKey("load_stl"))
+            {
+                imageData.stl_to_load = String.Empty;
+            }
+            else
+            {
+                imageData.stl_to_load = ((String)jsonDict["load_stl"]).Trim();
+            }
+
+
 
             imageData.creationTime = DateTime.Now;
             return true;
@@ -492,15 +506,21 @@ namespace Runer_Process
 
             lastIDR = imageData;
 
+
             int prevFuckups_this_image = Fuckups_DB.Get_Fuckups(imageData.item_id);
+
             if (prevFuckups_this_image >= imageData.retries)
             {
                 // send an error msg telling that this image was deleted
-//                Send_Msg_To_ERROR_Q(imageData.item_id, "Item_id:" + imageData.item_id + " was deleted from request Q without rendering because prevFuckups_this_image=" + prevFuckups_this_image.ToString(), beforeProcessingTime);
                 // delete the message...
                 Delete_Msg_From_Req_Q(msg,useLowPrioirty_Q);
                 lastResult = CycleResult.FUCKUPS_DELETED;
                 return;
+            }
+
+            if (prevFuckups_this_image > 0)
+            {
+                adjust_numeric_params(imageData.propValues);
             }
 
             // Add Msg to Queue_Readies
@@ -615,11 +635,11 @@ namespace Runer_Process
                     lastLogMsg = logLine;
                     log(logLine);
                     MessageBox.Show(logLine);
-//                    Send_Msg_To_ERROR_Q(imageData.item_id, logLine, beforeProcessingTime);
                     lastResult = CycleResult.FAIL;
                     return;
                 }
 */
+                
                 TimeSpan stl_timespan = new TimeSpan(0,0,0,99);
                 if (imageData.getSTL)
                 {
@@ -676,8 +696,25 @@ namespace Runer_Process
                 }
 
 
+                // Add Msg to Queue_Readies
+                current = DateTime.Now;
+                duration = current - beforeProcessingTime;
+                tempDict = new Dictionary<string, object>();
+                tempDict["item_id"] = imageData.item_id;
+                tempDict["url"] = @"http://s3.amazonaws.com/" + bucket_name + @"/" + imageData.item_id + ".jpg";
+                tempDict["duration"] = Math.Round(duration.TotalSeconds, 3);
+                tempDict["status"] = RenderStatus.FINISHED.ToString();
 
 
+                if (!Send_Dict_Msg_To_Readies_Q(tempDict))
+                {
+                    lastLogMsg = "Send_Dict_Msg_To_Readies_Q(status=FINISHED,imageData.item_id=" + imageData.item_id + ") failed";
+                    log(lastLogMsg);
+                    lastResult = CycleResult.FAIL;
+                    return;
+                }
+
+/*
                 // Add Msg to Queue_Readies
                 if (!Send_Msg_To_Readies_Q(RenderStatus.FINISHED, imageData.item_id, beforeProcessingTime))
                 {
@@ -686,7 +723,7 @@ namespace Runer_Process
                     lastResult = CycleResult.FAIL;
                     return;
                 }
-
+*/
                 DateTime afterSQS = DateTime.Now;
 
                 log("Reading msg time =" + (beforeRhino - beforeProcessingTime).TotalMilliseconds.ToString() + " millis");
@@ -710,6 +747,36 @@ namespace Runer_Process
                 log(lastLogMsg);
                 lastResult = CycleResult.FAIL;
                 return;
+            }
+        }
+
+        private static void adjust_numeric_params(Dictionary<string, object> dictionary)
+        {
+            String[] keys = new String[dictionary.Count];
+            dictionary.Keys.CopyTo(keys, 0);
+            foreach (String key in keys)
+            {
+                Object propValue = dictionary[key];
+                Type propValueType = propValue.GetType();
+                if (propValueType == typeof(Double) || propValueType == typeof(Decimal))
+                {
+                    Double oldValue;
+                    if (propValueType == typeof(Double)) oldValue = (Double)propValue;
+                    else oldValue = (Double)((Decimal)propValue);
+
+                    Double newValue = oldValue;
+                    if (oldValue < 0.01) newValue = 0.05;
+                    else if (oldValue > 0.99) newValue = 0.95;
+                    else
+                    {
+                        Random rnd = new Random();
+                        Double d = rnd.NextDouble();
+                        if (d > 0.5) newValue += 0.05;
+                        else newValue -= 0.05;
+                    }
+
+                    dictionary[key] = newValue;
+                }
             }
         }
 
@@ -741,11 +808,13 @@ namespace Runer_Process
                 return false;
             }
 
-            if (!UtilsDLL.Rhino.setDefaultLayer(rhino_wrapper, imageData.layerName))
+            if (!Rhino.setDefaultLayer(rhino_wrapper, imageData.layerName))
             {
-                log("ERROR!!: setDefaultLayer(layerName=" + imageData.layerName + ") failed !!!");
+                log("ERROR!!: Rhino.setDefaultLayer(layerName=" + imageData.layerName + ") failed !!!");
                 return false;
             }
+
+
 
             if (imageData.gh_fileName.EndsWith(".gh") || imageData.gh_fileName.EndsWith(".ghx"))
             {
@@ -781,6 +850,18 @@ namespace Runer_Process
                 
                 }
 
+                // had to split the execution of stl_to_load to after theabove Delete_All
+                // (of new Grasshopper files- that may write directly junk data to rhino file)
+                // therefore LOAD_stl had to be split between GH and script options
+                if (!String.IsNullOrWhiteSpace(imageData.stl_to_load))
+                {
+                    if (!load_stl(imageData.stl_to_load))
+                    {
+                        log("ERROR!!: load_stl(imageData.stl_to_load="+imageData.stl_to_load+") failed !!!");
+                        return false;
+                    }
+                }
+
 
                 if (!UtilsDLL.Rhino.Set_GH_Params(rhino_wrapper,imageData.propValues))
                 {
@@ -798,7 +879,19 @@ namespace Runer_Process
             }
             else
             {
-                if (!UtilsDLL.Rhino.Run_Script(rhino_wrapper,imageData.gh_fileName,imageData.propValues))
+                // had to split the execution of stl_to_load to after theabove Delete_All
+                // (of new Grasshopper files- that may write directly junk data to rhino file)
+                // therefore LOAD_stl had to be split between GH and script options
+                if (!String.IsNullOrWhiteSpace(imageData.stl_to_load))
+                {
+                    if (!load_stl(imageData.stl_to_load))
+                    {
+                        log("ERROR!!: load_stl(imageData.stl_to_load=" + imageData.stl_to_load + ") failed !!!");
+                        return false;
+                    }
+                }
+
+                if (!UtilsDLL.Rhino.Run_Script(rhino_wrapper, imageData.gh_fileName, imageData.propValues))
                 {
                     logLine = "Run_Script(imageData=" + imageData.ToString() + "]) failed !!!";
                     log(logLine);
@@ -827,12 +920,33 @@ namespace Runer_Process
 
         }
 
+        private static bool load_stl(string stl_to_load)
+        {
+            String stlFileName = stl_to_load.Trim();
+            if (!stlFileName.EndsWith(".stl")) stlFileName += ".stl";
+            String stl_local_path = UtilsDLL.Dirs.STL_DirPath + Path.DirectorySeparatorChar + stlFileName;
+            if (!File.Exists(stl_local_path))
+            {
+                if (!S3_Utils.Download_File_From_S3(stl_bucket_name, stl_local_path, stlFileName))
+                {
+                    log("ERROR!!: S3_Utils.Download_File_From_S3(stl_bucket_name=" + stl_bucket_name + ", stl_local_path=" + stl_local_path + ", stlFileName=" + stlFileName + ") failed !!!");
+                    return false;
+                }
+            }
+            if (!Rhino.Load_STL(rhino_wrapper, stl_local_path))
+            {
+                log("ERROR!!: Rhino.Load_STL(stl_to_load=" + stl_to_load + ") failed !!!");
+                return false;
+            }
+            return true;
+        }
 
 
 
 
 
 
+/*
         private static bool Send_Msg_To_Readies_Q(RenderStatus renderStatus, string item_id, DateTime beforeProcessingTime)
         {
             Dictionary<string, object> dict = new Dictionary<string, object>();
@@ -851,7 +965,7 @@ namespace Runer_Process
 
             return SQS_Utils.Send_Msg_To_Q(ready_Q_url, jsonString, true);
         }
-
+*/
         private static bool Send_Dict_Msg_To_Readies_Q(Dictionary<String,Object> dict)
         {
 

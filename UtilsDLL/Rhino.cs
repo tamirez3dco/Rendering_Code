@@ -60,6 +60,33 @@ namespace UtilsDLL
             return true;
         }
 
+        public static bool Load_STL(Rhino_Wrapper rhino_wrapper, string filePath)
+        {
+            log("Starting  Load_STL(*,filePath=" + filePath);
+            DateTime before = DateTime.Now;
+
+            try
+            {
+                if (!File.Exists(filePath))
+                {
+                    Console.WriteLine("ERROR!!: filePath=" + filePath + " does not exists");
+                    return false;
+                }
+
+                String importCommand = "-Import " + filePath + " Enter";
+                int importCommandRes = rhino_wrapper.rhino_app.RunScript(importCommand, 1);
+
+            }
+            catch (Exception e)
+            {
+                log("Exception=" + e.Message);
+                return false;
+            }
+
+            log("Finished succefully  Load_STL(*,filePath=" + filePath + ((int)(DateTime.Now - before).TotalMilliseconds) + " miliseconds after Starting");
+            return true;
+
+        }
 
         public static bool Open_GH_File(Rhino_Wrapper rhino_wrapper, string filePath)
         {
@@ -82,6 +109,8 @@ namespace UtilsDLL
             return true;
 
         }
+
+
 
 
         public static bool start_a_SingleRhino(String sceneFile_name, bool rhino_visible, out UtilsDLL.Rhino.Rhino_Wrapper newRhino)
@@ -207,14 +236,14 @@ namespace UtilsDLL
             int intRes = rhino_wrapper.rhino_app.RunScript("-SetActiveViewport " + viewName, 1);
             return (intRes == 1);
         }
-
+/*
         public static bool Open_3dm_file(Rhino_Wrapper rhino_wrapper, String tdm_filePath)
         {
             save_3dm(rhino_wrapper, "C:\\Temp\\stam.3dm");
             rhino_wrapper.rhino_app.RunScript("-Open " + tdm_filePath, 1);
             return true;
         }
-
+*/
         public static bool Unify_1(Rhino_Wrapper rhino_wrapper)
         {
             int res;

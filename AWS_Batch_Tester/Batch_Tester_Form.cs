@@ -68,6 +68,7 @@ namespace AWS_Batch_Tester
                         dict["item_id"] = (first_id + i).ToString();
 
                         dict["getSTL"] = getSTL_checkBox.Checked;
+                        dict["load_stl"] = "Gilad_RM";
                         dict["retries"] = 2;
 
 

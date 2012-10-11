@@ -9,6 +9,21 @@ namespace UtilsDLL
 {
     public class Dirs
     {
+        private static bool get_STL_Dir(out String STL_DirPath)
+        {
+            STL_DirPath = null;
+            DirectoryInfo dir = new DirectoryInfo(Directory.GetCurrentDirectory());
+            STL_DirPath = dir.Parent.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar + "STLs";
+            if (!Directory.Exists(STL_DirPath))
+            {
+                Console.WriteLine("ERROR!!! - Could not find STL_DirPath=" + STL_DirPath);
+                return false;
+
+            }
+            Console.WriteLine("STL_DirPath = " + STL_DirPath);
+            return true;
+        }
+
         private static bool get_Scenes_Dir(out String scenesDirPath)
         {
             scenesDirPath = null;
@@ -97,6 +112,7 @@ namespace UtilsDLL
         }
 
         public static String scenes_DirPath;
+        public static String STL_DirPath;
         public static String GH_DirPath;
         public static String images_DirPath;
         public static String empty_images_DirPath;
@@ -105,6 +121,7 @@ namespace UtilsDLL
 
         public static bool get_all_relevant_dirs()
         {
+            if (!get_STL_Dir(out STL_DirPath)) return false;
             if (!get_Scenes_Dir(out scenes_DirPath)) return false;
             if (!get_grasshopper_files_Dir(out GH_DirPath)) return false;
             if (!get_tempImages_files_Dir(out images_DirPath)) return false;

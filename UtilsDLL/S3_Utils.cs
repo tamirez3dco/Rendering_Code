@@ -7,6 +7,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon;
 using System.Web.Script.Serialization;
+using System.IO;
 
 namespace UtilsDLL
 {
@@ -120,5 +121,56 @@ namespace UtilsDLL
             return true;
 
         }
+
+        public static bool Download_File_From_S3(String bucketName, String destination_localPath, String keyName)
+        {
+            DateTime before = DateTime.Now;
+
+            try
+            {
+                GetObjectRequest request = new GetObjectRequest().WithBucketName(bucketName).WithKey(keyName);
+
+                using (GetObjectResponse response = s3_client.GetObject(request))
+                {
+                    string title = response.Metadata["x-amz-meta-title"];
+                    if (!File.Exists(destination_localPath))
+                    {
+                        response.WriteResponseStreamToFile(destination_localPath);
+                    }
+                }
+            }
+
+            catch (Exception e)
+            {
+                Console.WriteLine("Caught Exception: " + e.Message);
+
+                Type exType = e.GetType();
+                if (exType == typeof(AmazonS3Exception))
+                {
+                    AmazonS3Exception amazonS3Exception = (AmazonS3Exception)e;
+                    if (amazonS3Exception.ErrorCode != null &&
+                        (amazonS3Exception.ErrorCode.Equals("InvalidAccessKeyId") ||
+                        amazonS3Exception.ErrorCode.Equals("InvalidSecurity")))
+                    {
+                        Console.WriteLine("Please check the provided AWS Credentials.");
+                        Console.WriteLine("If you haven't signed up for Amazon S3, please visit http://aws.amazon.com/s3");
+                    }
+                    else
+                    {
+                        Console.WriteLine("An error occurred with the message '{0}' when reading an object", amazonS3Exception.Message);
+                    }
+                }
+                return false;
+            }
+
+            TimeSpan downloadTime = DateTime.Now - before;
+            Console.WriteLine("Downloading from s3  Bucket=" + bucketName + " into path=" + destination_localPath + " took " + downloadTime.TotalMilliseconds.ToString() + " milliseconds");
+
+            return true;
+
+        }
+    
+    
+    
     }
 }
