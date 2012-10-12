@@ -87,7 +87,7 @@ namespace Runer_Process
         static void log(String str)
         {
             int id = (int)params_dict["id"];
-            Console.WriteLine((id.ToString() + "): Before rhino gate.WaitOne() : " + DateTime.Now.ToString()));
+            //Console.WriteLine((id.ToString() + "): Before rhino gate.WaitOne() : " + DateTime.Now.ToString()));
         }
 
         public static bool deciferImageDataFromBody(String msgBody, out ImageDataRequest imageData)
@@ -381,9 +381,9 @@ namespace Runer_Process
                         break;
                 }
 
-                Console.WriteLine(id + "): Before cycle gate.Release() : " + DateTime.Now.ToString());
+                //Console.WriteLine(id + "): Before cycle gate.Release() : " + DateTime.Now.ToString());
                 make_cycle_gate.Release();
-                Console.WriteLine(id + "): After cycle gate.Release() : " + DateTime.Now.ToString());
+                //Console.WriteLine(id + "): After cycle gate.Release() : " + DateTime.Now.ToString());
                 if (delayer)
                 {
                     if (!useLowPrioirty_Q) Thread.Sleep(2000);
@@ -644,11 +644,15 @@ namespace Runer_Process
                 if (imageData.getSTL)
                 {
                     DateTime beforeSTL = DateTime.Now;
-                    String resulting_3dm_path = resultingLocalImageFilePath.Replace(".jpg",".stl");
-                    rhino_wrapper.rhino_app.RunScript("-SaveAs " + resulting_3dm_path +" Enter Enter", 1);
+                    String resulting_3dm_path = resultingLocalImageFilePath.Replace(".jpg",".3dm");
+                    String command = "-SelAll";
+                    rhino_wrapper.rhino_app.RunScript(command, 1);
+                    command = "-Export _GeometryOnly=Yes " + resulting_3dm_path;
+                    rhino_wrapper.rhino_app.RunScript(command, 1);
+                    //rhino_wrapper.rhino_app.RunScript("-SaveAs " + resulting_3dm_path +" Enter Enter", 1);
                     stl_timespan = DateTime.Now - beforeSTL;
 
-                    String stl_fileName_on_S3 = imageData.item_id.ToString() + ".stl";
+                    String stl_fileName_on_S3 = imageData.item_id.ToString() + ".3dm";
                     if (!S3_Utils.Write_File_To_S3(stl_bucket_name, resulting_3dm_path, stl_fileName_on_S3))
                     {
                         String logLine = "Write_File_To_S3(resulting_3dm_path=" + resulting_3dm_path + ", stl_fileName_on_S3=" + stl_fileName_on_S3 + ") failed !!!";
@@ -923,7 +927,7 @@ namespace Runer_Process
         private static bool load_stl(string stl_to_load)
         {
             String stlFileName = stl_to_load.Trim();
-            if (!stlFileName.EndsWith(".stl")) stlFileName += ".stl";
+            if (!stlFileName.EndsWith(".3dm")) stlFileName += ".3dm";
             String stl_local_path = UtilsDLL.Dirs.STL_DirPath + Path.DirectorySeparatorChar + stlFileName;
             if (!File.Exists(stl_local_path))
             {
@@ -936,6 +940,7 @@ namespace Runer_Process
             if (!Rhino.Load_STL(rhino_wrapper, stl_local_path))
             {
                 log("ERROR!!: Rhino.Load_STL(stl_to_load=" + stl_to_load + ") failed !!!");
+                MessageBox.Show("111");
                 return false;
             }
             return true;

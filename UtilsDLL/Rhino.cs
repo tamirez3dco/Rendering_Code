@@ -75,7 +75,7 @@ namespace UtilsDLL
 
                 String importCommand = "-Import " + filePath + " Enter";
                 int importCommandRes = rhino_wrapper.rhino_app.RunScript(importCommand, 1);
-
+                rhino_wrapper.rhino_app.RunScript("ChangeToCurrentLayer", 1);
             }
             catch (Exception e)
             {
@@ -278,7 +278,10 @@ namespace UtilsDLL
 
         public static bool save_stl(Rhino_Wrapper rhino_wrapper, string filePath)
         {
-            String command = "-SaveAs " + filePath + " Enter Enter";
+            //String command = "-SaveAs " + filePath + " Enter Enter";
+            String command = "-SelLayer Default";
+            rhino_wrapper.rhino_app.RunScript(command, 1);
+            command = "-Export _GeometryOnly=Yes " + filePath;
             rhino_wrapper.rhino_app.RunScript(command, 1);
             return true;
         }
