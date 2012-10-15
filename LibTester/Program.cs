@@ -14,7 +14,10 @@ namespace LibTester
     {
         static void Main(string[] args)
         {
+            UtilsDLL.Dirs.get_all_relevant_dirs();
 
+
+/*
             // kill all current Rhino4.exe processes
             Process[] procs = Process.GetProcessesByName("Rhino4");
             Console.WriteLine("Killing " + procs.Length + " previous Rhino processes");
@@ -22,7 +25,6 @@ namespace LibTester
             Thread.Sleep(1000);
             procs = Process.GetProcessesByName("Rhino4");
             Console.WriteLine(procs.Length + " previous Rhino processes remaind alive");
-            UtilsDLL.Dirs.get_all_relevant_dirs();
 
 
 
@@ -35,13 +37,22 @@ namespace LibTester
 
             return;
 
+*/
+            UtilsDLL.Rhino.Rhino_Wrapper rhino_wrapper = null;
 
+            if (!UtilsDLL.Rhino.start_a_SingleRhino("cases.3dm", true, out rhino_wrapper))
+            {
+                Console.WriteLine("Basa");
+                return;
+            }
+
+
+            return;
 
 
             String[] allScenes = { "cases.3dm", "rings.3dm", "vases.3dm" };
 
             String basicPath = @"C:\inetpub\ftproot\empty_images_comparer";
-            UtilsDLL.Rhino.Rhino_Wrapper rhino_wrapper = null;
             foreach (String scene_key in allScenes)
             {
                 String scenePath = basicPath + Path.DirectorySeparatorChar + scene_key;
