@@ -160,6 +160,8 @@ namespace UtilsDLL
                         Console.WriteLine("An error occurred with the message '{0}' when reading an object", amazonS3Exception.Message);
                     }
                 }
+                Console.WriteLine("Downloading from s3  Bucket=" + bucketName + " into path=" + destination_localPath + " failed");
+
                 return false;
             }
 

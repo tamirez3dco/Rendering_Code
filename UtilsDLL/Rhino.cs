@@ -296,7 +296,7 @@ namespace UtilsDLL
         public static bool Solve_And_Bake(Rhino_Wrapper rhino_wrapper, String bake)
         {
 
-            rhino_wrapper.grasshopper.RunSolver(true);
+            Object obj1 = rhino_wrapper.grasshopper.RunSolver(true);
 
             Object objRes = rhino_wrapper.grasshopper.BakeDataInObject(bake);
 
@@ -320,7 +320,7 @@ namespace UtilsDLL
                     fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
                     logLine = "grasshopper.AssignDataToParameter(paramName=" + paramName + ", value=" + value + ") returned false After " + fromStart + " milliseconds";
                     log(logLine);
-                    return false;
+                    //return false;
                 }
 
                 fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);

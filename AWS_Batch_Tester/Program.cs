@@ -20,10 +20,7 @@ namespace AWS_Batch_Tester
     {
         public static void Main(string[] args)
         {
-            Runing_Form.Utils.user_Data_String = args[0];
-            Console.WriteLine("Runing_Form.Utils.user_Data_String="+Runing_Form.Utils.user_Data_String);
             new Batch_Tester_Form().ShowDialog();
-            Console.Read();
         }
     }
 }

@@ -92,7 +92,7 @@ namespace Process_Manager
                 {
                     String scene = (String)scene_obj;
                     String request_Q_url, ready_Q_url, requests_lowprioirty_Q_url;
-                    if (!make_sure_SQS_Qs_exist(name, scene, out request_Q_url,out requests_lowprioirty_Q_url, out ready_Q_url, out error_Q_url))
+                    if (!make_sure_SQS_Qs_exist(name, scene, out request_Q_url, out requests_lowprioirty_Q_url, out ready_Q_url, out error_Q_url))
                     {
                         MessageBox.Show("!make_sure_SQS_Qs_exist(" + name + "," + scene + ") failed!!!");
                         return false;
@@ -187,7 +187,7 @@ namespace Process_Manager
                             row.Cells[(int)ColumnsIndex.LAST_DURATION].Value = String.Format("{0:0.00}", cycleDuration.TotalSeconds);
                         }
                         String stateToWrite = modeling_state + " model";
-                        
+
                         row.Cells[(int)ColumnsIndex.STATE].Value = stateToWrite;
                         row.Cells[(int)ColumnsIndex.ITEM_ID].Value = item_id;
                     }
@@ -199,6 +199,7 @@ namespace Process_Manager
                     }
                     else if (msg.StartsWith("ERROR")) // need to kill correct Rhino process + correct runer process
                     {
+                        //MessageBox.Show("ERROR");
 
                         Fuckups_DB.Add_Fuckup((String)row.Cells[(int)ColumnsIndex.ITEM_ID].Value);
 
@@ -219,7 +220,7 @@ namespace Process_Manager
                         single_scene_params_dict["id"] = id_counter++;
                         single_scene_params_dict["scene"] = (String)row.Cells[(int)ColumnsIndex.SCENE].Value;
                         single_scene_params_dict["request_Q_url"] = row.Cells[(int)ColumnsIndex.REQUEST_URL].Value;
-                        single_scene_params_dict["request_lowpriority_Q_url"] = row.Cells[(int)ColumnsIndex.REQUEST_LOWPRIORITY_URL].Value; 
+                        single_scene_params_dict["request_lowpriority_Q_url"] = row.Cells[(int)ColumnsIndex.REQUEST_LOWPRIORITY_URL].Value;
 
                         single_scene_params_dict["ready_Q_url"] = row.Cells[(int)ColumnsIndex.READY_URL].Value;
                         single_scene_params_dict["error_Q_url"] = error_Q_url;
@@ -258,7 +259,7 @@ namespace Process_Manager
             ready_Q_url = String.Empty;
             error_Q_url = String.Empty;
             request_lowpriority_Q_url = String.Empty;
-            String sqs_request_q_name = name +'_' + scene +'_' + "request";
+            String sqs_request_q_name = name + '_' + scene + '_' + "request";
             if (!SQS_Utils.Make_sure_Q_exists(sqs_request_q_name, out request_Q_url)) return false;
             String sqs_requests_low_priority_q_name = name + "_lowpriority_" + scene + '_' + "request";
             if (!SQS_Utils.Make_sure_Q_exists(sqs_requests_low_priority_q_name, out request_lowpriority_Q_url)) return false;
@@ -274,14 +275,14 @@ namespace Process_Manager
         {
             switch (m.Msg)
             {
-                    
+
                 case Win32_API.WM_COPYDATA:
                     COPYDATASTRUCT mystr = new COPYDATASTRUCT();
                     Type mytype = mystr.GetType();
                     mystr = (COPYDATASTRUCT)m.GetLParam(mytype);
                     String msg = mystr.lpData;
                     int runer_id = m.WParam.ToInt32();
-                    Console.WriteLine("Got message("+runer_id.ToString()+"):"+msg);
+                    Console.WriteLine("Got message(" + runer_id.ToString() + "):" + msg);
                     change_grid_row(runer_id, msg);
                     break;
             }
@@ -291,7 +292,7 @@ namespace Process_Manager
         private void button2_Click(object sender, EventArgs e)
         {
             killAll();
-        
+
         }
 
 

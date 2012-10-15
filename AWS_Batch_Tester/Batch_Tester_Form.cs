@@ -68,7 +68,7 @@ namespace AWS_Batch_Tester
                         dict["item_id"] = (first_id + i).ToString();
 
                         dict["getSTL"] = getSTL_checkBox.Checked;
-                        dict["load_stl"] = "Gilad_RM";
+                        //dict["load_stl"] = "Gilad_RM";
                         dict["retries"] = 2;
 
 
@@ -84,15 +84,15 @@ namespace AWS_Batch_Tester
                         Dictionary<String, Object> paramsDict = new Dictionary<String, Object>();
                         double propValue = Math.Round(initialValue + ((i+1) % 10) * delta, 1);
                         //double propValue = (i % 2 == 0) ? 0.1 : 0.9;
-
+/*
                         paramsDict["a1"] = 0.4;
                         paramsDict["a2"] = 0.1;
                         paramsDict["a3"] = 0.1;
                         paramsDict["a4"] = 0.5;
                         paramsDict["a5"] = 0.5;
                         paramsDict["a6"] = 0.5;
-
-                        paramsDict[property_textBox.Text] = propValue;
+*/
+                        //paramsDict[property_textBox.Text] = propValue;
                         paramsDict["textParam"] = textValue_textBox.Text;
                         dict["params"] = paramsDict;
                         //List<String> bakeries = new List<String>();
@@ -136,7 +136,7 @@ namespace AWS_Batch_Tester
 
         private void button2_Click(object sender, EventArgs e)
         {
-            richTextBox4.Text = Runing_Form.Utils.DecodeFrom64(richTextBox3.Text);
+            
         }
 
         void all()
