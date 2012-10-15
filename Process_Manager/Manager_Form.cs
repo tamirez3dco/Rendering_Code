@@ -199,6 +199,7 @@ namespace Process_Manager
                     }
                     else if (msg.StartsWith("ERROR")) // need to kill correct Rhino process + correct runer process
                     {
+
                         Fuckups_DB.Add_Fuckup((String)row.Cells[(int)ColumnsIndex.ITEM_ID].Value);
 
                         row.Cells[(int)ColumnsIndex.ERROR_LINE].Value = msg;
