@@ -25,6 +25,8 @@ namespace Process_Manager
         private static int id_counter, seconds_timeout;
         private static String error_Q_url, bucket_name, stl_bucket_name;
         private static bool rhino_visible = false;
+        private static bool skip_empty_check = false;
+        private static bool stopOnError = false;
 
         public Manager_Form(String scene_params_json)
         {
@@ -66,6 +68,17 @@ namespace Process_Manager
 
                 int mult = (int)params_dict["mult"];
 
+
+                if (params_dict.ContainsKey("skip_empty_check"))
+                {
+                    skip_empty_check = (bool)params_dict["skip_empty_check"];
+                }
+                
+                if (params_dict.ContainsKey("stopOnERR"))
+                {
+                    stopOnError = (bool)params_dict["stopOnERR"];
+                }
+
                 load_rhino_gate = new Semaphore(0, 1, "load_rhino");
                 make_cycle_gate = new Semaphore(0, mult, "make_cycle");
 
@@ -86,7 +99,7 @@ namespace Process_Manager
                     return false;
                 }
                 seconds_timeout = (int)params_dict["timeout"];
-                rhino_visible = (bool)(params_dict["rhino_visible"]); ;
+                rhino_visible = (bool)(params_dict["rhino_visible"]);
                 id_counter = 0;
                 foreach (Object scene_obj in (Object[])params_dict["scenes"])
                 {
@@ -113,6 +126,7 @@ namespace Process_Manager
 
                         single_scene_params_dict["timeout"] = seconds_timeout;
                         single_scene_params_dict["rhino_visible"] = rhino_visible;
+                        single_scene_params_dict["skip_empty_check"] = skip_empty_check;
 
                         Start_New_Runner(single_scene_params_dict);
                     }
@@ -199,7 +213,11 @@ namespace Process_Manager
                     }
                     else if (msg.StartsWith("ERROR")) // need to kill correct Rhino process + correct runer process
                     {
-                        //MessageBox.Show("ERROR");
+                        if (stopOnError)
+                        {
+                            MessageBox.Show("ERROR");
+                        }
+                        
 
                         Fuckups_DB.Add_Fuckup((String)row.Cells[(int)ColumnsIndex.ITEM_ID].Value);
 
@@ -228,6 +246,8 @@ namespace Process_Manager
                         single_scene_params_dict["stl_bucket_name"] = stl_bucket_name;
                         single_scene_params_dict["timeout"] = seconds_timeout;
                         single_scene_params_dict["rhino_visible"] = rhino_visible;
+                        single_scene_params_dict["skip_empty_check"] = skip_empty_check;
+                        
 
                         Start_New_Runner(single_scene_params_dict);
                     }
@@ -347,6 +367,8 @@ namespace Process_Manager
                         single_scene_params_dict["stl_bucket_name"] = stl_bucket_name;
                         single_scene_params_dict["timeout"] = seconds_timeout;
                         single_scene_params_dict["rhino_visible"] = rhino_visible;
+                        single_scene_params_dict["skip_empty_check"] = skip_empty_check;
+
 
                         Start_New_Runner(single_scene_params_dict);
 

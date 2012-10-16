@@ -103,7 +103,9 @@ namespace LibTester
 
             bool res2 = UtilsDLL.Rhino.Open_GH_File(rhino_wrapper, UtilsDLL.Dirs.GH_DirPath + "/iPhone-frames-trial-release.gh");
 
-            bool res3 = UtilsDLL.Rhino.Solve_And_Bake(rhino_wrapper, "Bakery");
+            bool res3 = UtilsDLL.Rhino.Solve_GH(rhino_wrapper);
+
+            bool res35 = UtilsDLL.Rhino.Bake_GH(rhino_wrapper, "Bakery");
 
             bool res4 = UtilsDLL.Rhino.Render(rhino_wrapper, "Render", new System.Drawing.Size(200, 200), @"C:\Temp\hope_" + i +".jpg");
 

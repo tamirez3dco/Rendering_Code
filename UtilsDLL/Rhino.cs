@@ -292,7 +292,7 @@ namespace UtilsDLL
             rhino_wrapper.rhino_app.RunScript(command, 1);
             return true;
         }
-
+/*
         public static bool Solve_And_Bake(Rhino_Wrapper rhino_wrapper, String bake)
         {
 
@@ -300,6 +300,20 @@ namespace UtilsDLL
 
             Object objRes = rhino_wrapper.grasshopper.BakeDataInObject(bake);
 
+            return true;
+        }
+*/
+        public static bool Solve_GH(Rhino_Wrapper rhino_wrapper)
+        {
+
+            Object obj1 = rhino_wrapper.grasshopper.RunSolver(true);
+            return true;
+        }
+
+        public static bool Bake_GH(Rhino_Wrapper rhino_wrapper, String bake)
+        {
+
+            Object objRes = rhino_wrapper.grasshopper.BakeDataInObject(bake);
             return true;
         }
 

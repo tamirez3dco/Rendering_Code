@@ -87,7 +87,7 @@ namespace Runer_Process
         static void log(String str)
         {
             int id = (int)params_dict["id"];
-            //Console.WriteLine((id.ToString() + "): Before rhino gate.WaitOne() : " + DateTime.Now.ToString()));
+            Console.WriteLine((id.ToString() + "): " + str));
         }
 
         public static bool deciferImageDataFromBody(String msgBody, out ImageDataRequest imageData)
@@ -226,6 +226,8 @@ namespace Runer_Process
         static String lastLogMsg;
         static ImageDataRequest lastIDR;
         static Dictionary<String,Dictionary<String,Dictionary<String,Color[]>>> emptyShortCuts;
+        static bool skip_empty_check = false;
+
 
         static void Main(string[] args)
         {
@@ -262,7 +264,7 @@ namespace Runer_Process
             stl_bucket_name = (String)params_dict["stl_bucket_name"];
             rhino_visible = (bool)params_dict["rhino_visible"];
             seconds_timeout = (int)params_dict["timeout"];
-
+            skip_empty_check = (bool)params_dict["skip_empty_check"];
 
             if (!read_empty_images_of_scene(scene_fileName, out emptyShortCuts))
             {
@@ -318,10 +320,10 @@ namespace Runer_Process
 
             while (true)
             {
-                log("): Before cycle gate.Wait one() : " + DateTime.Now.ToString());
+                //log("): Before cycle gate.Wait one() : " + DateTime.Now.ToString());
                 UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "Waiting gate");
                 make_cycle_gate.WaitOne();
-                log("): After cycle gate.Wait one() : " + DateTime.Now.ToString());
+                //log("): After cycle gate.Wait one() : " + DateTime.Now.ToString());
                 DateTime beforeProcessingTime = DateTime.Now;
                 ThreadStart ts = new ThreadStart(single_cycle);
                 Thread thread = new Thread(ts);
@@ -444,6 +446,8 @@ namespace Runer_Process
 
         private static void single_cycle()
         {
+            DateTime time_single_cycle_start = DateTime.Now;
+
             lastResult = CycleResult.TIMEOUT;
             lastLogMsg = "Starting single_cycle";
             lastIDR = null;
@@ -460,7 +464,6 @@ namespace Runer_Process
                 return;
             }
 
-            DateTime beforeProcessingTime = DateTime.Now;
             // if there is No Msg - Sleep & continue;
             if (!msg_found)
             {
@@ -505,6 +508,7 @@ namespace Runer_Process
             }
 
             lastIDR = imageData;
+            DateTime time_msg_decifered = DateTime.Now;
 
 
             int prevFuckups_this_image = Fuckups_DB.Get_Fuckups(imageData.item_id);
@@ -524,8 +528,7 @@ namespace Runer_Process
             }
 
             // Add Msg to Queue_Readies
-            DateTime current = DateTime.Now;
-            TimeSpan duration = current - beforeProcessingTime;
+            TimeSpan duration = DateTime.Now - time_single_cycle_start;
             Dictionary<String, Object> tempDict = new Dictionary<string, object>();
             tempDict["item_id"] = imageData.item_id;
             //dict["url"] = @"http://" + Utils.my_ip + @"/testim/yofi_" + item_id + ".jpg";
@@ -541,6 +544,7 @@ namespace Runer_Process
                 return;
             }
 
+            DateTime time_before_Process_Into_Image_File = DateTime.Now;
 
             if (imageData.operation == "render_model")
             {
@@ -548,11 +552,9 @@ namespace Runer_Process
                 // inform manager
                 UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "render_model starting " + imageData.item_id + " " + imageData.entireJSON);
 
-                DateTime beforeRhino = DateTime.Now;
                 // Process Msg to picture
                 String resultingLocalImageFilePath;
-                TimeSpan renderTime, buildTime, waitTime;
-                if (!Process_Into_Image_File(imageData, out resultingLocalImageFilePath, out renderTime, out buildTime, out waitTime))
+                if (!Process_Into_Image_File(imageData, out resultingLocalImageFilePath))
                 {
                     String logLine = "Process_Msg_Into_Image_File(msg) failed!!! (). ImageData=" + imageData.ToString();
                     lastLogMsg = logLine;
@@ -563,6 +565,7 @@ namespace Runer_Process
                 }
 
 
+                DateTime time_after_Process_Into_Image_File = DateTime.Now;
                 // check with empty images
                 Color[] shortCut;
                 if (!UtilsDLL.Image_Utils.shortCut(resultingLocalImageFilePath,out shortCut))
@@ -574,59 +577,64 @@ namespace Runer_Process
                     return;
                 }
 
-                
 
-                String size_key = imageData.imageSize.Width + "_" + imageData.imageSize.Height;
-                if (!emptyShortCuts.ContainsKey(size_key))
+                if (!skip_empty_check)
                 {
-                    String logLine = "Found no empty image file to compare to (size_key=" + size_key + " )!!";
-                    lastLogMsg = logLine;
-                    log(logLine);
-                    lastResult = CycleResult.FAIL;
-                    return;
-                }
-
-                if (!emptyShortCuts[size_key].ContainsKey(imageData.viewName))
-                {
-                    String logLine = "Found no empty image file to compare to (viewName=" + imageData.viewName + " )!!";
-                    lastLogMsg = logLine;
-                    log(logLine);
-                    lastResult = CycleResult.FAIL;
-                    return;
-                }
-
-                if (emptyShortCuts[size_key][imageData.viewName].Count == 0)
-                {
-                    String logLine = "Found no empty image file to compare to (Count==0)!!";
-                    lastLogMsg = logLine;
-                    log(logLine);
-                    lastResult = CycleResult.FAIL;
-                    return;
-                }
-
-                foreach (String key in emptyShortCuts[size_key][imageData.viewName].Keys)
-                {
-                    Color[] emptyImageSC = emptyShortCuts[size_key][imageData.viewName][key];
-                    bool compRes = false;
-                    if (!UtilsDLL.Image_Utils.compare_shortcuts(shortCut, emptyImageSC, out compRes))
+                    String size_key = imageData.imageSize.Width + "_" + imageData.imageSize.Height;
+                    if (!emptyShortCuts.ContainsKey(size_key))
                     {
-                        String logLine = "Failed because comparing failed rendered image (" + resultingLocalImageFilePath + ") to  file:" + imageData.gh_fileName + Path.DirectorySeparatorChar + size_key + Path.DirectorySeparatorChar + imageData.viewName + Path.DirectorySeparatorChar + key;
+                        String logLine = "Found no empty image file to compare to (size_key=" + size_key + " )!!";
                         lastLogMsg = logLine;
                         log(logLine);
                         lastResult = CycleResult.FAIL;
                         return;
                     }
-                    if (compRes)
+
+                    if (!emptyShortCuts[size_key].ContainsKey(imageData.viewName))
                     {
-                        String logLine = "Failed because rendered image (" + resultingLocalImageFilePath + ") identical to empty image file:" + imageData.gh_fileName + Path.DirectorySeparatorChar + size_key + Path.DirectorySeparatorChar + imageData.viewName + Path.DirectorySeparatorChar + key;
+                        String logLine = "Found no empty image file to compare to (viewName=" + imageData.viewName + " )!!";
                         lastLogMsg = logLine;
                         log(logLine);
                         lastResult = CycleResult.FAIL;
                         return;
                     }
-                }
-                
 
+                    if (emptyShortCuts[size_key][imageData.viewName].Count == 0)
+                    {
+                        String logLine = "Found no empty image file to compare to (Count==0)!!";
+                        lastLogMsg = logLine;
+                        log(logLine);
+                        lastResult = CycleResult.FAIL;
+                        return;
+                    }
+
+                    foreach (String key in emptyShortCuts[size_key][imageData.viewName].Keys)
+                    {
+                        Color[] emptyImageSC = emptyShortCuts[size_key][imageData.viewName][key];
+                        bool compRes = false;
+                        if (!UtilsDLL.Image_Utils.compare_shortcuts(shortCut, emptyImageSC, out compRes))
+                        {
+                            String logLine = "Failed because comparing failed rendered image (" + resultingLocalImageFilePath + ") to  file:" + imageData.gh_fileName + Path.DirectorySeparatorChar + size_key + Path.DirectorySeparatorChar + imageData.viewName + Path.DirectorySeparatorChar + key;
+                            lastLogMsg = logLine;
+                            log(logLine);
+                            lastResult = CycleResult.FAIL;
+                            return;
+                        }
+                        if (compRes)
+                        {
+                            String logLine = "Failed because rendered image (" + resultingLocalImageFilePath + ") identical to empty image file:" + imageData.gh_fileName + Path.DirectorySeparatorChar + size_key + Path.DirectorySeparatorChar + imageData.viewName + Path.DirectorySeparatorChar + key;
+                            lastLogMsg = logLine;
+                            log(logLine);
+                            lastResult = CycleResult.FAIL;
+                            return;
+                        }
+                    }
+
+                }
+
+
+
+                DateTime time_after_empty_check = DateTime.Now;
 
 /*
                 if (imageData.item_id.EndsWith("22"))
@@ -664,7 +672,7 @@ namespace Runer_Process
                     }
                 }
 
-                DateTime afterRhino_Before_S3 = DateTime.Now;
+                DateTime time_Before_S3 = DateTime.Now;
 
                 String fileName_on_S3 = imageData.item_id.ToString() + ".jpg";
                 if (!S3_Utils.Write_File_To_S3(bucket_name, resultingLocalImageFilePath, fileName_on_S3))
@@ -678,7 +686,7 @@ namespace Runer_Process
                 }
 
 
-                DateTime afterS3_Before_SQS = DateTime.Now;
+                DateTime time_Before_SQS = DateTime.Now;
 
                 // Delete Msg From Queue_Requests
                 if (!Delete_Msg_From_Req_Q(msg,useLowPrioirty_Q))
@@ -701,8 +709,7 @@ namespace Runer_Process
 
 
                 // Add Msg to Queue_Readies
-                current = DateTime.Now;
-                duration = current - beforeProcessingTime;
+                duration = DateTime.Now - time_single_cycle_start;
                 tempDict = new Dictionary<string, object>();
                 tempDict["item_id"] = imageData.item_id;
                 tempDict["url"] = @"http://s3.amazonaws.com/" + bucket_name + @"/" + imageData.item_id + ".jpg";
@@ -728,18 +735,15 @@ namespace Runer_Process
                     return;
                 }
 */
-                DateTime afterSQS = DateTime.Now;
+                DateTime time_afterSQS = DateTime.Now;
 
-                log("Reading msg time =" + (beforeRhino - beforeProcessingTime).TotalMilliseconds.ToString() + " millis");
-                log("Wait time=" + waitTime.TotalMilliseconds.ToString() + " millis");
-                log("Rhino build time=" + buildTime.TotalMilliseconds.ToString() + " millis");
-                log("Render time=" + renderTime.TotalMilliseconds.ToString() + " millis");
-                if (imageData.getSTL)
-                {
-                    log("getSTL time=" + stl_timespan.TotalMilliseconds.ToString() + " millis");
-                }
-                log("S3 Time=" + (afterS3_Before_SQS - afterRhino_Before_S3).TotalMilliseconds.ToString() + " millis");
-                log("SQS Time=" + (afterSQS - afterS3_Before_SQS).TotalMilliseconds.ToString() + " millis");
+                log("read msg time Time=" + (time_msg_decifered - time_single_cycle_start).TotalMilliseconds.ToString() + " millis");
+                log("send 1st rdy msg Time=" + (time_before_Process_Into_Image_File - time_msg_decifered).TotalMilliseconds.ToString() + " millis");
+                log("process into image Time=" + (time_after_Process_Into_Image_File - time_before_Process_Into_Image_File).TotalMilliseconds.ToString() + " millis");
+                log("empty check Time=" + (time_after_empty_check - time_after_Process_Into_Image_File).TotalMilliseconds.ToString() + " millis");
+                log("getSTL Time=" + (time_Before_S3 - time_after_empty_check).TotalMilliseconds.ToString() + " millis");
+                log("S3 Time=" + (time_Before_SQS - time_Before_S3).TotalMilliseconds.ToString() + " millis");
+                log("SQS Time=" + (time_afterSQS - time_Before_SQS).TotalMilliseconds.ToString() + " millis");
 
                 UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "render_model finished " + imageData.item_id);
                 lastResult = CycleResult.SUCCESS;
@@ -795,16 +799,13 @@ namespace Runer_Process
             SQS_Utils.Send_Msg_To_Q(error_Q_url, err_msg, false);
         }
 
-        public static bool Process_Into_Image_File(ImageDataRequest imageData, out string resultingLocalImageFilePath, out TimeSpan renderTime, out TimeSpan buildTime, out TimeSpan waitTime)
+        public static bool Process_Into_Image_File(ImageDataRequest imageData, out string resultingLocalImageFilePath)
         {
-            DateTime beforeTime = DateTime.Now;
+            DateTime time_Process_start = DateTime.Now;
 
             String logLine = "Starting Process_Into_Image_File()";
             log(logLine);
             resultingLocalImageFilePath = String.Empty;
-            renderTime = new TimeSpan();
-            buildTime = new TimeSpan();
-            waitTime = new TimeSpan();
 
             if (!UtilsDLL.Rhino.DeleteAll(rhino_wrapper))
             {
@@ -818,6 +819,8 @@ namespace Runer_Process
                 return false;
             }
 
+            DateTime time_after_delete_and_layer = DateTime.Now;
+            log("(P_into_image) deleteAll & setDefaultLayer Time=" + (time_after_delete_and_layer - time_Process_start).TotalMilliseconds.ToString() + " millis");
 
 
             if (imageData.gh_fileName.EndsWith(".gh") || imageData.gh_fileName.EndsWith(".ghx"))
@@ -854,6 +857,8 @@ namespace Runer_Process
                 
                 }
 
+                DateTime time_after_gh_open = DateTime.Now;
+
                 // had to split the execution of stl_to_load to after theabove Delete_All
                 // (of new Grasshopper files- that may write directly junk data to rhino file)
                 // therefore LOAD_stl had to be split between GH and script options
@@ -866,6 +871,7 @@ namespace Runer_Process
                     }
                 }
 
+                DateTime time_after_load_stl = DateTime.Now;
 
                 if (!UtilsDLL.Rhino.Set_GH_Params(rhino_wrapper,imageData.propValues))
                 {
@@ -873,12 +879,32 @@ namespace Runer_Process
                     log(logLine);
                     return false;
                 }
-                if (!UtilsDLL.Rhino.Solve_And_Bake(rhino_wrapper, imageData.bake))
+
+                DateTime time_after_Set_GH_Param = DateTime.Now;
+
+                if (!UtilsDLL.Rhino.Solve_GH(rhino_wrapper))
                 {
                     logLine = "Solve_And_Bake(imageData=" + imageData.ToString() + "]) failed !!!";
                     log(logLine);
                     return false;
                 }
+
+                DateTime time_after_Solve_GH = DateTime.Now;
+
+                if (!UtilsDLL.Rhino.Bake_GH(rhino_wrapper, imageData.bake))
+                {
+                    logLine = "Bake_GH(imageData=" + imageData.ToString() + "]) failed !!!";
+                    log(logLine);
+                    return false;
+                }
+
+                DateTime time_after_Bake_GH = DateTime.Now;
+
+                log("(P_into_image) gh_open Time=" + (time_after_gh_open - time_after_delete_and_layer).TotalMilliseconds.ToString() + " millis");
+                log("(P_into_image) load stl Time=" + (time_after_load_stl - time_after_gh_open).TotalMilliseconds.ToString() + " millis");
+                log("(P_into_image) Set_GH_Param Time=" + (time_after_Set_GH_Param - time_after_load_stl).TotalMilliseconds.ToString() + " millis");
+                log("(P_into_image) Solve_GH Time=" + (time_after_Solve_GH - time_after_Set_GH_Param).TotalMilliseconds.ToString() + " millis");
+                log("(P_into_image) Bake_GH Time=" + (time_after_Bake_GH - time_after_Solve_GH).TotalMilliseconds.ToString() + " millis");
 
             }
             else
@@ -895,17 +921,24 @@ namespace Runer_Process
                     }
                 }
 
+                DateTime time_after_load_stl = DateTime.Now;
+
                 if (!UtilsDLL.Rhino.Run_Script(rhino_wrapper, imageData.gh_fileName, imageData.propValues))
                 {
                     logLine = "Run_Script(imageData=" + imageData.ToString() + "]) failed !!!";
                     log(logLine);
                     return false;
                 }
+
+                DateTime time_after_Run_Script = DateTime.Now;
+                log("(P_into_image) load stl Time=" + (time_after_load_stl - time_after_delete_and_layer).TotalMilliseconds.ToString() + " millis");
+                log("(P_into_image) Run_Script Time=" + (time_after_Run_Script - time_after_load_stl).TotalMilliseconds.ToString() + " millis");
+
+            
             }
 
 
-            buildTime = DateTime.Now - beforeTime;
-
+            DateTime time_beforeRender = DateTime.Now;
 
             String resultingImagePath = Dirs.images_DirPath + Path.DirectorySeparatorChar + "yofi_" + imageData.item_id + ".jpg";
             if (!Rhino.Render(rhino_wrapper, imageData.viewName, imageData.imageSize, resultingImagePath))
@@ -914,12 +947,11 @@ namespace Runer_Process
                 return false;
             }
 
-            renderTime = (DateTime.Now - beforeTime) - buildTime;
+            DateTime time_afterRender = DateTime.Now;
+
             resultingLocalImageFilePath = resultingImagePath;
 
-            DateTime afterTime = DateTime.Now;
-            int timed = (int)((afterTime - beforeTime).TotalMilliseconds);
-            log("Total Get_Pictures() call took " + timed + " millseconds");
+            log("(P_into_image) render Time=" + (time_afterRender - time_beforeRender).TotalMilliseconds.ToString() + " millis");
             return true;
 
         }
