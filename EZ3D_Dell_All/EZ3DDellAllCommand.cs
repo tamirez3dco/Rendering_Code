@@ -38,7 +38,11 @@ namespace EZ3D_Dell_All
             foreach (Rhino.DocObjects.Layer layer in doc.Layers)
             {
                 if (layer.Name == "lights") continue;
-                if (layer.Name == "objects") continue;
+                if (layer.Name == "Objects")
+                {
+                    RhinoApp.WriteLine("Giving up on Layer Objects");
+                    continue;
+                }
                 RhinoApp.WriteLine(layer.LayerIndex.ToString() + ")(" + layer.Name + ":" + layer.ToString());
                 RhinoObject[] rhobjs = doc.Objects.FindByLayer(layer.Name);
                 foreach (RhinoObject robj in rhobjs)

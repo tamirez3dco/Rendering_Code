@@ -68,7 +68,7 @@
             this.richTextBox2.TabIndex = 1;
             this.richTextBox2.Tag = "";
             this.richTextBox2.Text = "[{\"gh_file\":\"20091109_ghx060019_Surfaces_Introduction.ghx\",\"item_id\":502,\"tamir_c" +
-    "urveLength\":0,\"tamir_PipeRadius\":0.25,\"bake\":\"Pipe\"}]";
+                "urveLength\":0,\"tamir_PipeRadius\":0.25,\"bake\":\"Pipe\"}]";
             // 
             // button1
             // 
@@ -94,7 +94,8 @@
             this.file_textBox.Name = "file_textBox";
             this.file_textBox.Size = new System.Drawing.Size(75, 20);
             this.file_textBox.TabIndex = 7;
-            this.file_textBox.Text = "iPhone_Scales_text1.gh";
+            this.file_textBox.Text = "iPhone_Lui16_base.gh";
+            this.file_textBox.TextChanged += new System.EventHandler(this.file_textBox_TextChanged);
             // 
             // property_textBox
             // 

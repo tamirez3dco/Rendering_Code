@@ -165,53 +165,52 @@ namespace AWS_Batch_Tester
                 dict["width"] = 180;
                 dict["height"] = 180;
                 dict["getSTL"] = false;
-                dict["gh_file"] = "iPhone_scales.gh";
+                dict["gh_file"] = "iPhone_Lui16_base.gh";
                 dict["view_name"] = "Render";
                 dict["scene"] = "cases.3dm";
-                dict["layer_name"] = "Clay";
+                dict["layer_name"] = "Plastic_Matt_Red";
                 dict["retries"] = 3;
                 Dictionary<String, Object> paramsDict = new Dictionary<String, Object>();
                 
                 dict["bake"] = bake_textBox.Text;
                 dict["operation"] = "render_model";
 
-                for (int s1 = 0; s1 <= steps; s1++)
+                double[] a1_options = { 0, 0.6, 1 };
+                foreach (double a1 in a1_options)
                 {
-                    paramsDict["a2"] = step * s1;
+                    paramsDict["a1"] = a1;
 
-                    for (int s2 = 0; s2 <= steps; s2++)
+                    double[] a2_options = { 0, 0.2,0.4,0.6,0.8, 1 };
+                    foreach (double a2 in a2_options)
                     {
-                        paramsDict["a3"] = step * s2;
+                        paramsDict["a2"] = a2;
+                        double[] a3_options = { 0, 0.2, 0.4, 0.6, 0.8, 1 };
+                        foreach (double a3 in a3_options) 
+                        {
+                            paramsDict["a3"] = a3;
 
-//                        for (int s3 = 0; s3 <= steps; s3++)
-//                        {
-//                            paramsDict["a3"] = step * s3;
-                        paramsDict["a1"] = 0.4;
+//                            for (int s4 = 0; s4 <= steps; s4++)
+                            //{
+                                paramsDict["a4"] = 0.6;
 
-                        
-                        /*
-                            paramsDict["a3"] = 0.5;
-                            paramsDict["a4"] = 0.5;
-                            paramsDict["a5"] = 0.5;
-                            paramsDict["a6"] = 0.5;
- */ 
-//                            dict["item_id"] = s1.ToString() +"_" + s2.ToString() +"_" + s3.ToString();
-                            dict["item_id"] = s1.ToString() +"_" + s2.ToString();
-                            dict["params"] = paramsDict;
+                                paramsDict["a5"] = 0.4;
+                                paramsDict["a6"] = 0.4;
 
-                            JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
-                            string jsonString = serializer.Serialize((object)dict);
+                                dict["item_id"] = String.Format("{0:0.##}", a1) + "_" + String.Format("{0:0.##}", a2) + "_" + String.Format("{0:0.##}", a3);
+                                dict["params"] = paramsDict;
 
-                            if (!SQS_Utils.Send_Msg_To_Q(request_Q_url, jsonString, true))
-                            {
-                                return;
-                            }
+                                JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
+                                string jsonString = serializer.Serialize((object)dict);
 
-//                        }
+                                if (!SQS_Utils.Send_Msg_To_Q(request_Q_url, jsonString, true))
+                                {
+                                    return;
+                                }
+//                            }
 
+                        }
                     }
                 }
-
             }
             catch (AmazonSQSException ex)
             {
@@ -331,6 +330,11 @@ namespace AWS_Batch_Tester
             }
             return;
 
+
+        }
+
+        private void file_textBox_TextChanged(object sender, EventArgs e)
+        {
 
         }
     }

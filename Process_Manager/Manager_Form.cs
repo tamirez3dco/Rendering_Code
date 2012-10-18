@@ -342,7 +342,7 @@ namespace Process_Manager
                 {
                     DateTime lastUpdate = DateTime.Parse((String)row.Cells[(int)ColumnsIndex.LAST_UPDATE].Value);
                     TimeSpan diff = DateTime.Now - lastUpdate;
-                    if (diff.TotalSeconds > 55)
+                    if (diff.TotalSeconds > seconds_timeout)
                     {
                         Fuckups_DB.Add_Fuckup((String)row.Cells[(int)ColumnsIndex.ITEM_ID].Value);
                         int rhino_pid = (int)row.Cells[(int)ColumnsIndex.RHINO_PID].Value;
@@ -353,7 +353,15 @@ namespace Process_Manager
                         Win32_API.Kill_Process(runer_pid);
                         row.Cells[(int)ColumnsIndex.STATE].Value = "killed";
                         // release lock  (was not done by runer)
-                        make_cycle_gate.Release(1);
+                        try
+                        {
+                            make_cycle_gate.Release(1);
+                        }
+                        catch (Exception e2)
+                        {
+                            Console.WriteLine("Exception e2=" + e2.Message);
+                        }
+                        
 
                         // start a new process....
                         Dictionary<String, Object> single_scene_params_dict = new Dictionary<string, object>();

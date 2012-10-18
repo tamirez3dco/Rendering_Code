@@ -264,7 +264,12 @@ namespace Runer_Process
             stl_bucket_name = (String)params_dict["stl_bucket_name"];
             rhino_visible = (bool)params_dict["rhino_visible"];
             seconds_timeout = (int)params_dict["timeout"];
-            skip_empty_check = (bool)params_dict["skip_empty_check"];
+            skip_empty_check = false;
+            if (params_dict.ContainsKey("skip_empty_check"))
+            {
+                skip_empty_check = (bool)params_dict["skip_empty_check"];
+            }
+            
 
             if (!read_empty_images_of_scene(scene_fileName, out emptyShortCuts))
             {
@@ -356,7 +361,7 @@ namespace Runer_Process
                             dict["instance_id"] = id;
                             dict["status"] = "ERROR";
 
-                            Send_Dict_Msg_To_Readies_Q(dict);
+                            Send_Dict_Msg_To_Readies_Q(dict,3);
                         }
                         break;
                     case CycleResult.NO_MSG:
@@ -536,7 +541,7 @@ namespace Runer_Process
             tempDict["duration"] = Math.Round(duration.TotalSeconds, 3);
             tempDict["status"] = RenderStatus.STARTED.ToString();
 
-            if (!Send_Dict_Msg_To_Readies_Q(tempDict))
+            if (!Send_Dict_Msg_To_Readies_Q(tempDict,3))
             {
                 lastLogMsg = "Send_Msg_To_Readies_Q(status=STARTED,imageData.item_id=" + imageData.item_id + ") failed";
                 log(lastLogMsg);
@@ -717,7 +722,7 @@ namespace Runer_Process
                 tempDict["status"] = RenderStatus.FINISHED.ToString();
 
 
-                if (!Send_Dict_Msg_To_Readies_Q(tempDict))
+                if (!Send_Dict_Msg_To_Readies_Q(tempDict,3))
                 {
                     lastLogMsg = "Send_Dict_Msg_To_Readies_Q(status=FINISHED,imageData.item_id=" + imageData.item_id + ") failed";
                     log(lastLogMsg);
@@ -1003,13 +1008,25 @@ namespace Runer_Process
             return SQS_Utils.Send_Msg_To_Q(ready_Q_url, jsonString, true);
         }
 */
-        private static bool Send_Dict_Msg_To_Readies_Q(Dictionary<String,Object> dict)
+        private static bool Send_Dict_Msg_To_Readies_Q(Dictionary<String,Object> dict, int attempts)
         {
 
             JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
             string jsonString = serializer.Serialize((object)dict);
 
-            return SQS_Utils.Send_Msg_To_Q(ready_Q_url, jsonString, true);
+            for (int i = 0 ; i < attempts ; i++)
+            {
+                try
+                {
+                    bool res = SQS_Utils.Send_Msg_To_Q(ready_Q_url, jsonString, true);
+                    if (res) return true;
+                }
+                catch (Exception e)
+                {
+                    continue;
+                }
+            }
+            return false;
         }
 
     }
