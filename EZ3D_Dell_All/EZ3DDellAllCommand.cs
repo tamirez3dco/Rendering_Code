@@ -37,8 +37,8 @@ namespace EZ3D_Dell_All
             List<Guid> geometryObjects_for_deletion = new List<Guid>();
             foreach (Rhino.DocObjects.Layer layer in doc.Layers)
             {
-                if (layer.Name == "lights") continue;
-                if (layer.Name == "Objects")
+                if (layer.Name.ToLower() == "lights") continue;
+                if (layer.Name.ToLower() == "objects")
                 {
                     RhinoApp.WriteLine("Giving up on Layer Objects");
                     continue;
