@@ -69,6 +69,21 @@ namespace UtilsDLL
             return true;
         }
 
+        private static bool get_GHX_files_Dir(out String GHX_DirPath)
+        {
+            GHX_DirPath = null;
+            DirectoryInfo dir = new DirectoryInfo(Directory.GetCurrentDirectory());
+            GHX_DirPath = dir.Parent.Parent.Parent.Parent.FullName + Path.DirectorySeparatorChar + "GHX_files";
+            if (!Directory.Exists(GHX_DirPath))
+            {
+                Console.WriteLine("ERROR!!! - Could not find GHX_RAW_DirPath=" + GHX_DirPath);
+                return false;
+
+            }
+            Console.WriteLine("GHX_DirPath = " + GHX_DirPath);
+            return true;
+        }
+
         public static bool get_empty_Images_files_Dir(out String image_DirPath)
         {
             image_DirPath = null;
@@ -118,6 +133,7 @@ namespace UtilsDLL
         public static String empty_images_DirPath;
         public static String PythonScripts_DirPath_Git;
         public static String PythonScripts_DirPath_Actual;
+        public static String ghx_local_DirPath;
 
         public static bool get_all_relevant_dirs()
         {
@@ -127,6 +143,7 @@ namespace UtilsDLL
             if (!get_tempImages_files_Dir(out images_DirPath)) return false;
             if (!get_empty_Images_files_Dir(out empty_images_DirPath)) return false;
             if (!get_pythonscripts_files_Dir(out PythonScripts_DirPath_Git)) return false;
+            if (!get_GHX_files_Dir(out ghx_local_DirPath)) return false;
 
             PythonScripts_DirPath_Actual = @"C:\Users\" + System.Environment.UserName + @"\AppData\Roaming\McNeel\Rhinoceros\5.0\Plug-ins\PythonPlugins\quest {4aa421bc-1d5d-4d9e-9e48-91bf91516ffa}\dev";
             return true;

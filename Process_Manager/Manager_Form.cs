@@ -27,6 +27,7 @@ namespace Process_Manager
         private static bool rhino_visible = false;
         private static bool skip_empty_check = false;
         private static bool stopOnError = false;
+        private static String ghx_bucket_name;
 
         public Manager_Form(String scene_params_json)
         {
@@ -51,7 +52,10 @@ namespace Process_Manager
                 if (refresh_rhino_data)
                 {
                     Dirs.Refresh_Rhino_GH_Data_From_Github();
-
+                }
+                if (params_dict.ContainsKey("skip_empty_check")) skip_empty_check = (bool)params_dict["skip_empty_check"];
+                if (!skip_empty_check)
+                {
                     ProcessStartInfo psi = new ProcessStartInfo();
                     psi.FileName = @"C:\Inetpub\ftproot\Rendering_Code\EmptyImagesConstructor\bin\Debug\EmptyImagesConstructor.exe";
                     psi.UseShellExecute = true;
@@ -69,10 +73,6 @@ namespace Process_Manager
                 int mult = (int)params_dict["mult"];
 
 
-                if (params_dict.ContainsKey("skip_empty_check"))
-                {
-                    skip_empty_check = (bool)params_dict["skip_empty_check"];
-                }
                 
                 if (params_dict.ContainsKey("stopOnERR"))
                 {
@@ -87,17 +87,25 @@ namespace Process_Manager
 
                 String name = (String)params_dict["name"];
                 bucket_name = name + "_Bucket";
-                stl_bucket_name = name + "_stl_Bucket";
+
                 if (!S3_Utils.Make_Sure_Bucket_Exists(bucket_name))
                 {
                     MessageBox.Show("S3_Utils.Make_Sure_Bucket_Exists(bucket_name=" + bucket_name + ") failed!!!");
                     return false;
                 }
+                stl_bucket_name = name + "_stl_Bucket";
                 if (!S3_Utils.Make_Sure_Bucket_Exists(stl_bucket_name))
                 {
                     MessageBox.Show("S3_Utils.Make_Sure_Bucket_Exists(stl_bucket_name=" + stl_bucket_name + ") failed!!!");
                     return false;
                 }
+                ghx_bucket_name = name + "_ghx_Bucket";
+                if (!S3_Utils.Make_Sure_Bucket_Exists("ghx_bucket_name"))
+                {
+                    MessageBox.Show("S3_Utils.Make_Sure_Bucket_Exists(ghx_bucket_name=" + ghx_bucket_name + ") failed!!!");
+                    return false;
+                }
+
                 seconds_timeout = (int)params_dict["timeout"];
                 rhino_visible = (bool)(params_dict["rhino_visible"]);
                 id_counter = 0;
@@ -123,6 +131,7 @@ namespace Process_Manager
                         single_scene_params_dict["error_Q_url"] = error_Q_url;
                         single_scene_params_dict["bucket_name"] = bucket_name;
                         single_scene_params_dict["stl_bucket_name"] = stl_bucket_name;
+                        single_scene_params_dict["ghx_bucket_name"] = ghx_bucket_name;
 
                         single_scene_params_dict["timeout"] = seconds_timeout;
                         single_scene_params_dict["rhino_visible"] = rhino_visible;
@@ -244,6 +253,8 @@ namespace Process_Manager
                         single_scene_params_dict["error_Q_url"] = error_Q_url;
                         single_scene_params_dict["bucket_name"] = bucket_name;
                         single_scene_params_dict["stl_bucket_name"] = stl_bucket_name;
+                        single_scene_params_dict["ghx_bucket_name"] = ghx_bucket_name;
+
                         single_scene_params_dict["timeout"] = seconds_timeout;
                         single_scene_params_dict["rhino_visible"] = rhino_visible;
                         single_scene_params_dict["skip_empty_check"] = skip_empty_check;
@@ -373,6 +384,8 @@ namespace Process_Manager
                         single_scene_params_dict["error_Q_url"] = error_Q_url;
                         single_scene_params_dict["bucket_name"] = bucket_name;
                         single_scene_params_dict["stl_bucket_name"] = stl_bucket_name;
+                        single_scene_params_dict["ghx_bucket_name"] = ghx_bucket_name;
+
                         single_scene_params_dict["timeout"] = seconds_timeout;
                         single_scene_params_dict["rhino_visible"] = rhino_visible;
                         single_scene_params_dict["skip_empty_check"] = skip_empty_check;

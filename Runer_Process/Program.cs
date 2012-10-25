@@ -31,65 +31,17 @@ namespace Runer_Process
         public DateTime creationTime;
         public int retries;
         public String stl_to_load;
+        public Object jsonObjParam;
 
-        public override string ToString()
-        {
-            String res = "item_id=" + item_id.ToString() + Environment.NewLine;
-            res += "gh_fileName=" + gh_fileName + Environment.NewLine;
-            res += "rhino_fileName=" + scene + Environment.NewLine;
-            res += "bake=" + bake + Environment.NewLine;
-            res += "imageSize=" + imageSize.ToString() + Environment.NewLine;
-            res += "getSTL=" + getSTL + Environment.NewLine;
-            res += "creationTime=" + creationTime.ToShortTimeString() + Environment.NewLine;
-            res += "retries=" + retries.ToString() + Environment.NewLine;
-            res += "stl_to_load=" + stl_to_load;
-            res += "params:" + Environment.NewLine;
-            foreach (String key in propValues.Keys)
-            {
-                res += "    " + key + "=" + propValues[key].ToString() + Environment.NewLine;
-            }
-            return res;
-        }
-    }
+        public const String PARAM_JSON_KEY = "param";
+        public const String OPERATION_JSON_KEY = "operation";
+        public const String GH_FILE_JSON_KEY = "gh_file";
+        public const String STATUS_JSON_KEY = "status";
+        public const String URL_JSON_KEY = "url";
 
-    public enum CycleResult
-    {
-        NO_MSG,
-        SUCCESS,
-        FAIL,
-        FUCKUPS_DELETED,
-        TIMEOUT
-    }
-
-    public enum RenderStatus
-    {
-        STARTED,
-        FINISHED,
-        ERROR
-    }
-
-
-    class Program
-    {
-        private static Semaphore load_rhino_gate;
-        private static Semaphore make_cycle_gate;
-        private static int whnd;
-        private static UtilsDLL.Rhino.Rhino_Wrapper rhino_wrapper;
-        public static String current_GH_file = String.Empty;
-
-        public static Dictionary<String, Object> params_dict;
-
-        private static DateTime last_msg_receive_time;
-        private static bool delayer = false;
-        private static bool useLowPrioirty_Q = false;
-
-
-        static void log(String str)
-        {
-            int id = (int)params_dict["id"];
-            Console.WriteLine((id.ToString() + "): " + str));
-        }
-
+        public const String GHX_ADJUSTING_CMD = "adjust_ghx";
+        public const String RENDER_CMD = "render_model";
+        
         public static bool deciferImageDataFromBody(String msgBody, out ImageDataRequest imageData)
         {
             imageData = new ImageDataRequest();
@@ -100,20 +52,31 @@ namespace Runer_Process
             var jsonObject = serializer.DeserializeObject(jsonString) as Dictionary<string, object>;
             Dictionary<String, Object> jsonDict = (Dictionary<String, Object>)jsonObject;
 
-
-            if (!jsonDict.ContainsKey("operation"))
+            imageData.jsonObjParam = null;
+            if (!jsonDict.ContainsKey(PARAM_JSON_KEY))
             {
-                Console.WriteLine("ERROR !!! - (!jsonDict.ContainsKey(\"operation\"))");
+                Console.WriteLine("ERROR !!! - (!jsonDict.ContainsKey(" + PARAM_JSON_KEY + ")");
+            }
+            else
+            {
+                imageData.jsonObjParam = jsonDict[PARAM_JSON_KEY];
+            } 
+
+            if (!jsonDict.ContainsKey(OPERATION_JSON_KEY))
+            {
+                Console.WriteLine("ERROR !!! - (!jsonDict.ContainsKey("+OPERATION_JSON_KEY+")");
                 return false;
             }
-            else imageData.operation = (String)jsonDict["operation"];
+            else imageData.operation = (String)jsonDict[OPERATION_JSON_KEY];
 
-            if (!jsonDict.ContainsKey("gh_file"))
+            if (!jsonDict.ContainsKey(GH_FILE_JSON_KEY))
             {
-                Console.WriteLine("ERROR !!! - (!jsonDict.ContainsKey(\"gh_file\"))");
+                Console.WriteLine("ERROR !!! - (!jsonDict.ContainsKey("+GH_FILE_JSON_KEY+"))");
                 return false;
             }
-            else imageData.gh_fileName = (String)jsonDict["gh_file"];
+            else imageData.gh_fileName = (String)jsonDict[GH_FILE_JSON_KEY];
+
+            if (imageData.operation == GHX_ADJUSTING_CMD) return true;
 
             if (!jsonDict.ContainsKey("item_id"))
             {
@@ -210,6 +173,65 @@ namespace Runer_Process
             return true;
         }
 
+        public override string ToString()
+        {
+            String res = "item_id=" + item_id.ToString() + Environment.NewLine;
+            res += "gh_fileName=" + gh_fileName + Environment.NewLine;
+            res += "rhino_fileName=" + scene + Environment.NewLine;
+            res += "bake=" + bake + Environment.NewLine;
+            res += "imageSize=" + imageSize.ToString() + Environment.NewLine;
+            res += "getSTL=" + getSTL + Environment.NewLine;
+            res += "creationTime=" + creationTime.ToShortTimeString() + Environment.NewLine;
+            res += "retries=" + retries.ToString() + Environment.NewLine;
+            res += "stl_to_load=" + stl_to_load;
+            res += "params:" + Environment.NewLine;
+            foreach (String key in propValues.Keys)
+            {
+                res += "    " + key + "=" + propValues[key].ToString() + Environment.NewLine;
+            }
+            return res;
+        }
+    }
+
+    public enum CycleResult
+    {
+        NO_MSG,
+        SUCCESS,
+        FAIL,
+        FUCKUPS_DELETED,
+        TIMEOUT
+    }
+
+    public enum RenderStatus
+    {
+        STARTED,
+        FINISHED,
+        ERROR
+    }
+
+
+    class Program
+    {
+        private static Semaphore load_rhino_gate;
+        private static Semaphore make_cycle_gate;
+        private static int whnd;
+        private static UtilsDLL.Rhino.Rhino_Wrapper rhino_wrapper;
+        public static String current_GH_file = String.Empty;
+
+        public static Dictionary<String, Object> params_dict;
+
+        private static DateTime last_msg_receive_time;
+        private static bool delayer = false;
+        private static bool useLowPrioirty_Q = false;
+
+
+        static void log(String str)
+        {
+            int id = (int)params_dict["id"];
+            Console.WriteLine((id.ToString() + "): " + str));
+        }
+
+
         static int id;
         static String scene_fileName;
         static String request_Q_url;
@@ -218,6 +240,7 @@ namespace Runer_Process
         static String error_Q_url;
         static String bucket_name;
         static String stl_bucket_name;
+        static String ghx_bucket_name;
 
         static int seconds_timeout;
         static bool rhino_visible;
@@ -262,6 +285,7 @@ namespace Runer_Process
             error_Q_url = (String)params_dict["error_Q_url"];
             bucket_name = (String)params_dict["bucket_name"];
             stl_bucket_name = (String)params_dict["stl_bucket_name"];
+            ghx_bucket_name = (String)params_dict["ghx_bucket_name"];
             rhino_visible = (bool)params_dict["rhino_visible"];
             seconds_timeout = (int)params_dict["timeout"];
             skip_empty_check = false;
@@ -269,11 +293,13 @@ namespace Runer_Process
             {
                 skip_empty_check = (bool)params_dict["skip_empty_check"];
             }
-            
 
-            if (!read_empty_images_of_scene(scene_fileName, out emptyShortCuts))
+            if (!skip_empty_check)
             {
-                return;
+                if (!read_empty_images_of_scene(scene_fileName, out emptyShortCuts))
+                {
+                    return;
+                }
             }
 
             // threading semaphore - named global across all machine
@@ -355,11 +381,11 @@ namespace Runer_Process
                             TimeSpan duration = DateTime.Now - lastIDR.creationTime;
                             Dictionary<String,Object> dict = new Dictionary<string,object>();
                             dict["item_id"] = lastIDR.item_id;
-                            dict["url"] = @"http://s3.amazonaws.com/" + bucket_name + @"/" + lastIDR.item_id + ".jpg";
+                            dict[ImageDataRequest.URL_JSON_KEY] = @"http://s3.amazonaws.com/" + bucket_name + @"/" + lastIDR.item_id + ".jpg";
                             dict["duration"] = Math.Round(duration.TotalSeconds, 3);
                             dict["server"] = external_ip.ToString();
                             dict["instance_id"] = id;
-                            dict["status"] = "ERROR";
+                            dict[ImageDataRequest.STATUS_JSON_KEY] = RenderStatus.ERROR.ToString();
 
                             Send_Dict_Msg_To_Readies_Q(dict,3);
                         }
@@ -504,7 +530,7 @@ namespace Runer_Process
 
             // Extract the ImageData
             ImageDataRequest imageData = null;
-            if (!deciferImageDataFromBody(msg.Body, out imageData))
+            if (!ImageDataRequest.deciferImageDataFromBody(msg.Body, out imageData))
             {
                 lastLogMsg = "deciferImagesDataFromJSON(msg.Body=" + msg.Body + ", out imagesDatas) failed!!!";
                 log(lastLogMsg);
@@ -512,50 +538,49 @@ namespace Runer_Process
                 return;
             }
 
-            lastIDR = imageData;
-            DateTime time_msg_decifered = DateTime.Now;
-
-
-            int prevFuckups_this_image = Fuckups_DB.Get_Fuckups(imageData.item_id);
-
-            if (prevFuckups_this_image >= imageData.retries)
+            if (imageData.operation == ImageDataRequest.RENDER_CMD)
             {
-                // send an error msg telling that this image was deleted
-                // delete the message...
-                Delete_Msg_From_Req_Q(msg,useLowPrioirty_Q);
-                lastResult = CycleResult.FUCKUPS_DELETED;
-                return;
-            }
+                lastIDR = imageData;
+                DateTime time_msg_decifered = DateTime.Now;
 
-            if (prevFuckups_this_image > 0)
-            {
-                adjust_numeric_params(imageData.propValues);
-            }
 
-            // Add Msg to Queue_Readies
-            TimeSpan duration = DateTime.Now - time_single_cycle_start;
-            Dictionary<String, Object> tempDict = new Dictionary<string, object>();
-            tempDict["item_id"] = imageData.item_id;
-            //dict["url"] = @"http://" + Utils.my_ip + @"/testim/yofi_" + item_id + ".jpg";
-            tempDict["url"] = @"http://s3.amazonaws.com/" + bucket_name + @"/" + imageData.item_id + ".jpg";
-            tempDict["duration"] = Math.Round(duration.TotalSeconds, 3);
-            tempDict["status"] = RenderStatus.STARTED.ToString();
+                int prevFuckups_this_image = Fuckups_DB.Get_Fuckups(imageData.item_id);
 
-            if (!Send_Dict_Msg_To_Readies_Q(tempDict,3))
-            {
-                lastLogMsg = "Send_Msg_To_Readies_Q(status=STARTED,imageData.item_id=" + imageData.item_id + ") failed";
-                log(lastLogMsg);
-                lastResult = CycleResult.FAIL;
-                return;
-            }
+                if (prevFuckups_this_image >= imageData.retries)
+                {
+                    // send an error msg telling that this image was deleted
+                    // delete the message...
+                    Delete_Msg_From_Req_Q(msg, useLowPrioirty_Q);
+                    lastResult = CycleResult.FUCKUPS_DELETED;
+                    return;
+                }
 
-            DateTime time_before_Process_Into_Image_File = DateTime.Now;
+                if (prevFuckups_this_image > 0)
+                {
+                    adjust_numeric_params(imageData.propValues);
+                }
 
-            if (imageData.operation == "render_model")
-            {
+                // Add Msg to Queue_Readies
+                TimeSpan duration = DateTime.Now - time_single_cycle_start;
+                Dictionary<String, Object> tempDict = new Dictionary<string, object>();
+                tempDict["item_id"] = imageData.item_id;
+                tempDict[ImageDataRequest.URL_JSON_KEY] = @"http://s3.amazonaws.com/" + bucket_name + @"/" + imageData.item_id + ".jpg";
+                tempDict["duration"] = Math.Round(duration.TotalSeconds, 3);
+                tempDict["status"] = RenderStatus.STARTED.ToString();
+
+                if (!Send_Dict_Msg_To_Readies_Q(tempDict, 3))
+                {
+                    lastLogMsg = "Send_Msg_To_Readies_Q(status=STARTED,imageData.item_id=" + imageData.item_id + ") failed";
+                    log(lastLogMsg);
+                    lastResult = CycleResult.FAIL;
+                    return;
+                }
+
+                DateTime time_before_Process_Into_Image_File = DateTime.Now;
+
                 Console.WriteLine("EntireJSON = " + imageData.entireJSON);
                 // inform manager
-                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "render_model starting " + imageData.item_id + " " + imageData.entireJSON);
+                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, ImageDataRequest.RENDER_CMD+" starting " + imageData.item_id + " " + imageData.entireJSON);
 
                 // Process Msg to picture
                 String resultingLocalImageFilePath;
@@ -666,7 +691,8 @@ namespace Runer_Process
                     stl_timespan = DateTime.Now - beforeSTL;
 
                     String stl_fileName_on_S3 = imageData.item_id.ToString() + ".3dm";
-                    if (!S3_Utils.Write_File_To_S3(stl_bucket_name, resulting_3dm_path, stl_fileName_on_S3))
+                    String stl_remote_url;
+                    if (!S3_Utils.Write_File_To_S3(stl_bucket_name, resulting_3dm_path, stl_fileName_on_S3, out stl_remote_url))
                     {
                         String logLine = "Write_File_To_S3(resulting_3dm_path=" + resulting_3dm_path + ", stl_fileName_on_S3=" + stl_fileName_on_S3 + ") failed !!!";
                         log(logLine);
@@ -680,7 +706,8 @@ namespace Runer_Process
                 DateTime time_Before_S3 = DateTime.Now;
 
                 String fileName_on_S3 = imageData.item_id.ToString() + ".jpg";
-                if (!S3_Utils.Write_File_To_S3(bucket_name, resultingLocalImageFilePath, fileName_on_S3))
+                String jpg_remote_url;
+                if (!S3_Utils.Write_File_To_S3(bucket_name, resultingLocalImageFilePath, fileName_on_S3, out jpg_remote_url))
                 {
                     String logLine = "Write_File_To_S3(resultingImagePath=" + resultingLocalImageFilePath + ", fileName_on_S3=" + fileName_on_S3 + ") failed !!!";
                     log(logLine);
@@ -717,7 +744,7 @@ namespace Runer_Process
                 duration = DateTime.Now - time_single_cycle_start;
                 tempDict = new Dictionary<string, object>();
                 tempDict["item_id"] = imageData.item_id;
-                tempDict["url"] = @"http://s3.amazonaws.com/" + bucket_name + @"/" + imageData.item_id + ".jpg";
+                tempDict[ImageDataRequest.URL_JSON_KEY] = @"http://s3.amazonaws.com/" + bucket_name + @"/" + imageData.item_id + ".jpg";
                 tempDict["duration"] = Math.Round(duration.TotalSeconds, 3);
                 tempDict["status"] = RenderStatus.FINISHED.ToString();
 
@@ -730,16 +757,6 @@ namespace Runer_Process
                     return;
                 }
 
-/*
-                // Add Msg to Queue_Readies
-                if (!Send_Msg_To_Readies_Q(RenderStatus.FINISHED, imageData.item_id, beforeProcessingTime))
-                {
-                    String logLine = "Send_Msg_To_Readies_Q(imageData.item_id=" + imageData.item_id + ") failed";
-                    log(logLine);
-                    lastResult = CycleResult.FAIL;
-                    return;
-                }
-*/
                 DateTime time_afterSQS = DateTime.Now;
 
                 log("read msg time Time=" + (time_msg_decifered - time_single_cycle_start).TotalMilliseconds.ToString() + " millis");
@@ -750,13 +767,45 @@ namespace Runer_Process
                 log("S3 Time=" + (time_Before_SQS - time_Before_S3).TotalMilliseconds.ToString() + " millis");
                 log("SQS Time=" + (time_afterSQS - time_Before_SQS).TotalMilliseconds.ToString() + " millis");
 
-                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "render_model finished " + imageData.item_id);
+                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, ImageDataRequest.RENDER_CMD+" finished " + imageData.item_id);
                 lastResult = CycleResult.SUCCESS;
                 return;
             }
+            else if (imageData.operation == ImageDataRequest.GHX_ADJUSTING_CMD)
+            {
+                // Delete Msg From Queue_Requests
+                if (!Delete_Msg_From_Req_Q(msg, useLowPrioirty_Q))
+                {
+                    String logLine = "Delete_Msg_From_Req_Q(gh_file=" + imageData.gh_fileName + ") failed!!!";
+                    log(logLine);
+                    lastLogMsg = logLine;
+                    lastResult = CycleResult.FAIL;
+                    return;
+                }
+
+                Dictionary<String, Object> reply = new Dictionary<string,object>();
+                reply["server"] = external_ip.ToString();
+                reply["instance_id"] = id;
+                if (!Adjust_GHX_file_S3(imageData, reply))
+                {
+                    log("Adjust_GHX_file_S3(imageData)");
+                    reply[ImageDataRequest.STATUS_JSON_KEY] = RenderStatus.FINISHED;
+                }
+                else
+                {
+                    reply[ImageDataRequest.STATUS_JSON_KEY] = RenderStatus.FINISHED;
+                }
+                lastResult = CycleResult.SUCCESS;
+                
+
+                Send_Dict_Msg_To_Readies_Q(reply, 3);
+
+                return;
+            }
+
             else
             {
-                lastLogMsg = "ERROR !!! - (" + imageData.operation + "=imageData.operation != \"render_model\")";
+                lastLogMsg = "ERROR !!! - (" + imageData.operation + "=imageData.operation is unknown)";
                 log(lastLogMsg);
                 lastResult = CycleResult.FAIL;
                 return;
@@ -802,6 +851,90 @@ namespace Runer_Process
         private static void Send_Msg_To_ERROR_Q(string err_msg)
         {
             SQS_Utils.Send_Msg_To_Q(error_Q_url, err_msg, false);
+        }
+
+        public static bool Adjust_GHX_file_S3(ImageDataRequest request, Dictionary<String,Object> reply)
+        {
+            try
+            {
+                String fileName = request.gh_fileName;
+                reply[ImageDataRequest.GH_FILE_JSON_KEY] = fileName;
+                String local_raw_ghx_path = Path.Combine(Dirs.ghx_local_DirPath, fileName);
+                if (!S3_Utils.Download_File_From_S3(ghx_bucket_name, local_raw_ghx_path, fileName))
+                {
+                    log("S3_Utils.Download_File_From_S3(ghx_bucket_name=" + ghx_bucket_name + ", local_raw_ghx_path=" + local_raw_ghx_path + ", fileName=" + fileName + ")");
+                    return false;
+                }
+
+                String adjusted_fileName = fileName.Substring(0, fileName.Length - 4) + "_adj.ghx";
+                List<String> screener = null;
+                if (request.jsonObjParam != null)
+                {
+                    screener = new List<string>();
+                    foreach (Object o in (Object[])request.jsonObjParam)
+                    {
+                        screener.Add((String)o);
+                    }
+                }
+                String local_adjusted_ghx_path = Path.Combine(Dirs.ghx_local_DirPath, adjusted_fileName);
+                if (!Rhino.Adjust_GHX_file(local_raw_ghx_path, local_adjusted_ghx_path, reply,screener))
+                {
+                    log("Rhino.Adjust_GHX_file(local_raw_ghx_path=" + local_raw_ghx_path + ", local_adjusted_ghx_path=" + local_adjusted_ghx_path + ") failed!!");
+                    return false;
+                }
+
+                if (!Rhino.Open_GH_File(rhino_wrapper, local_adjusted_ghx_path))
+                {
+                    log("Rhino.Load_GH_File(rhino_wrapper, local_adjusted_ghx_path="+local_adjusted_ghx_path+")   failed!!!");
+                    return false;
+                }
+
+                Dictionary<String, Object> currentParams = new Dictionary<string,object>();
+                List<Object> slidersList = (List<Object>)reply["sliders"];
+
+                foreach (Object o in slidersList)
+                {
+                    Dictionary<String, Object> slider_values_dict = (Dictionary<String, Object>)o;
+                    String new_param_name = (String)slider_values_dict["new_name"];
+                    currentParams[new_param_name] = slider_values_dict["current"];
+                }
+                if (!Rhino.Set_GH_Params(rhino_wrapper, currentParams))
+                {
+                    log("Rhino.Set_GH_Params(rhino_wrapper, currentParams=" + currentParams.ToString() + ") failed!!!");
+                    return false;
+                }
+
+                if (!Rhino.Solve_GH(rhino_wrapper))
+                {
+                    log("Rhino.Solve_GH(rhino_wrapper)  failed!!!");
+                    return false;
+                }
+
+                if (!Rhino.Save_GH_File(rhino_wrapper, local_adjusted_ghx_path))
+                {
+                    log("Rhino.Save_GH_File(rhino_wrapper, local_adjusted_ghx_path=" + local_adjusted_ghx_path + ")   failed!!!");
+                    return false;
+                }
+
+
+                String remote_url;
+                if (!S3_Utils.Write_File_To_S3(ghx_bucket_name, local_adjusted_ghx_path, adjusted_fileName,out remote_url))
+                {
+                    log("S3_Utils.Write_File_To_S3(ghx_bucket=" + ghx_bucket_name + ", local_raw_ghx_path=" + local_raw_ghx_path + ", fileName=" + fileName + ")");
+                    return false;
+                }
+                reply[ImageDataRequest.URL_JSON_KEY] = remote_url;
+                reply[ImageDataRequest.STATUS_JSON_KEY] = RenderStatus.FINISHED;
+            }
+            catch (Exception e)
+            {
+                log("Exception in Adjust_GHX_file. e.Message=" + e.Message);
+                return false;
+            }
+
+
+            return true;
+
         }
 
         public static bool Process_Into_Image_File(ImageDataRequest imageData, out string resultingLocalImageFilePath)

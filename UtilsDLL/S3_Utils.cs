@@ -95,8 +95,9 @@ namespace UtilsDLL
             return true;
         }
 
-        public static bool Write_File_To_S3(String bucket_name, String path, String key_name)
+        public static bool Write_File_To_S3(String bucket_name, String path, String key_name, out String remote_url)
         {
+            remote_url = String.Empty;
             DateTime before = DateTime.Now;
             try
             {
@@ -117,6 +118,7 @@ namespace UtilsDLL
             }
             TimeSpan uploadTime = DateTime.Now - before;
             Console.WriteLine("Uploading " + path + " into S3 Bucket=" + bucket_name + " , key=" + key_name + " took " + uploadTime.TotalMilliseconds.ToString() + " milliseconds");
+            remote_url = @"http://s3.amazonaws.com/" + bucket_name + @"/" + key_name;
 
             return true;
 

@@ -75,23 +75,23 @@ namespace AWS_Batch_Tester
                         //String layerName = (layers[i % layers.Length]);
                         //if (i <= 7) dict["layer_name"] = layerName;
 
-                        String layerName = "Gold";
+                        String layerName = "Plastic_Matt_Red";
                         dict["layer_name"] = layerName;
 
                         dict["params"] = new Dictionary<String, Object>();
-                        dict["width"] = 350;
-                        dict["height"] = 350;
+                        dict["width"] = 180;
+                        dict["height"] = 180;
                         Dictionary<String, Object> paramsDict = new Dictionary<String, Object>();
-                        double propValue = Math.Round(initialValue + ((i+1) % 10) * delta, 1);
+                        double propValue = Math.Round(initialValue + ((i) % 10) * 0.1, 1);
                         //double propValue = (i % 2 == 0) ? 0.1 : 0.9;
-/*
-                        paramsDict["a1"] = 0.4;
-                        paramsDict["a2"] = 0.1;
-                        paramsDict["a3"] = 0.1;
-                        paramsDict["a4"] = 0.5;
-                        paramsDict["a5"] = 0.5;
-                        paramsDict["a6"] = 0.5;
-*/
+
+                        paramsDict["a1"] = 0;
+                        paramsDict["a2"] = 0.4;
+                        paramsDict["a3"] = 0.4;
+                        paramsDict["a4"] = 0.4;
+                        //paramsDict["a5"] = 0.6;
+                        paramsDict["a6"] = propValue;
+
                         //paramsDict[property_textBox.Text] = propValue;
                         paramsDict["textParam"] = textValue_textBox.Text;
                         dict["params"] = paramsDict;
@@ -136,7 +136,7 @@ namespace AWS_Batch_Tester
 
         private void button2_Click(object sender, EventArgs e)
         {
-            
+            richTextBox4.Text = SQS_Utils.DecodeFrom64(richTextBox3.Text);
         }
 
         void all()
@@ -335,7 +335,78 @@ namespace AWS_Batch_Tester
 
         private void file_textBox_TextChanged(object sender, EventArgs e)
         {
+            String request_Q_url, request_Q_arn;
+            bool sqs_Q_found;
+            String Q_name = name_textBox.Text + "_" + sceneTextBox.Text + "_request";
 
+            if (!SQS_Utils.Find_Q_By_name(Q_name, out sqs_Q_found, out request_Q_url, out request_Q_arn))
+            {
+                return;
+            }
+            if (!sqs_Q_found)
+            {
+                return;
+            }
+
+
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            String request_Q_url, request_Q_arn;
+            bool sqs_Q_found;
+            String Q_name = name_textBox.Text + "_" + sceneTextBox.Text + "_request";
+            char[] tokenizer = { ',' };
+            String[] labels_to_adjust = param_TextBox.Text.Split(tokenizer, StringSplitOptions.RemoveEmptyEntries);
+
+            if (!SQS_Utils.Find_Q_By_name(Q_name, out sqs_Q_found, out request_Q_url, out request_Q_arn))
+            {
+                return;
+            }
+            if (!sqs_Q_found)
+            {
+                return;
+            }
+
+            Dictionary<String,Object> dict = new Dictionary<string,object>();
+            dict["operation"] = "adjust_ghx";
+            dict["gh_file"] = file_textBox.Text;
+            if (labels_to_adjust.Length > 0)
+            {
+                dict["param"] = labels_to_adjust;
+            }
+                
+            
+            JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
+            string jsonString = serializer.Serialize((object)dict);
+
+            if (!SQS_Utils.Send_Msg_To_Q(request_Q_url, jsonString, true))
+            {
+                return;
+            }
+
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            String request_Q_url, request_Q_arn;
+            bool sqs_Q_found;
+            String Q_name = name_textBox.Text + "_" + sceneTextBox.Text + "_request";
+
+            if (!SQS_Utils.Find_Q_By_name(Q_name, out sqs_Q_found, out request_Q_url, out request_Q_arn))
+            {
+                return;
+            }
+            if (!sqs_Q_found)
+            {
+                return;
+            }
+
+            if (!SQS_Utils.Delete_all_msgs_from_Q(request_Q_url))
+            {
+                MessageBox.Show("Delete_all_msgs_from_Q(=" + request_Q_url + ") failed!!");
+            }
+            return;
         }
     }
 }

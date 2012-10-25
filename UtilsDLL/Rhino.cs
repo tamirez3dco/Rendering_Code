@@ -7,6 +7,7 @@ using System.Threading;
 using System.Diagnostics;
 using System.IO;
 using System.Drawing;
+using System.Xml;
 
 namespace UtilsDLL
 {
@@ -88,6 +89,189 @@ namespace UtilsDLL
 
         }
 
+        public static bool Get_All_Parameters_From_GHX_file(String local_raw_ghx_path, out Dictionary<String,bool> paramNames)
+        {
+            paramNames = new Dictionary<string, bool>();
+            try
+            {
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.Load(local_raw_ghx_path);
+                XmlNode root = xmlDoc.DocumentElement;
+
+                XmlNodeList objList = root.SelectNodes("//chunk[@name='Object']");
+
+                foreach (XmlNode gh_obj in objList)
+                {
+                    XmlNode node = gh_obj.SelectSingleNode("items/item[@name='Name']");
+                    if (node == null) continue;
+                    String nodeType = node.InnerText;
+
+                    bool isNumberParam = (nodeType == "Number");
+                    bool isIntegerParam = (nodeType == "Integer");
+                    if (isNumberParam || isIntegerParam)
+                    {
+                        XmlNode nickNameNode = gh_obj.SelectSingleNode("chunks/chunk/items/item[@name='NickName']");
+                        String nickName = nickNameNode.InnerText;
+                        paramNames[nickName] = true;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                log("Exception in Get_All_Parameters_From_GHX_file. e.Message=" + e.Message);
+                return false;
+            }
+
+
+            return true;
+
+        }
+
+
+        public static bool Adjust_GHX_file(String local_raw_ghx_path, String local_adjusted_ghx_path, Dictionary<String,Object> reply, List<String> screener)
+        {
+            
+            try
+            {
+                Dictionary<String,bool> currentParamNames;
+                if (!Get_All_Parameters_From_GHX_file(local_raw_ghx_path, out currentParamNames))
+                {
+                    log("Get_All_Parameters_From_GHX_file(local_raw_ghx_path=" + local_raw_ghx_path + ")  failed!!!");
+                    return false;
+                }
+
+
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.Load(local_raw_ghx_path);
+                XmlNode root = xmlDoc.DocumentElement;
+
+                XmlNodeList objList = root.SelectNodes("//chunk[@name='Object']");
+
+                List<Object> slidersList = new List<object>();
+                foreach (XmlNode gh_obj in objList)
+                {
+                     XmlNode nickNameNode = gh_obj.SelectSingleNode("chunks/chunk/items/item[@name='NickName']");
+                     String oldNickName = nickNameNode.InnerText;
+
+                    if (screener != null && screener.Count > 0)
+                    {
+                        if (!screener.Contains(oldNickName)) continue;
+                    }
+                    XmlNode node = gh_obj.SelectSingleNode("items/item[@name='Name']");
+                    if (node == null) continue;
+                    String nodeType = node.InnerText;
+
+                    bool isSlider = (nodeType == "Number Slider");
+                    if (isSlider)
+                    {
+                        XmlNode attsNode = gh_obj.SelectSingleNode("chunks/chunk/chunks/chunk[@name='Slider']");
+
+
+                        XmlNodeList attList = attsNode.SelectNodes("items/item");
+                        Dictionary<String, Object> attsDict = new Dictionary<string, object>();
+                        foreach (XmlNode attNode in attList)
+                        {
+                            String attName = attNode.Attributes["name"].Value;
+                            String attValue = attNode.InnerText;
+                            attsDict[attName] = attValue;
+
+                        }
+
+                        String paramGUID = String.Empty, paramType = String.Empty;
+
+                        int sliderType = int.Parse((String)(attsDict["Interval"]));
+                        switch (sliderType)
+                        {
+                            case 0: // float slider
+                                paramGUID = "3e8ca6be-fda8-4aaf-b5c0-3c54c8bb7312";
+                                paramType = "Number";
+                                break;
+                            case 1: // integer slider
+                            case 2: // odds slider
+                            case 3: // evens slider
+                                paramGUID = "2e3ab970-8545-46bb-836c-1c11e5610bce";
+                                paramType = "Integer";
+                                break;
+                        }
+
+                        Double minValue = double.Parse((String)(attsDict["Min"]));
+                        Double maxValue = double.Parse((String)(attsDict["Max"]));
+                        Double currentValue = double.Parse((String)(attsDict["Value"]));
+                        Dictionary<String, Object> slider_dict = new Dictionary<string, object>();
+                        slider_dict["min"] = minValue;
+                        slider_dict["max"] = maxValue;
+                        slider_dict["current"] = currentValue;
+
+                        XmlNode GUID_node = gh_obj.SelectSingleNode("items/item[@name='GUID']");
+                        GUID_node.InnerText = paramGUID;
+
+                        XmlNode Name_node = gh_obj.SelectSingleNode("items/item[@name='Name']");
+                        Name_node.InnerText = paramType;
+
+                        Name_node = gh_obj.SelectSingleNode("chunks/chunk/items/item[@name='Name']");
+                        Name_node.InnerText = paramType;
+
+                        XmlNode descriptionNode = gh_obj.SelectSingleNode("chunks/chunk/items/item[@name='Description']");
+                        String newDescription = "Thingsmaker replacing (" + descriptionNode.InnerText + ")";
+                        descriptionNode.InnerText = newDescription;
+
+                        String newNickName = "AUTO_" + oldNickName;
+                        if (currentParamNames.ContainsKey(newNickName))
+                        {
+                            int unique_counter = 1;
+                            while (true)
+                            {
+                                newNickName = "AUTO_" + oldNickName+"_" + unique_counter.ToString();
+                                if (!currentParamNames.ContainsKey(newNickName)) break;
+                                unique_counter++;
+                            }
+                        }
+                        currentParamNames[newNickName] = true;
+                        nickNameNode.InnerText = newNickName;
+                        slider_dict["new_name"] = newNickName;
+                        slider_dict["old_name"] = oldNickName;
+
+
+                        slidersList.Add(slider_dict);
+                    }
+                }
+
+                reply["sliders"] = slidersList;
+                xmlDoc.Save(local_adjusted_ghx_path);
+            }
+            catch (Exception e)
+            {
+                log("Exception in Adjust_GHX_file. e.Message=" + e.Message);
+                return false;
+            }
+
+
+            return true;
+
+        }
+
+        
+        public static bool Save_GH_File(Rhino_Wrapper rhino_wrapper, string filePath)
+        {
+            log("Starting  Save_GH_File(*,filePath=" + filePath);
+            DateTime before = DateTime.Now;
+
+            try
+            {
+                rhino_wrapper.grasshopper.SaveDocumentAs(filePath);
+            }
+            catch (Exception e)
+            {
+                log("Exception=" + e.Message);
+                return false;
+            }
+
+            log("Finished succefully  Save_GH_File(*,filePath=" + filePath + ((int)(DateTime.Now - before).TotalMilliseconds) + " miliseconds after Starting");
+            return true;
+
+        }
+
+
         public static bool Open_GH_File(Rhino_Wrapper rhino_wrapper, string filePath)
         {
             log("Starting  Open_GH_File(*,filePath=" + filePath);
@@ -109,6 +293,7 @@ namespace UtilsDLL
             return true;
 
         }
+
 
 
 

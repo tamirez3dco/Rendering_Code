@@ -50,6 +50,9 @@
             this.button4 = new System.Windows.Forms.Button();
             this.textValue_textBox = new System.Windows.Forms.TextBox();
             this.button5 = new System.Windows.Forms.Button();
+            this.button6 = new System.Windows.Forms.Button();
+            this.button7 = new System.Windows.Forms.Button();
+            this.param_TextBox = new System.Windows.Forms.RichTextBox();
             this.SuspendLayout();
             // 
             // richTextBox1
@@ -94,7 +97,7 @@
             this.file_textBox.Name = "file_textBox";
             this.file_textBox.Size = new System.Drawing.Size(75, 20);
             this.file_textBox.TabIndex = 7;
-            this.file_textBox.Text = "iPhone_Lui16_base.gh";
+            this.file_textBox.Text = "iPhone_txt_tst.gh";
             this.file_textBox.TextChanged += new System.EventHandler(this.file_textBox_TextChanged);
             // 
             // property_textBox
@@ -245,11 +248,43 @@
             this.button5.UseVisualStyleBackColor = true;
             this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
+            // button6
+            // 
+            this.button6.Location = new System.Drawing.Point(314, 12);
+            this.button6.Name = "button6";
+            this.button6.Size = new System.Drawing.Size(144, 45);
+            this.button6.TabIndex = 25;
+            this.button6.Text = "adjust_ghx";
+            this.button6.UseVisualStyleBackColor = true;
+            this.button6.Click += new System.EventHandler(this.button6_Click);
+            // 
+            // button7
+            // 
+            this.button7.Location = new System.Drawing.Point(545, 28);
+            this.button7.Name = "button7";
+            this.button7.Size = new System.Drawing.Size(102, 43);
+            this.button7.TabIndex = 26;
+            this.button7.Text = "clear request Q";
+            this.button7.UseVisualStyleBackColor = true;
+            this.button7.Click += new System.EventHandler(this.button7_Click);
+            // 
+            // param_TextBox
+            // 
+            this.param_TextBox.Location = new System.Drawing.Point(290, 127);
+            this.param_TextBox.Name = "param_TextBox";
+            this.param_TextBox.Size = new System.Drawing.Size(371, 32);
+            this.param_TextBox.TabIndex = 27;
+            this.param_TextBox.Text = "LowerRadius,UpperRadius,LowerScale,UpperScale,HexU,HexV,HexShape,Rand Displacemen" +
+                "t";
+            // 
             // Batch_Tester_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(685, 577);
+            this.Controls.Add(this.param_TextBox);
+            this.Controls.Add(this.button7);
+            this.Controls.Add(this.button6);
             this.Controls.Add(this.button5);
             this.Controls.Add(this.textValue_textBox);
             this.Controls.Add(this.button4);
@@ -304,5 +339,8 @@
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.TextBox textValue_textBox;
         private System.Windows.Forms.Button button5;
+        private System.Windows.Forms.Button button6;
+        private System.Windows.Forms.Button button7;
+        private System.Windows.Forms.RichTextBox param_TextBox;
     }
 }
