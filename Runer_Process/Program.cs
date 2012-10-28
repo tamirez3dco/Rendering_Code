@@ -415,7 +415,14 @@ namespace Runer_Process
                 }
 
                 //Console.WriteLine(id + "): Before cycle gate.Release() : " + DateTime.Now.ToString());
-                make_cycle_gate.Release();
+                try
+                {
+                    make_cycle_gate.Release();
+                }
+                catch (Exception e)
+                {
+                    log("make_cycle_gate.Release(); caused the exeption : e=" + e.Message);
+                }
                 //Console.WriteLine(id + "): After cycle gate.Release() : " + DateTime.Now.ToString());
                 if (delayer)
                 {
