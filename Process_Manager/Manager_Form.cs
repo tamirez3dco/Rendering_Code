@@ -58,6 +58,8 @@ namespace Process_Manager
                 {
                     ProcessStartInfo psi = new ProcessStartInfo();
                     psi.FileName = @"C:\Inetpub\ftproot\Rendering_Code\EmptyImagesConstructor\bin\Debug\EmptyImagesConstructor.exe";
+                    String temp = (new JavaScriptSerializer()).Serialize((object[])params_dict["scenes"]);
+                    psi.Arguments = temp.Replace("\"", "\\\"");
                     psi.UseShellExecute = true;
                     Process p = Process.Start(psi);
                     p.WaitForExit();
@@ -142,7 +144,6 @@ namespace Process_Manager
                 }
                 return true;
             }
-
             catch (Exception e)
             {
                 MessageBox.Show(e.Message);
