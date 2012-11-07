@@ -126,7 +126,7 @@ namespace Process_Manager
                     {
                         Dictionary<String, Object> single_scene_params_dict = new Dictionary<string, object>();
                         single_scene_params_dict["id"] = id_counter;
-                        single_scene_params_dict["scene"] = scene + ".3dm";
+                        single_scene_params_dict["scene"] = scene;
                         single_scene_params_dict["request_Q_url"] = request_Q_url;
                         single_scene_params_dict["request_lowpriority_Q_url"] = requests_lowprioirty_Q_url;
                         single_scene_params_dict["ready_Q_url"] = ready_Q_url;

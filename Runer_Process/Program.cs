@@ -293,7 +293,6 @@ namespace Runer_Process
             {
                 skip_empty_check = (bool)params_dict["skip_empty_check"];
             }
-
             if (!skip_empty_check)
             {
                 if (!read_empty_images_of_scene(scene_fileName, out emptyShortCuts))
@@ -329,11 +328,11 @@ namespace Runer_Process
 
             UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "Started_Rhino");
 
-            if (!UtilsDLL.Rhino.start_a_SingleRhino(scene_fileName, rhino_visible, out rhino_wrapper))
+            if (!UtilsDLL.Rhino.start_a_SingleRhino(scene_fileName + ".3dm", rhino_visible, out rhino_wrapper))
             {
                 log("startSingleRhino() failed");
-                MessageBox.Show("Basa");
                 load_rhino_gate.Release();
+                MessageBox.Show("111");
                 return;
             }
 
@@ -440,7 +439,10 @@ namespace Runer_Process
             {
                 DirectoryInfo dir = new DirectoryInfo(UtilsDLL.Dirs.empty_images_DirPath);
                 DirectoryInfo[] dirs = dir.GetDirectories(scene);
-                if (dirs.Length != 1) return false;
+                if (dirs.Length != 1)
+                {
+                    return false;
+                }
 //                foreach (DirectoryInfo gh_dir in dirs[0].GetDirectories())
 //                {
                     foreach (DirectoryInfo size_dir in dirs[0].GetDirectories())
@@ -462,20 +464,10 @@ namespace Runer_Process
                         }
                     }
 //                }
-
-
-                FileInfo[] files = dir.GetFiles("*.jpg");
-                foreach (FileInfo file in files)
-                {
-                    if (file.Name.StartsWith(scene))
-                    {
-                    }
-                }
-
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message);
+                MessageBox.Show("e=" + e.Message);
                 return false;
             }
             
@@ -1117,7 +1109,6 @@ namespace Runer_Process
             if (!Rhino.Load_STL(rhino_wrapper, stl_local_path))
             {
                 log("ERROR!!: Rhino.Load_STL(stl_to_load=" + stl_to_load + ") failed !!!");
-                MessageBox.Show("111");
                 return false;
             }
             return true;

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Drawing;
 using System.Xml;
+using System.Windows.Forms;
 
 namespace UtilsDLL
 {
@@ -346,6 +347,7 @@ namespace UtilsDLL
                 newRhino.rhino_pid = new_pids[0];
             }
 
+            
             Console.WriteLine("Starting Grasshopper at " + DateTime.Now);
             newRhino.rhino_app.RunScript("_Grasshopper", 0);
             Thread.Sleep(1000);

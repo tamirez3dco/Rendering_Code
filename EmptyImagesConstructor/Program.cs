@@ -6,6 +6,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading;
 using System.Web.Script.Serialization;
+using System.Windows.Forms;
 
 namespace EmptyImagesConstructor
 {
@@ -67,6 +68,7 @@ namespace EmptyImagesConstructor
                 String[] allViews = { "Render", "Top", "Front" };
                 foreach (String view_key in allViews)
                 {
+
                     viewPath = sizePath + Path.DirectorySeparatorChar + view_key;
                     if (!Directory.Exists(viewPath)) Directory.CreateDirectory(viewPath);
                     fullPath = viewPath + Path.DirectorySeparatorChar + @"empty.jpg";
