@@ -5,6 +5,8 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Threading;
+using System.Web.Script.Serialization;
+using System.Windows.Forms;
 
 namespace EmptyImagesConstructor
 {
@@ -30,16 +32,17 @@ namespace EmptyImagesConstructor
                         grasshopper.OpenDocument(@"C:\inetpub\ftproot\Rendering_Data\GH_Def_files\iPhone-frames-trial-release.gh");
                         //bool res = grasshopper.AssignDataToParameter("Num", (Object)0.5);
             */
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            Object[] allScenes = (Object[])ser.DeserializeObject(args[0]);
 
-            String[] allScenes = { "cases.3dm", "rings.3dm", "vases.3dm" };
 
             String basicPath = @"C:\inetpub\ftproot\empty_images_comparer";
             UtilsDLL.Rhino.Rhino_Wrapper rhino_wrapper = null;
-            foreach (String scene_key in allScenes)
+            foreach (String scene_obj in allScenes)
             {
-                String scenePath = basicPath + Path.DirectorySeparatorChar + scene_key;
+                String scenePath = basicPath + Path.DirectorySeparatorChar + (String)scene_obj;
                 if (!Directory.Exists(scenePath)) Directory.CreateDirectory(scenePath);
-                if (!UtilsDLL.Rhino.start_a_SingleRhino(scene_key, true, out rhino_wrapper))
+                if (!UtilsDLL.Rhino.start_a_SingleRhino((String)scene_obj + ".3dm", true, out rhino_wrapper))
                 {
                     Console.WriteLine("Basa");
                     return;
@@ -65,6 +68,7 @@ namespace EmptyImagesConstructor
                 String[] allViews = { "Render", "Top", "Front" };
                 foreach (String view_key in allViews)
                 {
+
                     viewPath = sizePath + Path.DirectorySeparatorChar + view_key;
                     if (!Directory.Exists(viewPath)) Directory.CreateDirectory(viewPath);
                     fullPath = viewPath + Path.DirectorySeparatorChar + @"empty.jpg";
