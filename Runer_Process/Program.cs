@@ -47,6 +47,7 @@ namespace Runer_Process
             imageData = new ImageDataRequest();
 
             String jsonString = SQS_Utils.DecodeFrom64(msgBody);
+            Console.WriteLine(jsonString);
             imageData.entireJSON = jsonString;
             JavaScriptSerializer serializer = new JavaScriptSerializer();
             var jsonObject = serializer.DeserializeObject(jsonString) as Dictionary<string, object>;
@@ -977,7 +978,21 @@ namespace Runer_Process
                 }
                 else
                 {
-                    if (!UtilsDLL.Rhino.Open_GH_File(rhino_wrapper, Dirs.GH_DirPath + Path.DirectorySeparatorChar + imageData.gh_fileName))
+                    String gh_fileName = Dirs.GH_DirPath + Path.DirectorySeparatorChar + imageData.gh_fileName;
+                    if (!File.Exists(gh_fileName))
+                    {
+                        gh_fileName = Dirs.ghx_local_DirPath + Path.DirectorySeparatorChar + imageData.gh_fileName;
+                        if (!File.Exists(gh_fileName))
+                        {
+                            if (!S3_Utils.Download_File_From_S3(ghx_bucket_name, gh_fileName, "gh_files/"+imageData.gh_fileName))
+                            {
+                                log("ERROR!!: S3_Utils.Download_File_From_S3(" + imageData.gh_fileName  + ") failed !!!");
+                                return false;
+                            }
+                        }
+                    }
+
+                    if (!UtilsDLL.Rhino.Open_GH_File(rhino_wrapper, gh_fileName))
                     {
                         logLine = "Open_GH_File(imageData[imageData.gh_filePath=" + imageData.gh_fileName + "); failed";
                         log(logLine);

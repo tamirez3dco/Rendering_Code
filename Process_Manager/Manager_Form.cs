@@ -233,7 +233,7 @@ namespace Process_Manager
                         Fuckups_DB.Add_Fuckup((String)row.Cells[(int)ColumnsIndex.ITEM_ID].Value);
 
                         row.Cells[(int)ColumnsIndex.ERROR_LINE].Value = msg;
-
+                        
                         int rhino_pid = (int)row.Cells[(int)ColumnsIndex.RHINO_PID].Value;
                         int runer_pid = (int)row.Cells[(int)ColumnsIndex.RUNER_PID].Value;
                         // color row to red
@@ -263,6 +263,7 @@ namespace Process_Manager
                         
 
                         Start_New_Runner(single_scene_params_dict);
+                         
                     }
                     else //("FUCKUP DELETED") or other)
                     {
