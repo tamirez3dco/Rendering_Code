@@ -99,7 +99,8 @@ namespace Process_Manager
                     MessageBox.Show("S3_Utils.Make_Sure_Bucket_Exists(stl_bucket_name=" + stl_bucket_name + ") failed!!!");
                     return false;
                 }
-                ghx_bucket_name = name + "_ghx_Bucket";
+                //ghx_bucket_name = name + "_ghx_Bucket";
+                ghx_bucket_name = "ez3d_media";
                 if (!S3_Utils.Make_Sure_Bucket_Exists("ghx_bucket_name"))
                 {
                     MessageBox.Show("S3_Utils.Make_Sure_Bucket_Exists(ghx_bucket_name=" + ghx_bucket_name + ") failed!!!");

@@ -867,7 +867,7 @@ namespace Runer_Process
                 String fileName = request.gh_fileName;
                 reply[ImageDataRequest.GH_FILE_JSON_KEY] = fileName;
                 String local_raw_ghx_path = Path.Combine(Dirs.ghx_local_DirPath, fileName);
-                if (!S3_Utils.Download_File_From_S3(ghx_bucket_name, local_raw_ghx_path, fileName))
+                if (!S3_Utils.Download_File_From_S3(ghx_bucket_name, local_raw_ghx_path, "gh_files/"+fileName))
                 {
                     log("S3_Utils.Download_File_From_S3(ghx_bucket_name=" + ghx_bucket_name + ", local_raw_ghx_path=" + local_raw_ghx_path + ", fileName=" + fileName + ")");
                     return false;
@@ -925,7 +925,7 @@ namespace Runer_Process
 
 
                 String remote_url;
-                if (!S3_Utils.Write_File_To_S3(ghx_bucket_name, local_adjusted_ghx_path, adjusted_fileName,out remote_url))
+                if (!S3_Utils.Write_File_To_S3(ghx_bucket_name, local_adjusted_ghx_path,"gh_files/"+adjusted_fileName,out remote_url))
                 {
                     log("S3_Utils.Write_File_To_S3(ghx_bucket=" + ghx_bucket_name + ", local_raw_ghx_path=" + local_raw_ghx_path + ", fileName=" + fileName + ")");
                     return false;
