@@ -134,7 +134,16 @@ namespace Runer_Process
             }
             else
             {
-                imageData.viewName = (String)jsonDict["view_name"];
+                String jsonViewName = ((String)jsonDict["view_name"]).Trim();
+                if (jsonViewName == String.Empty)
+                {
+                    imageData.viewName = "Render";
+                }
+                else
+                {
+                    imageData.viewName = jsonViewName;
+                }
+                
             }
 
             if (!jsonDict.ContainsKey("params"))
