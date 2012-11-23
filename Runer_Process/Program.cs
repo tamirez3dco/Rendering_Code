@@ -603,76 +603,76 @@ namespace Runer_Process
                     return;
                 }
 
-
                 DateTime time_after_Process_Into_Image_File = DateTime.Now;
-                // check with empty images
-                Color[] shortCut;
-                if (!UtilsDLL.Image_Utils.shortCut(resultingLocalImageFilePath,out shortCut))
+                if (!imageData.getSTL)
                 {
-                    String logLine = "UtilsDLL.Image_Utils.shortCut(file=" + resultingLocalImageFilePath+"  failed!!! ().";
-                    lastLogMsg = logLine;
-                    log(logLine);
-                    lastResult = CycleResult.FAIL;
-                    return;
-                }
-
-
-                if (!skip_empty_check)
-                {
-                    String size_key = imageData.imageSize.Width + "_" + imageData.imageSize.Height;
-                    if (!emptyShortCuts.ContainsKey(size_key))
+                    // check with empty images
+                    Color[] shortCut;
+                    if (!UtilsDLL.Image_Utils.shortCut(resultingLocalImageFilePath, out shortCut))
                     {
-                        String logLine = "Found no empty image file to compare to (size_key=" + size_key + " )!!";
+                        String logLine = "UtilsDLL.Image_Utils.shortCut(file=" + resultingLocalImageFilePath + "  failed!!! ().";
                         lastLogMsg = logLine;
                         log(logLine);
                         lastResult = CycleResult.FAIL;
                         return;
                     }
 
-                    if (!emptyShortCuts[size_key].ContainsKey(imageData.viewName))
-                    {
-                        String logLine = "Found no empty image file to compare to (viewName=" + imageData.viewName + " )!!";
-                        lastLogMsg = logLine;
-                        log(logLine);
-                        lastResult = CycleResult.FAIL;
-                        return;
-                    }
 
-                    if (emptyShortCuts[size_key][imageData.viewName].Count == 0)
+                    if (!skip_empty_check)
                     {
-                        String logLine = "Found no empty image file to compare to (Count==0)!!";
-                        lastLogMsg = logLine;
-                        log(logLine);
-                        lastResult = CycleResult.FAIL;
-                        return;
-                    }
-
-                    foreach (String key in emptyShortCuts[size_key][imageData.viewName].Keys)
-                    {
-                        Color[] emptyImageSC = emptyShortCuts[size_key][imageData.viewName][key];
-                        bool compRes = false;
-                        if (!UtilsDLL.Image_Utils.compare_shortcuts(shortCut, emptyImageSC, out compRes))
+                        String size_key = imageData.imageSize.Width + "_" + imageData.imageSize.Height;
+                        if (!emptyShortCuts.ContainsKey(size_key))
                         {
-                            String logLine = "Failed because comparing failed rendered image (" + resultingLocalImageFilePath + ") to  file:" + imageData.gh_fileName + Path.DirectorySeparatorChar + size_key + Path.DirectorySeparatorChar + imageData.viewName + Path.DirectorySeparatorChar + key;
+                            String logLine = "Found no empty image file to compare to (size_key=" + size_key + " )!!";
                             lastLogMsg = logLine;
                             log(logLine);
                             lastResult = CycleResult.FAIL;
                             return;
                         }
-                        if (compRes)
+
+                        if (!emptyShortCuts[size_key].ContainsKey(imageData.viewName))
                         {
-                            String logLine = "Failed because rendered image (" + resultingLocalImageFilePath + ") identical to empty image file:" + imageData.gh_fileName + Path.DirectorySeparatorChar + size_key + Path.DirectorySeparatorChar + imageData.viewName + Path.DirectorySeparatorChar + key;
+                            String logLine = "Found no empty image file to compare to (viewName=" + imageData.viewName + " )!!";
                             lastLogMsg = logLine;
                             log(logLine);
                             lastResult = CycleResult.FAIL;
                             return;
                         }
+
+                        if (emptyShortCuts[size_key][imageData.viewName].Count == 0)
+                        {
+                            String logLine = "Found no empty image file to compare to (Count==0)!!";
+                            lastLogMsg = logLine;
+                            log(logLine);
+                            lastResult = CycleResult.FAIL;
+                            return;
+                        }
+
+                        foreach (String key in emptyShortCuts[size_key][imageData.viewName].Keys)
+                        {
+                            Color[] emptyImageSC = emptyShortCuts[size_key][imageData.viewName][key];
+                            bool compRes = false;
+                            if (!UtilsDLL.Image_Utils.compare_shortcuts(shortCut, emptyImageSC, out compRes))
+                            {
+                                String logLine = "Failed because comparing failed rendered image (" + resultingLocalImageFilePath + ") to  file:" + imageData.gh_fileName + Path.DirectorySeparatorChar + size_key + Path.DirectorySeparatorChar + imageData.viewName + Path.DirectorySeparatorChar + key;
+                                lastLogMsg = logLine;
+                                log(logLine);
+                                lastResult = CycleResult.FAIL;
+                                return;
+                            }
+                            if (compRes)
+                            {
+                                String logLine = "Failed because rendered image (" + resultingLocalImageFilePath + ") identical to empty image file:" + imageData.gh_fileName + Path.DirectorySeparatorChar + size_key + Path.DirectorySeparatorChar + imageData.viewName + Path.DirectorySeparatorChar + key;
+                                lastLogMsg = logLine;
+                                log(logLine);
+                                lastResult = CycleResult.FAIL;
+                                return;
+                            }
+                        }
+
                     }
 
                 }
-
-
-
                 DateTime time_after_empty_check = DateTime.Now;
 
 /*
@@ -714,16 +714,19 @@ namespace Runer_Process
 
                 DateTime time_Before_S3 = DateTime.Now;
 
-                String fileName_on_S3 = imageData.item_id.ToString() + ".jpg";
-                String jpg_remote_url;
-                if (!S3_Utils.Write_File_To_S3(bucket_name, resultingLocalImageFilePath, fileName_on_S3, out jpg_remote_url))
+                if (!imageData.getSTL)
                 {
-                    String logLine = "Write_File_To_S3(resultingImagePath=" + resultingLocalImageFilePath + ", fileName_on_S3=" + fileName_on_S3 + ") failed !!!";
-                    log(logLine);
-                    lastLogMsg = logLine;
-//                    Send_Msg_To_ERROR_Q(imageData.item_id, logLine, beforeProcessingTime);
-                    lastResult = CycleResult.FAIL;
-                    return;
+                    String fileName_on_S3 = imageData.item_id.ToString() + ".jpg";
+                    String jpg_remote_url;
+                    if (!S3_Utils.Write_File_To_S3(bucket_name, resultingLocalImageFilePath, fileName_on_S3, out jpg_remote_url))
+                    {
+                        String logLine = "Write_File_To_S3(resultingImagePath=" + resultingLocalImageFilePath + ", fileName_on_S3=" + fileName_on_S3 + ") failed !!!";
+                        log(logLine);
+                        lastLogMsg = logLine;
+                        //                    Send_Msg_To_ERROR_Q(imageData.item_id, logLine, beforeProcessingTime);
+                        lastResult = CycleResult.FAIL;
+                        return;
+                    }
                 }
 
 
@@ -1102,10 +1105,13 @@ namespace Runer_Process
             DateTime time_beforeRender = DateTime.Now;
 
             String resultingImagePath = Dirs.images_DirPath + Path.DirectorySeparatorChar + "yofi_" + imageData.item_id + ".jpg";
-            if (!Rhino.Render(rhino_wrapper, imageData.viewName, imageData.imageSize, resultingImagePath))
+            if (!imageData.getSTL)
             {
-                log("Render(imageData=" + imageData.ToString() + ") failed !!!");
-                return false;
+                if (!Rhino.Render(rhino_wrapper, imageData.viewName, imageData.imageSize, resultingImagePath))
+                {
+                    log("Render(imageData=" + imageData.ToString() + ") failed !!!");
+                    return false;
+                }
             }
 
             DateTime time_afterRender = DateTime.Now;
