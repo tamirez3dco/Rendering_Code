@@ -406,6 +406,35 @@ namespace Process_Manager
 
         }
 
+        private void emptyDirTimer_Tick(object sender, EventArgs e)
+        {
+
+            if (Directory.Exists(UtilsDLL.Dirs.images_DirPath))
+            {
+                DirectoryInfo dir = new DirectoryInfo(UtilsDLL.Dirs.images_DirPath);
+                FileInfo[] files = dir.GetFiles();
+                DateTime now = DateTime.Now;
+                int deletionsCounter = 0;
+                foreach (FileInfo file in files)
+                {
+                    int minutesAgo = (int)((DateTime.Now - file.CreationTime).TotalMinutes);
+                    if (minutesAgo > 5)
+                    {
+                        try
+                        {
+                            File.Delete(file.FullName);
+                        }
+                        catch (Exception exc)
+                        {
+                            continue;
+                        }
+                        deletionsCounter++;
+                    }
+                }
+                System.Console.WriteLine("Deleted " + deletionsCounter + " files");
+            }
+        }
+
     }
 
     public enum ColumnsIndex
