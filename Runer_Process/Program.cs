@@ -341,8 +341,11 @@ namespace Runer_Process
             if (!UtilsDLL.Rhino.start_a_SingleRhino(scene_fileName + ".3dm", rhino_visible, out rhino_wrapper))
             {
                 log("startSingleRhino() failed");
-                load_rhino_gate.Release();
-                MessageBox.Show("111");
+                try
+                {
+                    load_rhino_gate.Release();
+                }
+                catch (Exception e) { };
                 return;
             }
 
@@ -353,7 +356,12 @@ namespace Runer_Process
             //sw.Write("Finished Rhino startup");
 
             log("): Before rhino gate.Release() : " + DateTime.Now.ToString());
-            load_rhino_gate.Release();
+            log("startSingleRhino() failed");
+            try
+            {
+                load_rhino_gate.Release();
+            }
+            catch (Exception e) { };
             log("): After rhino gate.Release() : " + DateTime.Now.ToString());
 
             last_msg_receive_time = DateTime.Now;
