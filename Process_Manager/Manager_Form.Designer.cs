@@ -31,7 +31,6 @@
             this.components = new System.ComponentModel.Container();
             this.button2 = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.check_crashes_timer = new System.Windows.Forms.Timer(this.components);
             this.runer_id = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.scene_column = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.state = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -46,6 +45,8 @@
             this.startCycleTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.entireJSON = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.logColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.check_crashes_timer = new System.Windows.Forms.Timer(this.components);
+            this.emptyDirTimer = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -85,12 +86,6 @@
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.Size = new System.Drawing.Size(947, 242);
             this.dataGridView1.TabIndex = 2;
-            // 
-            // check_crashes_timer
-            // 
-            this.check_crashes_timer.Enabled = true;
-            this.check_crashes_timer.Interval = 5000;
-            this.check_crashes_timer.Tick += new System.EventHandler(this.check_crashes_timer_Tick);
             // 
             // runer_id
             // 
@@ -180,6 +175,18 @@
             this.logColumn.ReadOnly = true;
             this.logColumn.Width = 2000;
             // 
+            // check_crashes_timer
+            // 
+            this.check_crashes_timer.Enabled = true;
+            this.check_crashes_timer.Interval = 5000;
+            this.check_crashes_timer.Tick += new System.EventHandler(this.check_crashes_timer_Tick);
+            // 
+            // emptyDirTimer
+            // 
+            this.emptyDirTimer.Enabled = true;
+            this.emptyDirTimer.Interval = 60000;
+            this.emptyDirTimer.Tick += new System.EventHandler(this.emptyDirTimer_Tick);
+            // 
             // Manager_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -214,6 +221,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn startCycleTime;
         private System.Windows.Forms.DataGridViewTextBoxColumn entireJSON;
         private System.Windows.Forms.DataGridViewTextBoxColumn logColumn;
+        private System.Windows.Forms.Timer emptyDirTimer;
     }
 }
 
