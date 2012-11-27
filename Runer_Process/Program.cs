@@ -614,20 +614,20 @@ namespace Runer_Process
                 DateTime time_after_Process_Into_Image_File = DateTime.Now;
                 if (!imageData.getSTL)
                 {
-                    // check with empty images
-                    Color[] shortCut;
-                    if (!UtilsDLL.Image_Utils.shortCut(resultingLocalImageFilePath, out shortCut))
-                    {
-                        String logLine = "UtilsDLL.Image_Utils.shortCut(file=" + resultingLocalImageFilePath + "  failed!!! ().";
-                        lastLogMsg = logLine;
-                        log(logLine);
-                        lastResult = CycleResult.FAIL;
-                        return;
-                    }
-
-
                     if (!skip_empty_check)
                     {
+                        // check with empty images
+                        Color[] shortCut;
+                        if (!UtilsDLL.Image_Utils.shortCut(resultingLocalImageFilePath, out shortCut))
+                        {
+                            String logLine = "UtilsDLL.Image_Utils.shortCut(file=" + resultingLocalImageFilePath + "  failed!!! ().";
+                            lastLogMsg = logLine;
+                            log(logLine);
+                            lastResult = CycleResult.FAIL;
+                            return;
+                        }
+
+
                         String size_key = imageData.imageSize.Width + "_" + imageData.imageSize.Height;
                         if (!emptyShortCuts.ContainsKey(size_key))
                         {
@@ -813,7 +813,7 @@ namespace Runer_Process
                 }
                 else
                 {
-                    reply[ImageDataRequest.STATUS_JSON_KEY] = RenderStatus.FINISHED;
+                    reply[ImageDataRequest.STATUS_JSON_KEY] = RenderStatus.ERROR;
                 }
                 lastResult = CycleResult.SUCCESS;
                 
@@ -903,6 +903,7 @@ namespace Runer_Process
                     return false;
                 }
 
+/*
                 if (!Rhino.Open_GH_File(rhino_wrapper, local_adjusted_ghx_path))
                 {
                     log("Rhino.Load_GH_File(rhino_wrapper, local_adjusted_ghx_path="+local_adjusted_ghx_path+")   failed!!!");
@@ -935,7 +936,7 @@ namespace Runer_Process
                     log("Rhino.Save_GH_File(rhino_wrapper, local_adjusted_ghx_path=" + local_adjusted_ghx_path + ")   failed!!!");
                     return false;
                 }
-
+*/
 
                 String remote_url;
                 if (!S3_Utils.Write_File_To_S3(ghx_bucket_name, local_adjusted_ghx_path,"gh_files/"+adjusted_fileName,out remote_url))
