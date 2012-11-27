@@ -18,6 +18,9 @@ namespace LibTester
         {
             UtilsDLL.Dirs.get_all_relevant_dirs();
             Dictionary<String,bool> paramNames;
+            Dictionary<String,Object> resDist = new Dictionary<string,object>();
+            bool check1 = UtilsDLL.Rhino.Adjust_GHX_file(@"C:\Users\Administrator\Downloads\Fudged-Vorg-Test.ghx", @"C:\Users\Administrator\Downloads\Fudged-Vorg-Test_adj.ghx", resDist, new List<String>());
+            return;
             bool paramsRes = UtilsDLL.Rhino.Get_All_Parameters_From_GHX_file(@"C:\Temp\t13.ghx", out paramNames);
             return;
 
