@@ -408,6 +408,7 @@ namespace Runer_Process
                         }
                         break;
                     case CycleResult.NO_MSG:
+                        Thread.Sleep(200);
                         TimeSpan timeFromLastMsg = DateTime.Now - last_msg_receive_time;
                         if (timeFromLastMsg.TotalSeconds > 60)
                         {
