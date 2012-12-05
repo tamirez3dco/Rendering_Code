@@ -408,30 +408,34 @@ namespace Process_Manager
 
         private void emptyDirTimer_Tick(object sender, EventArgs e)
         {
-
-            if (Directory.Exists(UtilsDLL.Dirs.images_DirPath))
+            String[] dirsToClean = { UtilsDLL.Dirs.images_DirPath, UtilsDLL.Dirs.STL_DirPath };
+            foreach (String strDir in dirsToClean)
             {
-                DirectoryInfo dir = new DirectoryInfo(UtilsDLL.Dirs.images_DirPath);
-                FileInfo[] files = dir.GetFiles();
-                DateTime now = DateTime.Now;
-                int deletionsCounter = 0;
-                foreach (FileInfo file in files)
+                if (Directory.Exists(strDir))
                 {
-                    int minutesAgo = (int)((DateTime.Now - file.CreationTime).TotalMinutes);
-                    if (minutesAgo > 5)
+                    DirectoryInfo dir = new DirectoryInfo(strDir);
+                    FileInfo[] files = dir.GetFiles();
+                    DateTime now = DateTime.Now;
+                    int deletionsCounter = 0;
+                    foreach (FileInfo file in files)
                     {
-                        try
+                        int minutesAgo = (int)((DateTime.Now - file.CreationTime).TotalMinutes);
+                        if (minutesAgo > 2)
                         {
-                            File.Delete(file.FullName);
+                            try
+                            {
+                                File.Delete(file.FullName);
+                            }
+                            catch (Exception exc)
+                            {
+                                continue;
+                            }
+                            deletionsCounter++;
                         }
-                        catch (Exception exc)
-                        {
-                            continue;
-                        }
-                        deletionsCounter++;
                     }
+                    System.Console.WriteLine("Deleted " + deletionsCounter + " files");
                 }
-                System.Console.WriteLine("Deleted " + deletionsCounter + " files");
+
             }
         }
 
