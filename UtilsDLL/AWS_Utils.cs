@@ -10,6 +10,10 @@ namespace UtilsDLL
 {
     public class AWS_Utils
     {
+        public static bool is_aws = false;
+        public static IPAddress aws_ip;
+        public static String aws_dns = String.Empty;
+
         public static bool Get_Launch_Specific_Data(out String user_data)
         {
             user_data = String.Empty;
@@ -27,18 +31,24 @@ namespace UtilsDLL
                 user_data = sr.ReadToEnd();
 
                 Console.WriteLine("user_Data_String=" + user_data);
-
+                if (!Get_My_IP_AND_DNS(out UtilsDLL.AWS_Utils.aws_ip, out UtilsDLL.AWS_Utils.aws_dns))
+                {
+                    Console.WriteLine("Get_My_IP_AND_DNS() failed!!");
+                    return false;
+                }
+                is_aws = true;
             }
             catch (Exception e)
             {
                 Console.WriteLine("Excpetion in Get_Launch_Specific_Data(). = " + e.Message);
+                is_aws = false;
                 return false;
             }
 
             return true;
         }
 
-        public static bool Get_My_IP_AND_DNS(out String ip,out String dns)
+        public static bool Get_My_IP_AND_DNS(out IPAddress ip,out String dns)
         {
             ip = null;
             dns = null;
@@ -55,7 +65,11 @@ namespace UtilsDLL
                 Stream objStream;
                 objStream = wrGETURL.GetResponse().GetResponseStream();
                 StreamReader sr = new StreamReader(objStream);
-                ip = sr.ReadToEnd();
+                if (!IPAddress.TryParse(sr.ReadToEnd(), out ip))
+                {
+                    Console.WriteLine("(!IPAddress.TryParse(sr.ReadToEnd(), out ip))failed!!!");
+                    return false;
+                }
             }
             catch (Exception e)
             {
