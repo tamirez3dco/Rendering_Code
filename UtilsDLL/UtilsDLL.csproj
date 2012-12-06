@@ -63,7 +63,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AWS_Utils.cs" />
-    <Compile Include="CFG.cs" />
     <Compile Include="Dirs.cs" />
     <Compile Include="Fuckups_DB.cs" />
     <Compile Include="Image_Utils.cs" />
