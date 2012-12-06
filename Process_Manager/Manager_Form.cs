@@ -33,10 +33,20 @@ namespace Process_Manager
         {
             InitializeComponent();
 
-            JavaScriptSerializer serializer = new JavaScriptSerializer();
-            var jsonObject = serializer.DeserializeObject(scene_params_json) as Dictionary<string, object>;
-            params_dict = (Dictionary<String, Object>)jsonObject;
+            String jsonStr = String.Empty;
+            bool use_cfg_str_from_main = false;
+            if (!UtilsDLL.AWS_Utils.Get_Launch_Specific_Data(out jsonStr))
+            {
+                Console.WriteLine("Probably not a AWS machine - could not find userData");
+                use_cfg_str_from_main = true;
+            }
+            if (String.IsNullOrEmpty(jsonStr)) use_cfg_str_from_main = true;
+            if (use_cfg_str_from_main) jsonStr = scene_params_json;
 
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            var jsonObject = serializer.DeserializeObject(jsonStr) as Dictionary<string, object>;
+            params_dict = (Dictionary<String, Object>)jsonObject;
+            
         }
 
         private bool startAll()
