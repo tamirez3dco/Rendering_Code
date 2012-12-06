@@ -1,3 +1,4 @@
+Timeout 30
 set name=Process_Manager
 taskkill /F /IM %name%.exe
 taskkill /F /IM Runer_Process.exe
