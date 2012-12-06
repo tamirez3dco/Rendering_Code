@@ -25,6 +25,7 @@ namespace Rhino_Restarter
     {
         public static void Main(string[] args)
         {
+/*
             if (!UtilsDLL.CFG.Turn_String_Into_CFG(args))
             {
                 Console.WriteLine("UtilsDLL.CFG.Turn_String_Into_CFG(args[0]=" + args[0] + ") failed!!!");
@@ -54,8 +55,20 @@ namespace Rhino_Restarter
                     return;
                 }
             }
+*/
+            String jsonStr = String.Empty;
+            if (!UtilsDLL.AWS_Utils.Get_Launch_Specific_Data(out jsonStr))
+            {
+                Console.WriteLine("Probably not a AWS machine - could not find userData");
+            }
 
-            String my_Q_name = "restart_"+host_ip.ToString().Replace('.', '-');
+            IPAddress host_ip;
+            if (!UtilsDLL.Network_Utils.GetIP(out host_ip))
+            {
+                Console.WriteLine("(!UtilsDLL.Network_Utils.GetIP(out host_ip)) failed!!!");
+                return;
+            }
+            String my_Q_name = "restart_" + host_ip.ToString().Replace('.', '-');
 
             bool my_Q_found = false;
             String my_Q_url = String.Empty;
