@@ -356,7 +356,6 @@ namespace Runer_Process
             //sw.Write("Finished Rhino startup");
 
             log("): Before rhino gate.Release() : " + DateTime.Now.ToString());
-            log("startSingleRhino() failed");
             try
             {
                 load_rhino_gate.Release();
