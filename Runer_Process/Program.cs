@@ -232,8 +232,10 @@ namespace Runer_Process
 
         private static DateTime last_msg_receive_time;
         private static bool delayer = false;
+        private static bool disable_low_priority = false;
         private static bool useLowPrioirty_Q = false;
 
+        
 
         static void log(String str)
         {
@@ -299,10 +301,16 @@ namespace Runer_Process
             rhino_visible = (bool)params_dict["rhino_visible"];
             seconds_timeout = (int)params_dict["timeout"];
             skip_empty_check = false;
+            if (params_dict.ContainsKey("disable_low_priority"))
+            {
+                disable_low_priority = (bool)params_dict["disable_low_priority"];
+            }
+
             if (params_dict.ContainsKey("skip_empty_check"))
             {
                 skip_empty_check = (bool)params_dict["skip_empty_check"];
             }
+
             if (!skip_empty_check)
             {
                 if (!read_empty_images_of_scene(scene_fileName, out emptyShortCuts))
@@ -515,7 +523,7 @@ namespace Runer_Process
             // if there is No Msg - Sleep & continue;
             if (!msg_found)
             {
-                if (delayer) // this means we may also check on the lowprioirty Q
+                if (delayer && !disable_low_priority) // this means we may also check on the lowprioirty Q
                 {
                     bool lowPrioirty_msg_found = false;
                     if (!SQS_Utils.Get_Msg_From_Q(request_lowpriority_Q_url, out msg, out lowPrioirty_msg_found))
