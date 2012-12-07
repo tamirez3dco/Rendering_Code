@@ -29,7 +29,9 @@ namespace AWS_Batch_Tester
             {
                 String request_Q_url,request_Q_arn;
                 bool sqs_Q_found;
-                String Q_name = name_textBox.Text + "_" + sceneTextBox.Text + "_request";
+                String Q_name = name_textBox.Text + "_";
+                if (checkBox1.Checked) Q_name += "lowpriority_";
+                Q_name += sceneTextBox.Text + "_request";
 
                 if (!SQS_Utils.Find_Q_By_name(Q_name, out sqs_Q_found, out request_Q_url, out request_Q_arn))
                 {
@@ -43,71 +45,57 @@ namespace AWS_Batch_Tester
                 String[] layers = { "Default", "tamir1", "tamir2", "tamir3", "tamir4" };
                 int first_id = int.Parse(id_textBox.Text);
                 int num_msgs = int.Parse(id_till_textBox.Text);
-                double initialValue = double.Parse(value_textBox.Text);
-                double delta = double.Parse(delta_textBox.Text);
-                //[{"gh_file":"brace1.gh","item_id":501,"NumCircles":0.5,"bake":"Bracelet"}]
-                String[] optionalScenes = { "scene11.3dm", "scene13.3dm", "scene15.3dm", "scene17.3dm" };
-
-                
-                
 
                 for (int j = 0; j < Math.Ceiling((double)num_msgs / 10); j++)
                 {
                     List<String> msgEntries = new List<String>();
-                    for (int i = j * 10; i < Math.Min(num_msgs, (j + 1) * 10); i++)
+                    Dictionary<String, Object> dict = new Dictionary<String, Object>();
+
+
+                    dict["gh_file"] = file_textBox.Text;
+                    dict["view_name"] = viewTextBox.Text;
+                    dict["scene"] = sceneTextBox.Text + ".3dm";
+                    //dict["scene"] = "multiLayer.3dm";
+                    //dict["scene"] = optionalScenes[(j/3)%optionalScenes.Length];
+                    //if (i == 7) dict["scene"] = "no_such_file";
+                    dict["item_id"] = (first_id).ToString();
+
+                    dict["getSTL"] = getSTL_checkBox.Checked;
+                    //dict["load_stl"] = "Gilad_RM";
+                    dict["retries"] = 2;
+
+
+                    //String layerName = (layers[i % layers.Length]);
+                    //if (i <= 7) dict["layer_name"] = layerName;
+
+                    String layerName = "Plastic_Matt_Red";
+                    dict["layer_name"] = layerName;
+
+                    dict["params"] = new Dictionary<String, Object>();
+                    dict["width"] = 180;
+                    dict["height"] = 180;
+                    Dictionary<String, Object> paramsDict = new Dictionary<String, Object>();
+                    //double propValue = (i % 2 == 0) ? 0.1 : 0.9;
+                    Double val1 = double.Parse(value_textBox.Text);
+                    paramsDict[property_textBox.Text] = (Object)(val1);
+                    Double val2 = double.Parse(textBox1.Text);
+                    paramsDict[textBox2.Text] = val2;
+
+                    //paramsDict[property_textBox.Text] = propValue;
+                    paramsDict["textParam"] = textValue_textBox.Text;
+                    dict["params"] = paramsDict;
+                    //List<String> bakeries = new List<String>();
+                    //bakeries.Add(bake_textBox.Text);
+                    dict["bake"] = bake_textBox.Text;
+                    dict["operation"] = "render_model";
+
+                    JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
+                    string jsonString = serializer.Serialize((object)dict);
+
+                    msgEntries.Add(jsonString);
+                    if (!SQS_Utils.Send_Msg_To_Q(request_Q_url, jsonString, true))
                     {
-                        Dictionary<String, Object> dict = new Dictionary<String, Object>();
-
-
-                        dict["gh_file"] = file_textBox.Text;
-                        dict["view_name"] = viewTextBox.Text;
-                        dict["scene"] = sceneTextBox.Text +".3dm";
-                        //dict["scene"] = "multiLayer.3dm";
-                        //dict["scene"] = optionalScenes[(j/3)%optionalScenes.Length];
-                        //if (i == 7) dict["scene"] = "no_such_file";
-                        dict["item_id"] = (first_id + i).ToString();
-
-                        dict["getSTL"] = getSTL_checkBox.Checked;
-                        //dict["load_stl"] = "Gilad_RM";
-                        dict["retries"] = 2;
-
-
-                        //String layerName = (layers[i % layers.Length]);
-                        //if (i <= 7) dict["layer_name"] = layerName;
-
-                        String layerName = "Plastic_Matt_Red";
-                        dict["layer_name"] = layerName;
-
-                        dict["params"] = new Dictionary<String, Object>();
-                        dict["width"] = 180;
-                        dict["height"] = 180;
-                        Dictionary<String, Object> paramsDict = new Dictionary<String, Object>();
-                        double propValue = Math.Round(initialValue + ((i) % 10) * 0.1, 1);
-                        //double propValue = (i % 2 == 0) ? 0.1 : 0.9;
-
-                        paramsDict["a1"] = 0;
-                        paramsDict["a2"] = 0.4;
-                        paramsDict["a3"] = 0.4;
-                        paramsDict["a4"] = 0.4;
-                        //paramsDict["a5"] = 0.6;
-                        paramsDict["a6"] = propValue;
-
-                        //paramsDict[property_textBox.Text] = propValue;
-                        paramsDict["textParam"] = textValue_textBox.Text;
-                        dict["params"] = paramsDict;
-                        //List<String> bakeries = new List<String>();
-                        //bakeries.Add(bake_textBox.Text);
-                        dict["bake"] = bake_textBox.Text;
-                        dict["operation"] = "render_model";
-
-                        JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
-                        string jsonString = serializer.Serialize((object)dict);
-
-                        msgEntries.Add(jsonString);
-                        if (!SQS_Utils.Send_Msg_To_Q(request_Q_url, jsonString, true))
-                        {
-                            return;
-                        }
+                        return;
                     }
                 }
             }
@@ -235,88 +223,6 @@ namespace AWS_Batch_Tester
         {
             try
             {
-                String request_Q_url, request_Q_arn;
-                bool sqs_Q_found;
-                String Q_name = name_textBox.Text + "_" + sceneTextBox.Text + "_request";
-
-                if (!SQS_Utils.Find_Q_By_name(Q_name, out sqs_Q_found, out request_Q_url, out request_Q_arn))
-                {
-                    return;
-                }
-                if (!sqs_Q_found)
-                {
-                    return;
-                }
-
-                String[] layers = { "Default", "tamir1", "tamir2", "tamir3", "tamir4" };
-                int first_id = int.Parse(id_textBox.Text);
-                int num_msgs = int.Parse(id_till_textBox.Text);
-                double initialValue = double.Parse(value_textBox.Text);
-                double delta = double.Parse(delta_textBox.Text);
-                //[{"gh_file":"brace1.gh","item_id":501,"NumCircles":0.5,"bake":"Bracelet"}]
-                String[] optionalScenes = { "scene11.3dm", "scene13.3dm", "scene15.3dm", "scene17.3dm" };
-
-
-
-
-                for (int j = 0; j < Math.Ceiling((double)num_msgs / 10); j++)
-                {
-                    List<String> msgEntries = new List<String>();
-                    for (int i = j * 10; i < Math.Min(num_msgs, (j + 1) * 10); i++)
-                    {
-                        Dictionary<String, Object> dict = new Dictionary<String, Object>();
-
-
-                        dict["gh_file"] = file_textBox.Text;
-                        dict["view_name"] = viewTextBox.Text;
-                        dict["scene"] = sceneTextBox.Text + ".3dm";
-                        //dict["scene"] = "multiLayer.3dm";
-                        //dict["scene"] = optionalScenes[(j/3)%optionalScenes.Length];
-                        //if (i == 7) dict["scene"] = "no_such_file";
-                        dict["item_id"] = (first_id + i).ToString();
-
-                        dict["getSTL"] = getSTL_checkBox.Checked;
-                        dict["retries"] = 2;
-
-
-                        //String layerName = (layers[i % layers.Length]);
-                        //if (i <= 7) dict["layer_name"] = layerName;
-
-                        String layerName = "Gold";
-                        dict["layer_name"] = layerName;
-
-                        dict["params"] = new Dictionary<String, Object>();
-                        dict["width"] = 180;
-                        dict["height"] = 180;
-                        Dictionary<String, Object> paramsDict = new Dictionary<String, Object>();
-                        double propValue = Math.Round(initialValue + ((i + 1) % 10) * delta, 1);
-                        //double propValue = (i % 2 == 0) ? 0.1 : 0.9;
-
-                        paramsDict["a1"] = 0.4;
-                        paramsDict["a2"] = 0.1;
-                        paramsDict["a3"] = 0.1;
-                        paramsDict["a4"] = 0.5;
-                        paramsDict["a5"] = 0.5;
-                        paramsDict["a6"] = 0.5;
-
-                        paramsDict[property_textBox.Text] = propValue;
-                        paramsDict["textParam"] = textValue_textBox.Text;
-                        dict["params"] = paramsDict;
-                        //List<String> bakeries = new List<String>();
-                        //bakeries.Add(bake_textBox.Text);
-                        dict["bake"] = bake_textBox.Text;
-                        dict["operation"] = "render_model";
-
-                        JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
-                        string jsonString = serializer.Serialize((object)dict);
-
-                        msgEntries.Add(jsonString);
-                        if (!SQS_Utils.Send_Msg_To_Q(request_Q_url, jsonString, true))
-                        {
-                            return;
-                        }
-                    }
-                }
             }
             catch (AmazonSQSException ex)
             {
@@ -353,37 +259,6 @@ namespace AWS_Batch_Tester
 
         private void button6_Click(object sender, EventArgs e)
         {
-            String request_Q_url, request_Q_arn;
-            bool sqs_Q_found;
-            String Q_name = name_textBox.Text + "_" + sceneTextBox.Text + "_request";
-            char[] tokenizer = { ',' };
-            String[] labels_to_adjust = param_TextBox.Text.Split(tokenizer, StringSplitOptions.RemoveEmptyEntries);
-
-            if (!SQS_Utils.Find_Q_By_name(Q_name, out sqs_Q_found, out request_Q_url, out request_Q_arn))
-            {
-                return;
-            }
-            if (!sqs_Q_found)
-            {
-                return;
-            }
-
-            Dictionary<String,Object> dict = new Dictionary<string,object>();
-            dict["operation"] = "adjust_ghx";
-            dict["gh_file"] = file_textBox.Text;
-            if (labels_to_adjust.Length > 0)
-            {
-                dict["param"] = labels_to_adjust;
-            }
-                
-            
-            JavaScriptSerializer serializer = new JavaScriptSerializer(); //creating serializer instance of JavaScriptSerializer class
-            string jsonString = serializer.Serialize((object)dict);
-
-            if (!SQS_Utils.Send_Msg_To_Q(request_Q_url, jsonString, true))
-            {
-                return;
-            }
 
         }
 
