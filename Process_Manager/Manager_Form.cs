@@ -28,22 +28,35 @@ namespace Process_Manager
         private static bool skip_empty_check = false;
         private static bool stopOnError = false;
         private static String ghx_bucket_name;
+        private static bool disable_low_priority = false;
 
         public Manager_Form(String scene_params_json)
         {
             InitializeComponent();
 
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            var temp_Json = serializer.DeserializeObject(scene_params_json) as Dictionary<string, object>;
+            Dictionary<String, Object> temp_params = (Dictionary<String, Object>)temp_Json;
+            bool overide_aws_userdata = false;
+            if (temp_params.ContainsKey("overide_aws_userdata"))
+            {
+                overide_aws_userdata = (bool)temp_params["overide_aws_userdata"];
+            }
+
             String jsonStr = String.Empty;
             bool use_cfg_str_from_main = false;
-            if (!UtilsDLL.AWS_Utils.Get_Launch_Specific_Data(out jsonStr))
+            if (overide_aws_userdata) use_cfg_str_from_main = true;
+            else
             {
-                Console.WriteLine("Probably not a AWS machine - could not find userData");
-                use_cfg_str_from_main = true;
+                if (!UtilsDLL.AWS_Utils.Get_Launch_Specific_Data(out jsonStr))
+                {
+                    Console.WriteLine("Probably not a AWS machine - could not find userData");
+                    use_cfg_str_from_main = true;
+                }
+                if (String.IsNullOrEmpty(jsonStr)) use_cfg_str_from_main = true;
             }
-            if (String.IsNullOrEmpty(jsonStr)) use_cfg_str_from_main = true;
             if (use_cfg_str_from_main) jsonStr = scene_params_json;
 
-            JavaScriptSerializer serializer = new JavaScriptSerializer();
             var jsonObject = serializer.DeserializeObject(jsonStr) as Dictionary<string, object>;
             params_dict = (Dictionary<String, Object>)jsonObject;
             
@@ -85,6 +98,10 @@ namespace Process_Manager
                 int mult = (int)params_dict["mult"];
 
 
+                if (params_dict.ContainsKey("disable_low_priority"))
+                {
+                    disable_low_priority = (bool)params_dict["disable_low_priority"];
+                }
                 
                 if (params_dict.ContainsKey("stopOnERR"))
                 {
@@ -149,6 +166,8 @@ namespace Process_Manager
                         single_scene_params_dict["timeout"] = seconds_timeout;
                         single_scene_params_dict["rhino_visible"] = rhino_visible;
                         single_scene_params_dict["skip_empty_check"] = skip_empty_check;
+                        single_scene_params_dict["disable_low_priority"] = disable_low_priority;
+
 
                         Start_New_Runner(single_scene_params_dict);
                     }
@@ -270,6 +289,7 @@ namespace Process_Manager
                         single_scene_params_dict["timeout"] = seconds_timeout;
                         single_scene_params_dict["rhino_visible"] = rhino_visible;
                         single_scene_params_dict["skip_empty_check"] = skip_empty_check;
+                        single_scene_params_dict["disable_low_priority"] = disable_low_priority;
                         
 
                         Start_New_Runner(single_scene_params_dict);
@@ -402,6 +422,7 @@ namespace Process_Manager
                         single_scene_params_dict["timeout"] = seconds_timeout;
                         single_scene_params_dict["rhino_visible"] = rhino_visible;
                         single_scene_params_dict["skip_empty_check"] = skip_empty_check;
+                        single_scene_params_dict["disable_low_priority"] = disable_low_priority;
 
 
                         Start_New_Runner(single_scene_params_dict);
