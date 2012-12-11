@@ -9,6 +9,18 @@ namespace UtilsDLL
 {
     public class Dirs
     {
+        public static bool getUTC_Time_LastImage(DirectoryInfo dif, out DateTime resTs, out int numOfFiles)
+        {
+            FileInfo[] jpgs = dif.GetFiles();
+            resTs = DateTime.MinValue;
+            foreach (FileInfo file in jpgs)
+            {
+                if (file.CreationTimeUtc > resTs) resTs = file.CreationTimeUtc;
+            }
+            numOfFiles = jpgs.Length;
+            return true;
+        }
+
         private static bool get_STL_Dir(out String STL_DirPath)
         {
             STL_DirPath = null;
