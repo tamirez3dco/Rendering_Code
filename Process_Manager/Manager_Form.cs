@@ -70,14 +70,20 @@ namespace Process_Manager
 
                 killAll();
 
-
-                Process[] monitor = Process.GetProcessesByName("ServerMonitor");
-                if (monitor.Length == 0)
+                if (params_dict.ContainsKey("activate_monitor"))
                 {
-                    ProcessStartInfo psi = new ProcessStartInfo();
-                    psi.FileName = @"C:\Inetpub\ftproot\Rendering_Code\ServerMonitor\bin\Debug\ServerMonitor.exe";
-                    psi.UseShellExecute = true;
-                    Process p = Process.Start(psi);
+                    Boolean should_activate = (Boolean)params_dict["activate_monitor"];
+                    if (should_activate)
+                    {
+                        Process[] monitor = Process.GetProcessesByName("ServerMonitor");
+                        if (monitor.Length == 0)
+                        {
+                            ProcessStartInfo psi = new ProcessStartInfo();
+                            psi.FileName = @"C:\Inetpub\ftproot\Rendering_Code\ServerMonitor\bin\Debug\ServerMonitor.exe";
+                            psi.UseShellExecute = true;
+                            Process p = Process.Start(psi);
+                        }
+                    }
                 }
 
 
