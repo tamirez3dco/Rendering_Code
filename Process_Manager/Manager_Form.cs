@@ -70,6 +70,17 @@ namespace Process_Manager
 
                 killAll();
 
+
+                Process[] monitor = Process.GetProcessesByName("ServerMonitor");
+                if (monitor.Length == 0)
+                {
+                    ProcessStartInfo psi = new ProcessStartInfo();
+                    psi.FileName = @"C:\Inetpub\ftproot\Rendering_Code\ServerMonitor\bin\Debug\ServerMonitor.exe";
+                    psi.UseShellExecute = true;
+                    Process p = Process.Start(psi);
+                }
+
+
                 bool refresh_rhino_data = true;
                 if (params_dict.ContainsKey("refresh_rhino_data")) refresh_rhino_data = (bool)params_dict["refresh_rhino_data"];
                 if (refresh_rhino_data)
@@ -445,13 +456,14 @@ namespace Process_Manager
                 if (Directory.Exists(strDir))
                 {
                     DirectoryInfo dir = new DirectoryInfo(strDir);
-                    FileInfo[] files = dir.GetFiles();
+                    FileInfo[] files = dir.GetFiles().OrderBy(p => p.CreationTime).ToArray();
                     DateTime now = DateTime.Now;
                     int deletionsCounter = 0;
+                    if (files.Length < 5) continue;
                     foreach (FileInfo file in files)
                     {
                         int minutesAgo = (int)((DateTime.Now - file.CreationTime).TotalMinutes);
-                        if (minutesAgo > 2)
+                        if (minutesAgo > 5)
                         {
                             try
                             {
@@ -464,7 +476,7 @@ namespace Process_Manager
                             deletionsCounter++;
                         }
                     }
-                    System.Console.WriteLine("Deleted " + deletionsCounter + " files");
+                    System.Console.WriteLine("Deleted " + deletionsCounter + " files from dir=" + strDir);
                 }
 
             }
