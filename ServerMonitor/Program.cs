@@ -5,28 +5,36 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.Threading;
+using System.Diagnostics;
 
 namespace ServerMonitor
 {
     class Program
     {
+        public static void Shut_Down_Server()
+        {
+            ProcessStartInfo psi = new ProcessStartInfo("shutdown.exe", "/s /f");
+            Process p = Process.Start(psi);
+        }
 
 
         static void Main(string[] args)
         {
-            DateTime launchTimeUTC;
-            if(!Runing_Form.Utils.Get_Server_Launch_Time(out launchTimeUTC))
+            if (!UtilsDLL.Dirs.get_all_relevant_dirs())
             {
                 MessageBox.Show("ServerMonitor failed!!! - could not Get_Server_Launch_Time()");
                 return;
             }
 
-            String imagesDirPath;
-            if (!Runing_Form.Runing_Form.get_tempImages_files_Dir(out imagesDirPath))
+            DateTime launchTimeUTC;
+            if(!UtilsDLL.AWS_Utils.Get_Server_Launch_Time(out launchTimeUTC))
             {
-                MessageBox.Show("ServerMonitor failed!!! - could not get_tempImages_files_Dir()");
+                MessageBox.Show("ServerMonitor failed!!! - could not Get_Server_Launch_Time()");
                 return;
             }
+
+            String imagesDirPath = UtilsDLL.Dirs.images_DirPath;
+
             DirectoryInfo dif = new DirectoryInfo(imagesDirPath);
 
             while (true)
@@ -39,7 +47,8 @@ namespace ServerMonitor
                 int minutesToRuningHour = 60 - (minutesModulu);
                 TimeSpan timeFromLastFile = new TimeSpan(1,0,0);
                 DateTime newest = new DateTime();
-                if (!Runing_Form.Utils.getUTC_Time_LastImage(dif, out newest))
+                int numOfFiles = 0;
+                if (!UtilsDLL.Dirs.getUTC_Time_LastImage(dif,out newest,out numOfFiles))
                 {
                     MessageBox.Show("getUTC_Time_LastImage() failed!!!");
                     return;
@@ -49,14 +58,17 @@ namespace ServerMonitor
 
                 if (minutesToRuningHour < 5)
                 {
-                    if (timeFromLastFile.TotalMinutes > 5)
+                    if ((timeFromLastFile.TotalMinutes > 5) || (numOfFiles == 0))
                     {
                         //MessageBox.Show("Decided to kill server because minutesToRuningHour=" + minutesToRuningHour.ToString() + " , timeFromLastFile=" + timeFromLastFile.ToString());
-                        Runing_Form.Utils.Shut_Down_Server();
+                        Shut_Down_Server();
                     }
                 }
 
-                Console.WriteLine("minutesRunning=" + minutesRunning.ToString() + ", minutesModulu="+minutesModulu.ToString()+", minutesToRuningHour=" + minutesToRuningHour.ToString() + " , timeFromLastFile=" + timeFromLastFile.ToString());
+                String report = "minutesRunning=" + minutesRunning.ToString() + ", minutesModulu=" + minutesModulu.ToString() + ", minutesToRuningHour=" + minutesToRuningHour.ToString();
+                if (numOfFiles == 0) report += " - NO new files in the last 5 mins";
+                else report += ", timeFromLastFile=" + timeFromLastFile.Hours.ToString() + ":" + timeFromLastFile.Minutes.ToString() + ":" + timeFromLastFile.Seconds.ToString();
+                Console.WriteLine(report);
                 Thread.Sleep(60000);
             }
         }
