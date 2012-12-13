@@ -43,6 +43,11 @@ namespace EZ3D_Dell_All
                     RhinoApp.WriteLine("Giving up on Layer Objects");
                     continue;
                 }
+                if (layer.Name.ToLower().StartsWith("keep"))
+                {
+                    RhinoApp.WriteLine("Giving up on Layer " + layer.Name);
+                    continue;
+                }
                 RhinoApp.WriteLine(layer.LayerIndex.ToString() + ")(" + layer.Name + ":" + layer.ToString());
                 RhinoObject[] rhobjs = doc.Objects.FindByLayer(layer.Name);
                 foreach (RhinoObject robj in rhobjs)
