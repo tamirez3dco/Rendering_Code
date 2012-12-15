@@ -492,27 +492,48 @@ namespace Runer_Process
                 {
                     if (String.IsNullOrWhiteSpace(line)) continue;
 
-                    String fileLocation = Dirs.ghx_local_DirPath + Path.DirectorySeparatorChar + line;
-
-                    if (!File.Exists(fileLocation))
+                    Char[] tokenizer = {' '};
+                    String[] tokens = line.Split(tokenizer, StringSplitOptions.RemoveEmptyEntries);
+                    if (tokens.Length != 2)
                     {
+                        log("preloading of gh files read bad line:" + line);
+                        continue;
+                    }
+
+                    String sceneNameFromFile = tokens[1].Trim().ToLower();
+                    String sceneFileLoaded = scene_fileName.Trim().ToLower();
+
+                    bool loadThisLine = false;
+                    if (sceneNameFromFile == sceneFileLoaded) loadThisLine = true;
+                    else if (sceneNameFromFile == sceneFileLoaded+".3dm") loadThisLine = true;
+                    else if (sceneNameFromFile + ".3dm" == sceneFileLoaded) loadThisLine = true;
+
+
+                    if (!loadThisLine) continue;
+
+                    String fileName = tokens[0];
+                    String filePath = Dirs.GH_DirPath + Path.DirectorySeparatorChar + fileName;
+                    if (!File.Exists(filePath))
+                    {
+                        filePath = Dirs.ghx_local_DirPath + Path.DirectorySeparatorChar + fileName;
+
                         String temp_gh_fileLocation = Dirs.ghx_local_DirPath + Path.DirectorySeparatorChar + rhino_wrapper.rhino_pid.ToString() + "_" + line;
-                        if (!S3_Utils.Download_File_From_S3(ghx_bucket_name, temp_gh_fileLocation, "gh_files/" + line))
+                        if (!S3_Utils.Download_File_From_S3(ghx_bucket_name, temp_gh_fileLocation, "gh_files/" + fileName))
                         {
                             log("ERROR!!: S3_Utils.Download_File_From_S3(" + line + ") failed !!!");
                             return false;
                         }
-                        if (!File.Exists(fileLocation))
+                        if (!File.Exists(filePath))
                         {
-                            File.Copy(temp_gh_fileLocation, fileLocation, false);
+                            File.Copy(temp_gh_fileLocation, filePath, false);
                         }
 
                     }
 
 
-                    if (!UtilsDLL.Rhino.Open_GH_File(rhino_wrapper, fileLocation))
+                    if (!UtilsDLL.Rhino.Open_GH_File(rhino_wrapper, filePath))
                     {
-                        log("preloader could not load file:" + fileLocation);
+                        log("preloader could not load file:" + filePath);
                         continue;
                     }
                 }
