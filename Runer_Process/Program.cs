@@ -992,14 +992,6 @@ namespace Runer_Process
 
             if (imageData.gh_fileName.EndsWith(".gh") || imageData.gh_fileName.EndsWith(".ghx"))
             {
-/*
-                if (!UtilsDLL.Rhino.Set_GH_Params_To_TXT_File(rhino_wrapper, imageData.propValues))
-                {
-                    logLine = "Set_Params(imageData=" + imageData.ToString() + "]) failed !!!";
-                    log(logLine);
-                    return false;
-                }
-*/
                 if (current_GH_file == imageData.gh_fileName)
                 {
                     logLine = "Skipping Open_GH_File(imageData[imageData.gh_filePath=" + imageData.gh_fileName + ")";
@@ -1013,11 +1005,17 @@ namespace Runer_Process
                         gh_fileName = Dirs.ghx_local_DirPath + Path.DirectorySeparatorChar + imageData.gh_fileName;
                         if (!File.Exists(gh_fileName))
                         {
-                            if (!S3_Utils.Download_File_From_S3(ghx_bucket_name, gh_fileName, "gh_files/"+imageData.gh_fileName))
+                            String temp_gh_fileName = Dirs.ghx_local_DirPath + Path.DirectorySeparatorChar + rhino_wrapper.rhino_pid.ToString()+"_"+ imageData.gh_fileName;
+                            if (!S3_Utils.Download_File_From_S3(ghx_bucket_name, temp_gh_fileName, "gh_files/" + imageData.gh_fileName))
                             {
                                 log("ERROR!!: S3_Utils.Download_File_From_S3(" + imageData.gh_fileName  + ") failed !!!");
                                 return false;
                             }
+                            if (!File.Exists(gh_fileName))
+                            {
+                                File.Copy(temp_gh_fileName, gh_fileName, false);
+                            }
+
                         }
                     }
 
