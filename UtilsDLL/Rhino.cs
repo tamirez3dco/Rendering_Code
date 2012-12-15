@@ -279,10 +279,23 @@ namespace UtilsDLL
             DateTime before = DateTime.Now;
 
             try
-            {
-                rhino_wrapper.grasshopper.CloseAllDocuments();
-                Thread.Sleep(1000);
+            {               
+                FileInfo fif = new FileInfo(filePath);
+                if (!fif.Exists)
+                {
+                    log("Open_GH_File() failed because file:" + fif.FullName + "  does not exists!!");
+                }
+
+                String autoSaveFile = @"C:\Users\Administrator\AppData\Roaming\Grasshopper\AutoSave\" + fif.Name;
+                if (File.Exists(autoSaveFile))
+                {
+                    File.Delete(autoSaveFile);
+                }
+
+
+                //rhino_wrapper.grasshopper.CloseAllDocuments();
                 rhino_wrapper.grasshopper.OpenDocument(filePath);
+                Thread.Sleep(300);
             }
             catch (Exception e)
             {
