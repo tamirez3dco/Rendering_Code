@@ -319,6 +319,8 @@ namespace Runer_Process
                 }
             }
 
+
+
             // threading semaphore - named global across all machine
             if (id == 99)
             {
@@ -371,6 +373,18 @@ namespace Runer_Process
             catch (Exception e) { };
             log("): After rhino gate.Release() : " + DateTime.Now.ToString());
 
+            
+            
+            // preload necessery gh_defs
+            if (!Preloaded__GH_Defs())
+            {
+                log("Preloaded__GH_Defs() failed");
+            }
+
+            
+            
+            
+            
             last_msg_receive_time = DateTime.Now;
 
             while (true)
@@ -456,6 +470,55 @@ namespace Runer_Process
             }
 
 
+        }
+
+        private static bool Preloaded__GH_Defs()
+        {
+            String file_bucket_on_s3 = "ez3d_statics2";
+            String path_to_file_on_s3 = "sitestatic/preload_gh_defs.txt";
+            String dest_loccal_location = rhino_wrapper.rhino_pid.ToString() + "_preloading_gh_temp.txt";
+
+            // download new resh copy of the file every time
+            if (!UtilsDLL.S3_Utils.Download_File_From_S3(file_bucket_on_s3, dest_loccal_location, path_to_file_on_s3))
+            {
+                log("Get_Preloaded__GH_Defs() faield because Download_File_From_S3(file_bucket_on_s3=" + file_bucket_on_s3 + ",dest_loccal_location=" + dest_loccal_location + ",path_to_file_on_s3="+path_to_file_on_s3+") failed!!");
+                return false;
+            }
+
+            using (StreamReader sr = new StreamReader(dest_loccal_location))
+            {
+                String line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if (String.IsNullOrWhiteSpace(line)) continue;
+
+                    String fileLocation = Dirs.ghx_local_DirPath + Path.DirectorySeparatorChar + line;
+
+                    if (!File.Exists(fileLocation))
+                    {
+                        String temp_gh_fileLocation = Dirs.ghx_local_DirPath + Path.DirectorySeparatorChar + rhino_wrapper.rhino_pid.ToString() + "_" + line;
+                        if (!S3_Utils.Download_File_From_S3(ghx_bucket_name, temp_gh_fileLocation, "gh_files/" + line))
+                        {
+                            log("ERROR!!: S3_Utils.Download_File_From_S3(" + line + ") failed !!!");
+                            return false;
+                        }
+                        if (!File.Exists(fileLocation))
+                        {
+                            File.Copy(temp_gh_fileLocation, fileLocation, false);
+                        }
+
+                    }
+
+
+                    if (!UtilsDLL.Rhino.Open_GH_File(rhino_wrapper, fileLocation))
+                    {
+                        log("preloader could not load file:" + fileLocation);
+                        continue;
+                    }
+                }
+            }
+
+            return true;
         }
 
         private static bool read_empty_images_of_scene(String scene, out Dictionary<String,Dictionary<String,Dictionary<String,Color[]>>> shortCuts)
