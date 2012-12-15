@@ -362,6 +362,14 @@ namespace Runer_Process
             log("): After rhino creation : " + DateTime.Now.ToString());
             // get a list with new Rhino.. that was not there before..
 
+
+            // preload necessery gh_defs
+            if (!Preloaded__GH_Defs())
+            {
+                log("Preloaded__GH_Defs() failed");
+            }
+
+
             UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "Finished_Rhino " + rhino_wrapper.rhino_pid);
             //sw.Write("Finished Rhino startup");
 
@@ -375,11 +383,6 @@ namespace Runer_Process
 
             
             
-            // preload necessery gh_defs
-            if (!Preloaded__GH_Defs())
-            {
-                log("Preloaded__GH_Defs() failed");
-            }
 
             
             
