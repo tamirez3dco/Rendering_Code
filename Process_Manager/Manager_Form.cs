@@ -472,7 +472,7 @@ namespace Process_Manager
             foreach (String strDir in dirsToClean.Keys)
             {
                 // Get free space on C
-                if (!short_on_space && dirsToClean[strDir] == CLEAN_REQ.ONLY_IF_SHORT_ON_DISK) continue
+                if (!short_on_space && dirsToClean[strDir] == CLEAN_REQ.ONLY_IF_SHORT_ON_DISK) continue;
 
                 if (Directory.Exists(strDir))
                 {
