@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System;
+using System.Management;
 
 namespace UtilsDLL
 {
@@ -48,5 +50,17 @@ namespace UtilsDLL
             Process.Start(psi);
         }
 
+        public static long GetFreeSpace()
+       { 
+            
+        System.IO.DriveInfo C = new System.IO.DriveInfo("C");
+        long cAvailableSpace = C.AvailableFreeSpace;
+        return cAvailableSpace;
+
+
+        }
+
     }
+
+
 }
