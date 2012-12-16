@@ -454,11 +454,26 @@ namespace Process_Manager
 
         }
 
+        private enum CLEAN_REQ 
+        {
+            ALLWAYS,
+            ONLY_IF_SHORT_ON_DISK
+        }
+
+
+        public const long GB1 = 1000000000;
+
         private void emptyDirTimer_Tick(object sender, EventArgs e)
         {
-            String[] dirsToClean = { UtilsDLL.Dirs.images_DirPath, UtilsDLL.Dirs.STL_DirPath };
-            foreach (String strDir in dirsToClean)
+            Dictionary<String, CLEAN_REQ> dirsToClean = new Dictionary<string, CLEAN_REQ>();
+            dirsToClean[UtilsDLL.Dirs.images_DirPath] = CLEAN_REQ.ALLWAYS;
+            dirsToClean[UtilsDLL.Dirs.STL_DirPath] = CLEAN_REQ.ONLY_IF_SHORT_ON_DISK;
+            bool short_on_space = (UtilsDLL.Win32_API.GetFreeSpace() < GB1);
+            foreach (String strDir in dirsToClean.Keys)
             {
+                // Get free space on C
+                if (!short_on_space && dirsToClean[strDir] == CLEAN_REQ.ONLY_IF_SHORT_ON_DISK) continue
+
                 if (Directory.Exists(strDir))
                 {
                     DirectoryInfo dir = new DirectoryInfo(strDir);
