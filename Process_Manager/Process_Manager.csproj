@@ -51,6 +51,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="fuckups_idsDataSet.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>fuckups_idsDataSet.xsd</DependentUpon>
+    </Compile>
     <Compile Include="Manager_Form.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -73,6 +78,17 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="app.config" />
+    <None Include="fuckups_idsDataSet.xsc">
+      <DependentUpon>fuckups_idsDataSet.xsd</DependentUpon>
+    </None>
+    <None Include="fuckups_idsDataSet.xsd">
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>fuckups_idsDataSet.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="fuckups_idsDataSet.xss">
+      <DependentUpon>fuckups_idsDataSet.xsd</DependentUpon>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

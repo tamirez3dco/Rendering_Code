@@ -47,17 +47,31 @@
             this.logColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.check_crashes_timer = new System.Windows.Forms.Timer(this.components);
             this.emptyDirTimer = new System.Windows.Forms.Timer(this.components);
+            this.button1 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
+            this.dataGridView2 = new System.Windows.Forms.DataGridView();
+            this.fuckups_idsDataSet = new Process_Manager.fuckups_idsDataSet();
+            this.fuckupsTableBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.fuckupsTableTableAdapter = new Process_Manager.fuckups_idsDataSetTableAdapters.FuckupsTableTableAdapter();
+            this.itemidDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.fucounterDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.timeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.lastmsgDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fuckups_idsDataSet)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fuckupsTableBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(634, 400);
+            this.button2.BackColor = System.Drawing.Color.Red;
+            this.button2.Location = new System.Drawing.Point(647, 486);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(154, 74);
+            this.button2.Size = new System.Drawing.Size(132, 51);
             this.button2.TabIndex = 1;
             this.button2.Text = "Kill All";
-            this.button2.UseVisualStyleBackColor = true;
+            this.button2.UseVisualStyleBackColor = false;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // dataGridView1
@@ -84,7 +98,7 @@
             this.dataGridView1.Location = new System.Drawing.Point(12, 12);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
-            this.dataGridView1.Size = new System.Drawing.Size(947, 242);
+            this.dataGridView1.Size = new System.Drawing.Size(947, 168);
             this.dataGridView1.TabIndex = 2;
             // 
             // runer_id
@@ -187,17 +201,107 @@
             this.emptyDirTimer.Interval = 60000;
             this.emptyDirTimer.Tick += new System.EventHandler(this.emptyDirTimer_Tick);
             // 
+            // button1
+            // 
+            this.button1.BackColor = System.Drawing.Color.Red;
+            this.button1.Location = new System.Drawing.Point(398, 486);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(125, 51);
+            this.button1.TabIndex = 4;
+            this.button1.Text = "Kill Only living..";
+            this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(78, 486);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(125, 51);
+            this.button3.TabIndex = 6;
+            this.button3.Text = "Refresh fucjups table";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click_1);
+            // 
+            // dataGridView2
+            // 
+            this.dataGridView2.AllowUserToAddRows = false;
+            this.dataGridView2.AllowUserToDeleteRows = false;
+            this.dataGridView2.AllowUserToOrderColumns = true;
+            this.dataGridView2.AutoGenerateColumns = false;
+            this.dataGridView2.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView2.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.itemidDataGridViewTextBoxColumn,
+            this.fucounterDataGridViewTextBoxColumn,
+            this.timeDataGridViewTextBoxColumn,
+            this.lastmsgDataGridViewTextBoxColumn});
+            this.dataGridView2.DataSource = this.fuckupsTableBindingSource;
+            this.dataGridView2.Location = new System.Drawing.Point(33, 227);
+            this.dataGridView2.Name = "dataGridView2";
+            this.dataGridView2.ReadOnly = true;
+            this.dataGridView2.Size = new System.Drawing.Size(850, 150);
+            this.dataGridView2.TabIndex = 7;
+            // 
+            // fuckups_idsDataSet
+            // 
+            this.fuckups_idsDataSet.DataSetName = "fuckups_idsDataSet";
+            this.fuckups_idsDataSet.SchemaSerializationMode = System.Data.SchemaSerializationMode.IncludeSchema;
+            // 
+            // fuckupsTableBindingSource
+            // 
+            this.fuckupsTableBindingSource.DataMember = "FuckupsTable";
+            this.fuckupsTableBindingSource.DataSource = this.fuckups_idsDataSet;
+            // 
+            // fuckupsTableTableAdapter
+            // 
+            this.fuckupsTableTableAdapter.ClearBeforeFill = true;
+            // 
+            // itemidDataGridViewTextBoxColumn
+            // 
+            this.itemidDataGridViewTextBoxColumn.DataPropertyName = "item_id";
+            this.itemidDataGridViewTextBoxColumn.HeaderText = "item_id";
+            this.itemidDataGridViewTextBoxColumn.Name = "itemidDataGridViewTextBoxColumn";
+            this.itemidDataGridViewTextBoxColumn.ReadOnly = true;
+            // 
+            // fucounterDataGridViewTextBoxColumn
+            // 
+            this.fucounterDataGridViewTextBoxColumn.DataPropertyName = "fucounter";
+            this.fucounterDataGridViewTextBoxColumn.HeaderText = "fucounter";
+            this.fucounterDataGridViewTextBoxColumn.Name = "fucounterDataGridViewTextBoxColumn";
+            this.fucounterDataGridViewTextBoxColumn.ReadOnly = true;
+            this.fucounterDataGridViewTextBoxColumn.Width = 50;
+            // 
+            // timeDataGridViewTextBoxColumn
+            // 
+            this.timeDataGridViewTextBoxColumn.DataPropertyName = "time";
+            this.timeDataGridViewTextBoxColumn.HeaderText = "time";
+            this.timeDataGridViewTextBoxColumn.Name = "timeDataGridViewTextBoxColumn";
+            this.timeDataGridViewTextBoxColumn.ReadOnly = true;
+            // 
+            // lastmsgDataGridViewTextBoxColumn
+            // 
+            this.lastmsgDataGridViewTextBoxColumn.DataPropertyName = "last_msg";
+            this.lastmsgDataGridViewTextBoxColumn.HeaderText = "last_msg";
+            this.lastmsgDataGridViewTextBoxColumn.Name = "lastmsgDataGridViewTextBoxColumn";
+            this.lastmsgDataGridViewTextBoxColumn.ReadOnly = true;
+            this.lastmsgDataGridViewTextBoxColumn.Width = 1000;
+            // 
             // Manager_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1019, 486);
+            this.ClientSize = new System.Drawing.Size(984, 549);
+            this.Controls.Add(this.dataGridView2);
+            this.Controls.Add(this.button3);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.button2);
             this.Name = "Manager_Form";
             this.Text = "RhinoManager";
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fuckups_idsDataSet)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fuckupsTableBindingSource)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -222,6 +326,16 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn entireJSON;
         private System.Windows.Forms.DataGridViewTextBoxColumn logColumn;
         private System.Windows.Forms.Timer emptyDirTimer;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.DataGridView dataGridView2;
+        private fuckups_idsDataSet fuckups_idsDataSet;
+        private System.Windows.Forms.BindingSource fuckupsTableBindingSource;
+        private fuckups_idsDataSetTableAdapters.FuckupsTableTableAdapter fuckupsTableTableAdapter;
+        private System.Windows.Forms.DataGridViewTextBoxColumn itemidDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn fucounterDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn timeDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn lastmsgDataGridViewTextBoxColumn;
     }
 }
 

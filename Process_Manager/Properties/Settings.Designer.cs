@@ -33,5 +33,17 @@ namespace Process_Manager.Properties {
                 return ((string)(this["fuckups_idsConnectionString"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=.\\SQLEXPRESS;AttachDbFilename=C:\\inetpub\\ftproot\\Rendering_Code\\Fucku" +
+            "ps_Dataset\\fuckups_ids.mdf;Integrated Security=True;Connect Timeout=30;User Inst" +
+            "ance=True")]
+        public string fuckups_idsConnectionString1 {
+            get {
+                return ((string)(this["fuckups_idsConnectionString1"]));
+            }
+        }
     }
 }

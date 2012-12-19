@@ -778,7 +778,7 @@ namespace Runer_Process
                 }
                 DateTime time_after_empty_check = DateTime.Now;
 
-/*
+
                 if (imageData.item_id.EndsWith("22"))
                 {
                     String logLine = "Delibiretly failing item - ends with 22. ImageData=" + imageData.ToString();
@@ -788,7 +788,7 @@ namespace Runer_Process
                     lastResult = CycleResult.FAIL;
                     return;
                 }
-*/
+
                 
                 TimeSpan stl_timespan = new TimeSpan(0,0,0,99);
                 if (imageData.getSTL)

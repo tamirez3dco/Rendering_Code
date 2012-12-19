@@ -176,7 +176,7 @@
             this.sceneTextBox.Name = "sceneTextBox";
             this.sceneTextBox.Size = new System.Drawing.Size(43, 20);
             this.sceneTextBox.TabIndex = 18;
-            this.sceneTextBox.Text = "cases";
+            this.sceneTextBox.Text = "ttscene";
             // 
             // name_textBox
             // 
@@ -184,7 +184,7 @@
             this.name_textBox.Name = "name_textBox";
             this.name_textBox.Size = new System.Drawing.Size(37, 20);
             this.name_textBox.TabIndex = 19;
-            this.name_textBox.Text = "tamir";
+            this.name_textBox.Text = "deploy";
             // 
             // getSTL_checkBox
             // 

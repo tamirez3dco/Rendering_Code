@@ -205,8 +205,10 @@ namespace Process_Manager
             string jsonString = serializer.Serialize((object)single_scene_params_dict);
 
             ProcessStartInfo psi = new ProcessStartInfo();
-            psi.Arguments = jsonString.Replace("\"", "\\\"");
-            psi.FileName = @"C:\Inetpub\ftproot\Rendering_Code\Runer_Process\bin\Debug\Runer_Process.exe";
+            psi.Arguments = "\"" + jsonString.Replace("\"", "\\\"") + "\"";
+            //psi.FileName = @"C:\Inetpub\ftproot\Rendering_Code\Runer_Process\bin\Debug\Runer_Process.exe";
+            psi.FileName = @"C:\Inetpub\ftproot\Rendering_Code\Runer_Process\bin\Debug\runruner.bat";
+
             psi.UseShellExecute = true;
             Process p = Process.Start(psi);
 
@@ -276,7 +278,7 @@ namespace Process_Manager
                         }
                         
 
-                        Fuckups_DB.Add_Fuckup((String)row.Cells[(int)ColumnsIndex.ITEM_ID].Value);
+                        Fuckups_DB.Add_Fuckup((String)row.Cells[(int)ColumnsIndex.ITEM_ID].Value,msg);
 
                         row.Cells[(int)ColumnsIndex.ERROR_LINE].Value = msg;
                         
@@ -285,7 +287,8 @@ namespace Process_Manager
                         // color row to red
                         row.DefaultCellStyle.BackColor = Color.Red;
                         Win32_API.Kill_Process(rhino_pid);
-                        Win32_API.Kill_Process(runer_pid);
+                        //Win32_API.Kill_Process(runer_pid);
+
                         row.Cells[(int)ColumnsIndex.STATE].Value = "killed";
                         // release lock  (was not done by runer)
                         make_cycle_gate.Release(1);
@@ -379,6 +382,7 @@ namespace Process_Manager
 
         public void killAll()
         {
+
             ProcessStartInfo psi = new ProcessStartInfo();
             psi.FileName = "taskkill";
             psi.Arguments = "/F /IM Runer_Process.exe";
@@ -387,10 +391,18 @@ namespace Process_Manager
             psi.FileName = "taskkill";
             psi.Arguments = "/F /IM Rhino4.exe";
             Process.Start(psi);
+        }
+
+
+        public void kill_only_living()
+        {
 
         }
+
         private void Form1_Load(object sender, EventArgs e)
         {
+            // TODO: This line of code loads data into the 'fuckups_idsDataSet.FuckupsTable' table. You can move, or remove it, as needed.
+            this.fuckupsTableTableAdapter.Fill(this.fuckups_idsDataSet.FuckupsTable);
             startAll();
         }
 
@@ -405,13 +417,13 @@ namespace Process_Manager
                     TimeSpan diff = DateTime.Now - lastUpdate;
                     if (diff.TotalSeconds > seconds_timeout)
                     {
-                        Fuckups_DB.Add_Fuckup((String)row.Cells[(int)ColumnsIndex.ITEM_ID].Value);
+                        Fuckups_DB.Add_Fuckup((String)row.Cells[(int)ColumnsIndex.ITEM_ID].Value,"check crashes timer");
                         int rhino_pid = (int)row.Cells[(int)ColumnsIndex.RHINO_PID].Value;
                         int runer_pid = (int)row.Cells[(int)ColumnsIndex.RUNER_PID].Value;
                         // color row to red
                         row.DefaultCellStyle.BackColor = Color.Red;
                         Win32_API.Kill_Process(rhino_pid);
-                        Win32_API.Kill_Process(runer_pid);
+//                        Win32_API.Kill_Process(runer_pid);
                         row.Cells[(int)ColumnsIndex.STATE].Value = "killed";
                         // release lock  (was not done by runer)
                         try
@@ -500,6 +512,23 @@ namespace Process_Manager
                     System.Console.WriteLine("Deleted " + deletionsCounter + " files from dir=" + strDir);
                 }
 
+            }
+        }
+
+        private void button3_Click_1(object sender, EventArgs e)
+        {
+            this.fuckupsTableTableAdapter.Fill(this.fuckups_idsDataSet.FuckupsTable);
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                if (row.DefaultCellStyle.BackColor == Color.Red) continue;
+                int runer_pid = (int)row.Cells[(int)ColumnsIndex.RUNER_PID].Value;
+                UtilsDLL.Win32_API.Kill_Process(runer_pid);
+                int rhino_pid = (int)row.Cells[(int)ColumnsIndex.RHINO_PID].Value;
+                UtilsDLL.Win32_API.Kill_Process(rhino_pid);
             }
         }
 

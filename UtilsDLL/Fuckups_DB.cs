@@ -47,7 +47,7 @@ namespace UtilsDLL
             }
         }
 
-        public static void Add_Fuckup(String item_id)
+        public static void Add_Fuckup(String item_id, String err_msg)
         {
             using (var command = new SqlCommand("Add_Fuckup", con)
             {
@@ -55,9 +55,14 @@ namespace UtilsDLL
             })
             {
                 SqlParameter param = new SqlParameter("@id", SqlDbType.NVarChar);
+                SqlParameter msg_param = new SqlParameter("@err_msg", SqlDbType.NVarChar);
                 param.Direction = ParameterDirection.Input;
+                msg_param.Direction = ParameterDirection.Input;
                 param.Value = item_id;
+                msg_param.Value = err_msg;
                 command.Parameters.Add(param);
+                command.Parameters.Add(msg_param);
+
                 command.ExecuteNonQuery();
                 return;
             }
