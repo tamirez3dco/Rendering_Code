@@ -67,26 +67,36 @@ namespace UtilsDLL
             log("Starting  Load_STL(*,filePath=" + filePath);
             DateTime before = DateTime.Now;
 
-            try
+            int tries = 3;
+            while (tries > 0)
             {
-                if (!File.Exists(filePath))
+                tries--;
+                try
                 {
-                    Console.WriteLine("ERROR!!: filePath=" + filePath + " does not exists");
-                    return false;
+                    if (!File.Exists(filePath))
+                    {
+                        Console.WriteLine("ERROR!!: filePath=" + filePath + " does not exists");
+                        return false;
+                    }
+
+                    String importCommand = "-Import " + filePath + " Enter";
+                    log(" before runing script line : " + importCommand);
+                    int importCommandRes = rhino_wrapper.rhino_app.RunScript(importCommand, 1);
+                    log("after runing script line : " + importCommand);
+                    rhino_wrapper.rhino_app.RunScript("ChangeToCurrentLayer", 1);
+                    log("Finished succefully  Load_STL(*,filePath=" + filePath + ((int)(DateTime.Now - before).TotalMilliseconds) + " miliseconds after Starting");
+                    return true;
+                    
                 }
-
-                String importCommand = "-Import " + filePath + " Enter";
-                int importCommandRes = rhino_wrapper.rhino_app.RunScript(importCommand, 1);
-                rhino_wrapper.rhino_app.RunScript("ChangeToCurrentLayer", 1);
+                catch (Exception e)
+                {
+                    log("Exception=" + e.Message);
+                    Thread.Sleep(1000);
+                    continue;
+                }
             }
-            catch (Exception e)
-            {
-                log("Exception=" + e.Message);
-                return false;
-            }
-
-            log("Finished succefully  Load_STL(*,filePath=" + filePath + ((int)(DateTime.Now - before).TotalMilliseconds) + " miliseconds after Starting");
-            return true;
+            log("3 tries failed for Load_STL(*,filePath=" + filePath + ((int)(DateTime.Now - before).TotalMilliseconds) + " miliseconds after Starting");
+            return false;
 
         }
 
