@@ -797,11 +797,42 @@ namespace Runer_Process
                 {
                     DateTime beforeSTL = DateTime.Now;
                     String resulting_3dm_path = resultingLocalImageFilePath.Replace(".jpg",".3dm");
+
+                    int tries = 3;
                     String command = "-SelAll";
-                    rhino_wrapper.rhino_app.RunScript(command, 1);
-                    command = "-Export _GeometryOnly=Yes " + resulting_3dm_path;
-                    rhino_wrapper.rhino_app.RunScript(command, 1);
-                    //rhino_wrapper.rhino_app.RunScript("-SaveAs " + resulting_3dm_path +" Enter Enter", 1);
+                    while (tries > 0)
+                    {
+                        
+                        try
+                        {
+                            log("Before executing command : " + command);
+                            rhino_wrapper.rhino_app.RunScript(command, 1);
+                            log("After command :" + command);
+                            command = "-Export _GeometryOnly=Yes " + resulting_3dm_path;
+                            log("Before command :" + command);
+                            rhino_wrapper.rhino_app.RunScript(command, 1);
+                            log("After command :" + command);
+                            break;
+                        }
+                        catch (Exception e)
+                        {
+                            log("Excpetion : " + e.Message);
+                            Thread.Sleep(1000);
+                            tries--;
+                            continue;
+                        }
+                    }
+
+                    if (tries == 0)
+                    {
+                        String logLine = "Failed after 3 times to get STL . Giving up";
+                        log(logLine);
+                        lastLogMsg = logLine;
+                        //                        Send_Msg_To_ERROR_Q(imageData.item_id, logLine, beforeProcessingTime);
+                        lastResult = CycleResult.FAIL;
+                        return;
+                    }
+
                     stl_timespan = DateTime.Now - beforeSTL;
 
                     String stl_fileName_on_S3 = imageData.item_id.ToString() + ".3dm";
