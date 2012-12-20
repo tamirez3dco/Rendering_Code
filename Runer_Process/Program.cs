@@ -411,7 +411,6 @@ namespace Runer_Process
                         msgToSend += lastLogMsg;
                         UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "ERROR " + msgToSend);
                         Thread.Sleep(2000);
-                        MessageBox.Show("Last OK before exitting Main(). Check if err mesg received");
                         return;
                     case CycleResult.FUCKUPS_DELETED:
                         UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "FUCKUP DELETED");
