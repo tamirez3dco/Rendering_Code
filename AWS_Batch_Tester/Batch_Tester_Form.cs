@@ -33,6 +33,9 @@ namespace AWS_Batch_Tester
                 if (checkBox1.Checked) Q_name += "lowpriority_";
                 Q_name += sceneTextBox.Text + "_request";
 
+
+
+
                 if (!SQS_Utils.Find_Q_By_name(Q_name, out sqs_Q_found, out request_Q_url, out request_Q_arn))
                 {
                     return;
@@ -266,7 +269,9 @@ namespace AWS_Batch_Tester
         {
             String request_Q_url, request_Q_arn;
             bool sqs_Q_found;
-            String Q_name = name_textBox.Text + "_" + sceneTextBox.Text + "_request";
+            String Q_name = name_textBox.Text + "_";
+            if (checkBox1.Checked) Q_name += "lowpriority_";
+            Q_name += sceneTextBox.Text + "_request";
 
             if (!SQS_Utils.Find_Q_By_name(Q_name, out sqs_Q_found, out request_Q_url, out request_Q_arn))
             {
