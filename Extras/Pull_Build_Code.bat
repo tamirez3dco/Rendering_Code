@@ -19,7 +19,6 @@ echo BUILDING...
 "C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE\devenv.exe" /build Debug Rhino_Restarter.sln
 echo BUILT
 
-cd Extras
+cd ../Extras
 start runDeployFull.bat
-
 start runRestarter.bat
