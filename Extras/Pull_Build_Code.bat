@@ -22,3 +22,4 @@ echo BUILT
 cd ../Extras
 start runDeployFull.bat
 start runRestarter.bat
+pause
