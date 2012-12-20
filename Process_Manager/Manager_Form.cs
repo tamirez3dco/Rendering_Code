@@ -66,8 +66,6 @@ namespace Process_Manager
         {
             try
             {
-                UtilsDLL.Dirs.get_all_relevant_dirs();
-
                 killAll();
 
                 if (params_dict.ContainsKey("activate_monitor"))

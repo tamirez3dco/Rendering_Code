@@ -15,6 +15,9 @@ namespace Process_Manager
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+
+            UtilsDLL.Dirs.get_all_relevant_dirs();
             Application.Run(new Manager_Form(args[0]));
         }
     }
