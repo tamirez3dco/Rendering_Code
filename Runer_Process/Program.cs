@@ -410,6 +410,8 @@ namespace Runer_Process
                         if (lastResult == CycleResult.TIMEOUT) msgToSend += "TIMEOUT!!! ";
                         msgToSend += lastLogMsg;
                         UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "ERROR " + msgToSend);
+                        Thread.Sleep(2000);
+                        MessageBox.Show("Last OK before exitting Main(). Check if err mesg received");
                         return;
                     case CycleResult.FUCKUPS_DELETED:
                         UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, "FUCKUP DELETED");
@@ -778,7 +780,7 @@ namespace Runer_Process
                 }
                 DateTime time_after_empty_check = DateTime.Now;
 
-
+/*
                 if (imageData.item_id.EndsWith("22"))
                 {
                     String logLine = "Delibiretly failing item - ends with 22. ImageData=" + imageData.ToString();
@@ -788,7 +790,7 @@ namespace Runer_Process
                     lastResult = CycleResult.FAIL;
                     return;
                 }
-
+*/
                 
                 TimeSpan stl_timespan = new TimeSpan(0,0,0,99);
                 if (imageData.getSTL)
