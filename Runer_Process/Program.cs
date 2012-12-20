@@ -522,7 +522,7 @@ namespace Runer_Process
                     {
                         filePath = Dirs.ghx_local_DirPath + Path.DirectorySeparatorChar + fileName;
 
-                        String temp_gh_fileLocation = Dirs.ghx_local_DirPath + Path.DirectorySeparatorChar + rhino_wrapper.rhino_pid.ToString() + "_" + line;
+                        String temp_gh_fileLocation = Dirs.ghx_local_DirPath + Path.DirectorySeparatorChar + rhino_wrapper.rhino_pid.ToString() + "_" + fileName;
                         if (!S3_Utils.Download_File_From_S3(ghx_bucket_name, temp_gh_fileLocation, "gh_files/" + fileName))
                         {
                             log("ERROR!!: S3_Utils.Download_File_From_S3(" + line + ") failed !!!");
