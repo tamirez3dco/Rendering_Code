@@ -210,6 +210,10 @@ namespace Process_Manager
             psi.UseShellExecute = true;
             Process p = Process.Start(psi);
 
+            /*
+             * 
+             * */
+
             dataGridView1.Rows.Add(
                 single_scene_params_dict["id"],
                 single_scene_params_dict["scene"],
@@ -217,6 +221,7 @@ namespace Process_Manager
                 String.Empty,
                 String.Empty,
                 DateTime.Now.ToString(),
+                "0",
                 String.Empty,
                 p.Id,
                 single_scene_params_dict["request_Q_url"],
@@ -255,7 +260,10 @@ namespace Process_Manager
                         {
                             DateTime startCycleTime = DateTime.Parse((String)(row.Cells[(int)ColumnsIndex.START_CYCLE_TIME].Value));
                             TimeSpan cycleDuration = DateTime.Now - startCycleTime;
+                            int prevSucucess = int.Parse((String)row.Cells[(int)ColumnsIndex.SUCCESSES].Value);
+                            Console.WriteLine("prevSuc=" + prevSucucess);
                             row.Cells[(int)ColumnsIndex.LAST_DURATION].Value = String.Format("{0:0.00}", cycleDuration.TotalSeconds);
+                            row.Cells[(int)ColumnsIndex.SUCCESSES].Value = (prevSucucess + 1).ToString();
                         }
                         String stateToWrite = modeling_state + " model";
 
@@ -540,6 +548,7 @@ namespace Process_Manager
         ITEM_ID,
         LAST_DURATION,
         LAST_UPDATE,
+        SUCCESSES,
         RHINO_PID,
         RUNER_PID,
         REQUEST_URL,
