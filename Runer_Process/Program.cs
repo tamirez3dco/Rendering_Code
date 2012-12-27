@@ -240,7 +240,7 @@ namespace Runer_Process
         static void log(String str)
         {
             int id = (int)params_dict["id"];
-            Console.WriteLine((id.ToString() + "): " + str));
+            Console.WriteLine((id.ToString() + "): " + DateTime.Now.Hour.ToString() + ":" + DateTime.Now.Minute.ToString() + ":" + DateTime.Now.Second.ToString() + " - " + str));
         }
 
 
