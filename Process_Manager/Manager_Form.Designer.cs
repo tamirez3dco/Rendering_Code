@@ -31,12 +31,25 @@
             this.components = new System.ComponentModel.Container();
             this.button2 = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.check_crashes_timer = new System.Windows.Forms.Timer(this.components);
+            this.emptyDirTimer = new System.Windows.Forms.Timer(this.components);
+            this.button1 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
+            this.dataGridView2 = new System.Windows.Forms.DataGridView();
+            this.itemidDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.fucounterDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.timeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.lastmsgDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.fuckupsTableBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.fuckups_idsDataSet = new Process_Manager.fuckups_idsDataSet();
+            this.fuckupsTableTableAdapter = new Process_Manager.fuckups_idsDataSetTableAdapters.FuckupsTableTableAdapter();
             this.runer_id = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.scene_column = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.state = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.item_id = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.LastDuration = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.updateTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Successes = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.rhino_pid = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.rune_pid = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.requst_url = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -45,22 +58,10 @@
             this.startCycleTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.entireJSON = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.logColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.check_crashes_timer = new System.Windows.Forms.Timer(this.components);
-            this.emptyDirTimer = new System.Windows.Forms.Timer(this.components);
-            this.button1 = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
-            this.dataGridView2 = new System.Windows.Forms.DataGridView();
-            this.fuckups_idsDataSet = new Process_Manager.fuckups_idsDataSet();
-            this.fuckupsTableBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.fuckupsTableTableAdapter = new Process_Manager.fuckups_idsDataSetTableAdapters.FuckupsTableTableAdapter();
-            this.itemidDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.fucounterDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.timeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.lastmsgDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.fuckups_idsDataSet)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.fuckupsTableBindingSource)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fuckups_idsDataSet)).BeginInit();
             this.SuspendLayout();
             // 
             // button2
@@ -87,6 +88,7 @@
             this.item_id,
             this.LastDuration,
             this.updateTime,
+            this.Successes,
             this.rhino_pid,
             this.rune_pid,
             this.requst_url,
@@ -100,94 +102,6 @@
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.Size = new System.Drawing.Size(947, 168);
             this.dataGridView1.TabIndex = 2;
-            // 
-            // runer_id
-            // 
-            this.runer_id.HeaderText = "Runer_ID";
-            this.runer_id.Name = "runer_id";
-            this.runer_id.ReadOnly = true;
-            // 
-            // scene_column
-            // 
-            this.scene_column.HeaderText = "Scene";
-            this.scene_column.Name = "scene_column";
-            this.scene_column.ReadOnly = true;
-            // 
-            // state
-            // 
-            this.state.HeaderText = "State";
-            this.state.Name = "state";
-            this.state.ReadOnly = true;
-            // 
-            // item_id
-            // 
-            this.item_id.HeaderText = "Item Id";
-            this.item_id.Name = "item_id";
-            this.item_id.ReadOnly = true;
-            this.item_id.Width = 200;
-            // 
-            // LastDuration
-            // 
-            this.LastDuration.HeaderText = "last Duration";
-            this.LastDuration.Name = "LastDuration";
-            this.LastDuration.ReadOnly = true;
-            // 
-            // updateTime
-            // 
-            this.updateTime.HeaderText = "Last Update";
-            this.updateTime.Name = "updateTime";
-            this.updateTime.ReadOnly = true;
-            this.updateTime.Width = 200;
-            // 
-            // rhino_pid
-            // 
-            this.rhino_pid.HeaderText = "Rhino PID";
-            this.rhino_pid.Name = "rhino_pid";
-            this.rhino_pid.ReadOnly = true;
-            // 
-            // rune_pid
-            // 
-            this.rune_pid.HeaderText = "Runer PID";
-            this.rune_pid.Name = "rune_pid";
-            this.rune_pid.ReadOnly = true;
-            // 
-            // requst_url
-            // 
-            this.requst_url.HeaderText = "Request Q";
-            this.requst_url.Name = "requst_url";
-            this.requst_url.ReadOnly = true;
-            // 
-            // Request_LP_URL
-            // 
-            this.Request_LP_URL.HeaderText = "LP_URL";
-            this.Request_LP_URL.Name = "Request_LP_URL";
-            this.Request_LP_URL.ReadOnly = true;
-            // 
-            // ready_url
-            // 
-            this.ready_url.HeaderText = "Ready Q";
-            this.ready_url.Name = "ready_url";
-            this.ready_url.ReadOnly = true;
-            // 
-            // startCycleTime
-            // 
-            this.startCycleTime.HeaderText = "start Time";
-            this.startCycleTime.Name = "startCycleTime";
-            this.startCycleTime.ReadOnly = true;
-            // 
-            // entireJSON
-            // 
-            this.entireJSON.HeaderText = "Entire JSON";
-            this.entireJSON.Name = "entireJSON";
-            this.entireJSON.ReadOnly = true;
-            this.entireJSON.Width = 2000;
-            // 
-            // logColumn
-            // 
-            this.logColumn.HeaderText = "ERROR";
-            this.logColumn.Name = "logColumn";
-            this.logColumn.ReadOnly = true;
-            this.logColumn.Width = 2000;
             // 
             // check_crashes_timer
             // 
@@ -241,20 +155,6 @@
             this.dataGridView2.Size = new System.Drawing.Size(850, 150);
             this.dataGridView2.TabIndex = 7;
             // 
-            // fuckups_idsDataSet
-            // 
-            this.fuckups_idsDataSet.DataSetName = "fuckups_idsDataSet";
-            this.fuckups_idsDataSet.SchemaSerializationMode = System.Data.SchemaSerializationMode.IncludeSchema;
-            // 
-            // fuckupsTableBindingSource
-            // 
-            this.fuckupsTableBindingSource.DataMember = "FuckupsTable";
-            this.fuckupsTableBindingSource.DataSource = this.fuckups_idsDataSet;
-            // 
-            // fuckupsTableTableAdapter
-            // 
-            this.fuckupsTableTableAdapter.ClearBeforeFill = true;
-            // 
             // itemidDataGridViewTextBoxColumn
             // 
             this.itemidDataGridViewTextBoxColumn.DataPropertyName = "item_id";
@@ -285,6 +185,114 @@
             this.lastmsgDataGridViewTextBoxColumn.ReadOnly = true;
             this.lastmsgDataGridViewTextBoxColumn.Width = 1000;
             // 
+            // fuckupsTableBindingSource
+            // 
+            this.fuckupsTableBindingSource.DataMember = "FuckupsTable";
+            this.fuckupsTableBindingSource.DataSource = this.fuckups_idsDataSet;
+            // 
+            // fuckups_idsDataSet
+            // 
+            this.fuckups_idsDataSet.DataSetName = "fuckups_idsDataSet";
+            this.fuckups_idsDataSet.SchemaSerializationMode = System.Data.SchemaSerializationMode.IncludeSchema;
+            // 
+            // fuckupsTableTableAdapter
+            // 
+            this.fuckupsTableTableAdapter.ClearBeforeFill = true;
+            // 
+            // runer_id
+            // 
+            this.runer_id.HeaderText = "Runer_ID";
+            this.runer_id.Name = "runer_id";
+            this.runer_id.ReadOnly = true;
+            // 
+            // scene_column
+            // 
+            this.scene_column.HeaderText = "Scene";
+            this.scene_column.Name = "scene_column";
+            this.scene_column.ReadOnly = true;
+            // 
+            // state
+            // 
+            this.state.HeaderText = "State";
+            this.state.Name = "state";
+            this.state.ReadOnly = true;
+            // 
+            // item_id
+            // 
+            this.item_id.HeaderText = "Item Id";
+            this.item_id.Name = "item_id";
+            this.item_id.ReadOnly = true;
+            this.item_id.Width = 200;
+            // 
+            // LastDuration
+            // 
+            this.LastDuration.HeaderText = "last Duration";
+            this.LastDuration.Name = "LastDuration";
+            this.LastDuration.ReadOnly = true;
+            // 
+            // updateTime
+            // 
+            this.updateTime.HeaderText = "Last Update";
+            this.updateTime.Name = "updateTime";
+            this.updateTime.ReadOnly = true;
+            this.updateTime.Width = 200;
+            // 
+            // Successes
+            // 
+            this.Successes.HeaderText = "Successes";
+            this.Successes.Name = "Successes";
+            this.Successes.ReadOnly = true;
+            // 
+            // rhino_pid
+            // 
+            this.rhino_pid.HeaderText = "Rhino PID";
+            this.rhino_pid.Name = "rhino_pid";
+            this.rhino_pid.ReadOnly = true;
+            // 
+            // rune_pid
+            // 
+            this.rune_pid.HeaderText = "Runer PID";
+            this.rune_pid.Name = "rune_pid";
+            this.rune_pid.ReadOnly = true;
+            // 
+            // requst_url
+            // 
+            this.requst_url.HeaderText = "Request Q";
+            this.requst_url.Name = "requst_url";
+            this.requst_url.ReadOnly = true;
+            // 
+            // Request_LP_URL
+            // 
+            this.Request_LP_URL.HeaderText = "LP_URL";
+            this.Request_LP_URL.Name = "Request_LP_URL";
+            this.Request_LP_URL.ReadOnly = true;
+            // 
+            // ready_url
+            // 
+            this.ready_url.HeaderText = "Ready Q";
+            this.ready_url.Name = "ready_url";
+            this.ready_url.ReadOnly = true;
+            // 
+            // startCycleTime
+            // 
+            this.startCycleTime.HeaderText = "start Time";
+            this.startCycleTime.Name = "startCycleTime";
+            this.startCycleTime.ReadOnly = true;
+            // 
+            // entireJSON
+            // 
+            this.entireJSON.HeaderText = "Entire JSON";
+            this.entireJSON.Name = "entireJSON";
+            this.entireJSON.ReadOnly = true;
+            this.entireJSON.Width = 2000;
+            // 
+            // logColumn
+            // 
+            this.logColumn.HeaderText = "ERROR";
+            this.logColumn.Name = "logColumn";
+            this.logColumn.ReadOnly = true;
+            this.logColumn.Width = 2000;
+            // 
             // Manager_Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -300,8 +308,8 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.fuckups_idsDataSet)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.fuckupsTableBindingSource)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fuckups_idsDataSet)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -311,20 +319,6 @@
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.Timer check_crashes_timer;
-        private System.Windows.Forms.DataGridViewTextBoxColumn runer_id;
-        private System.Windows.Forms.DataGridViewTextBoxColumn scene_column;
-        private System.Windows.Forms.DataGridViewTextBoxColumn state;
-        private System.Windows.Forms.DataGridViewTextBoxColumn item_id;
-        private System.Windows.Forms.DataGridViewTextBoxColumn LastDuration;
-        private System.Windows.Forms.DataGridViewTextBoxColumn updateTime;
-        private System.Windows.Forms.DataGridViewTextBoxColumn rhino_pid;
-        private System.Windows.Forms.DataGridViewTextBoxColumn rune_pid;
-        private System.Windows.Forms.DataGridViewTextBoxColumn requst_url;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Request_LP_URL;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ready_url;
-        private System.Windows.Forms.DataGridViewTextBoxColumn startCycleTime;
-        private System.Windows.Forms.DataGridViewTextBoxColumn entireJSON;
-        private System.Windows.Forms.DataGridViewTextBoxColumn logColumn;
         private System.Windows.Forms.Timer emptyDirTimer;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button3;
@@ -336,6 +330,21 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn fucounterDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn timeDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn lastmsgDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn runer_id;
+        private System.Windows.Forms.DataGridViewTextBoxColumn scene_column;
+        private System.Windows.Forms.DataGridViewTextBoxColumn state;
+        private System.Windows.Forms.DataGridViewTextBoxColumn item_id;
+        private System.Windows.Forms.DataGridViewTextBoxColumn LastDuration;
+        private System.Windows.Forms.DataGridViewTextBoxColumn updateTime;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Successes;
+        private System.Windows.Forms.DataGridViewTextBoxColumn rhino_pid;
+        private System.Windows.Forms.DataGridViewTextBoxColumn rune_pid;
+        private System.Windows.Forms.DataGridViewTextBoxColumn requst_url;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Request_LP_URL;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ready_url;
+        private System.Windows.Forms.DataGridViewTextBoxColumn startCycleTime;
+        private System.Windows.Forms.DataGridViewTextBoxColumn entireJSON;
+        private System.Windows.Forms.DataGridViewTextBoxColumn logColumn;
     }
 }
 
