@@ -1162,7 +1162,7 @@ namespace Runer_Process
                 // therefore LOAD_stl had to be split between GH and script options
                 if (!String.IsNullOrWhiteSpace(imageData.stl_to_load))
                 {
-                    if (!load_stl(imageData.stl_to_load))
+                    if (!load_stl_wrapper(imageData.stl_to_load))
                     {
                         log("ERROR!!: load_stl(imageData.stl_to_load="+imageData.stl_to_load+") failed !!!");
                         return false;
@@ -1212,7 +1212,7 @@ namespace Runer_Process
                 // therefore LOAD_stl had to be split between GH and script options
                 if (!String.IsNullOrWhiteSpace(imageData.stl_to_load))
                 {
-                    if (!load_stl(imageData.stl_to_load))
+                    if (!load_stl_wrapper(imageData.stl_to_load))
                     {
                         log("ERROR!!: load_stl(imageData.stl_to_load=" + imageData.stl_to_load + ") failed !!!");
                         return false;
@@ -1257,6 +1257,25 @@ namespace Runer_Process
 
         }
 
+
+        private static String global_stl_to_load;
+        private static bool stl_load_res;
+        private static void load_stl_from_global()
+        {
+            stl_load_res = load_stl(global_stl_to_load);
+        }
+
+        private static bool load_stl_wrapper(string stl_to_load)
+        {
+            global_stl_to_load = stl_to_load;
+            stl_load_res = false;
+            ThreadStart ts = new ThreadStart(load_stl_from_global);
+            Thread thread = new Thread(ts);
+            thread.Start();
+            thread.Join(5 * 1000);
+
+            return stl_load_res;
+        }
         private static bool load_stl(string stl_to_load)
         {
             String stlFileName = stl_to_load.Trim();
@@ -1264,10 +1283,26 @@ namespace Runer_Process
             String stl_local_path = UtilsDLL.Dirs.STL_DirPath + Path.DirectorySeparatorChar + stlFileName;
             if (!File.Exists(stl_local_path))
             {
-                if (!S3_Utils.Download_File_From_S3(stl_bucket_name, stl_local_path, stlFileName))
+                log("Need to download file " + stl_local_path + " from S3");
+                String stl_temp_local_path = UtilsDLL.Dirs.STL_DirPath + Path.DirectorySeparatorChar + rhino_wrapper.rhino_pid + "_" + stlFileName;
+                log("Will download file " + stl_temp_local_path + " from S3");
+                if (!S3_Utils.Download_File_From_S3(stl_bucket_name, stl_temp_local_path, stlFileName))
                 {
-                    log("ERROR!!: S3_Utils.Download_File_From_S3(stl_bucket_name=" + stl_bucket_name + ", stl_local_path=" + stl_local_path + ", stlFileName=" + stlFileName + ") failed !!!");
+                    log("ERROR!!: S3_Utils.Download_File_From_S3(stl_bucket_name=" + stl_bucket_name + ", stl_temp_local_path=" + stl_temp_local_path + ", stlFileName=" + stlFileName + ") failed !!!");
                     return false;
+                }
+                log("Downloaded suucesfully file " + stl_temp_local_path + " from S3");
+                if (!File.Exists(stl_local_path))
+                {
+                    log("File : " + stl_local_path + " still does not exists. Will copy " + stl_temp_local_path + " into " + stl_local_path);
+                    File.Copy(stl_temp_local_path, stl_local_path);
+                    log("Copied " + stl_temp_local_path + " into " + stl_local_path + " extra waiting 150 milisecs");
+                    Thread.Sleep(150);
+                }
+                else
+                {
+                    log("File : " + stl_local_path + " found !!! maybe other process downloaded it !!! will wait 500 milisecs");
+                    Thread.Sleep(500);
                 }
             }
             if (!Rhino.Load_STL(rhino_wrapper, stl_local_path))
