@@ -23,6 +23,7 @@ namespace Process_Manager
                 MessageBox.Show("MakeSure_SQLEXPRESS_started() failed!!!!");
                 return;
             }
+            Console.WriteLine("sqlexpress is runing");
             Application.Run(new Manager_Form(args[0]));
         }
     }
