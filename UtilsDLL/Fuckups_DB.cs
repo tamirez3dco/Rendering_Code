@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Data.SqlClient;
 using System.Data;
+using System.ServiceProcess;
 
 namespace UtilsDLL
 {
@@ -17,7 +18,26 @@ namespace UtilsDLL
         }
 
 
+        public static bool MakeSure_SQLEXPRESS_started()
+        {
+            ServiceController sc = new ServiceController("MSSQL$SQLEXPRESS");
+            ServiceControllerStatus status = sc.Status;
+            if (sc.Status != ServiceControllerStatus.Running)
+            {
+                sc.Start();
+                try
+                {
+                    sc.WaitForStatus(ServiceControllerStatus.Running, new TimeSpan(0, 0, 30));
+                }
+                catch (System.ServiceProcess.TimeoutException e)
+                {
+                    Console.WriteLine("Database error!!! - could not start sql service. " + e.Message);
+                    return false;
+                }
+            }
+            return true;
 
+        }
         public static void Clear_DB()
         {
 
