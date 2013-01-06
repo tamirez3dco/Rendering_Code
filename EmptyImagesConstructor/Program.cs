@@ -58,7 +58,7 @@ namespace EmptyImagesConstructor
                 if (!Directory.Exists(viewPath)) Directory.CreateDirectory(viewPath);
 
                 String fullPath = viewPath + Path.DirectorySeparatorChar + @"empty.jpg";
-                bool res_4 = UtilsDLL.Rhino.Render(rhino_wrapper, onlyView, new System.Drawing.Size(height, height), fullPath);
+                bool res_4 = UtilsDLL.Rhino.Render(rhino_wrapper, new System.Drawing.Size(height, height), fullPath);
 
 
                 height = 350;
@@ -72,7 +72,7 @@ namespace EmptyImagesConstructor
                     viewPath = sizePath + Path.DirectorySeparatorChar + view_key;
                     if (!Directory.Exists(viewPath)) Directory.CreateDirectory(viewPath);
                     fullPath = viewPath + Path.DirectorySeparatorChar + @"empty.jpg";
-                    res_4 = UtilsDLL.Rhino.Render(rhino_wrapper, view_key, new System.Drawing.Size(height, height), fullPath);
+                    res_4 = UtilsDLL.Rhino.Render(rhino_wrapper, new System.Drawing.Size(height, height), fullPath);
                 }
             }
 
