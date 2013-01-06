@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
-using System;
 using System.Management;
 
 namespace UtilsDLL
