@@ -53,7 +53,7 @@ namespace STL_Checker
                     jpg_filePath += key + "_" + parameters[key] + "_";
                 }
                 jpg_filePath += ".jpg";
-                Rhino.Render(rhino_wrapper,  "Render", new Size(200, 200), jpg_filePath);
+                Rhino.Render(rhino_wrapper, new Size(200, 200), jpg_filePath);
 
                 String stl_filePath = jpg_filePath.Replace(".jpg", ".stl");
                 Rhino.save_stl(rhino_wrapper, stl_filePath);
