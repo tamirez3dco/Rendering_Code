@@ -18,6 +18,11 @@ namespace Process_Manager
 
 
             UtilsDLL.Dirs.get_all_relevant_dirs();
+            if (!UtilsDLL.Fuckups_DB.MakeSure_SQLEXPRESS_started())
+            {
+                MessageBox.Show("MakeSure_SQLEXPRESS_started() failed!!!!");
+                return;
+            }
             Application.Run(new Manager_Form(args[0]));
         }
     }
