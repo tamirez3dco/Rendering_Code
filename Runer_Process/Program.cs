@@ -1099,11 +1099,21 @@ namespace Runer_Process
                 return false;
             }
 
+
+            if (!UtilsDLL.Rhino.SetView(rhino_wrapper, imageData.viewName))
+            {
+
+                log("ERROR!!: Rhino.SetView(viewName=" + imageData.viewName + ") failed !!!");
+                return false;
+            }
+
             if (!Rhino.setDefaultLayer(rhino_wrapper, imageData.layerName))
             {
                 log("ERROR!!: Rhino.setDefaultLayer(layerName=" + imageData.layerName + ") failed !!!");
                 return false;
             }
+
+
 
             DateTime time_after_delete_and_layer = DateTime.Now;
             log("(P_into_image) deleteAll & setDefaultLayer Time=" + (time_after_delete_and_layer - time_Process_start).TotalMilliseconds.ToString() + " millis");
@@ -1241,7 +1251,7 @@ namespace Runer_Process
             String resultingImagePath = Dirs.images_DirPath + Path.DirectorySeparatorChar + "yofi_" + imageData.item_id + ".jpg";
             if (!imageData.getSTL)
             {
-                if (!Rhino.Render(rhino_wrapper, imageData.viewName, imageData.imageSize, resultingImagePath))
+                if (!Rhino.Render(rhino_wrapper, imageData.imageSize, resultingImagePath))
                 {
                     log("Render(imageData=" + imageData.ToString() + ") failed !!!");
                     return false;
