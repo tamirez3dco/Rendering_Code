@@ -404,16 +404,10 @@ namespace UtilsDLL
         }
 
 
-        public static bool Render(Rhino_Wrapper rhino_wrapper, String viewName, Size size, string resultingImagePath)
+        public static bool Render(Rhino_Wrapper rhino_wrapper, Size size, string resultingImagePath)
         {
             try
             {
-                if (!SetView(rhino_wrapper, viewName))
-                {
-                    log("Rhino.SetView(viewName=" + viewName + ") failed!!!");
-                    return false;
-                }
-
                 DateTime beforeTime = DateTime.Now;
                 String captureCommand = "-FlamingoRenderTo f " + resultingImagePath + " " + size.Width + " " + size.Height;
                 int captureCommandRes = rhino_wrapper.rhino_app.RunScript(captureCommand, 1);
