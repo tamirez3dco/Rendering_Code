@@ -176,7 +176,7 @@ namespace LibTester
                 if (!Directory.Exists(viewPath)) Directory.CreateDirectory(viewPath);
 
                 String fullPath = viewPath + Path.DirectorySeparatorChar+ @"empty.jpg";
-                bool res_4 = UtilsDLL.Rhino.Render(rhino_wrapper, onlyView, new System.Drawing.Size(height, height), fullPath);
+                bool res_4 = UtilsDLL.Rhino.Render(rhino_wrapper, new System.Drawing.Size(height, height), fullPath);
 
 
                 height = 350;
@@ -189,7 +189,7 @@ namespace LibTester
                     viewPath = sizePath + Path.DirectorySeparatorChar + view_key;
                     if (!Directory.Exists(viewPath)) Directory.CreateDirectory(viewPath);
                     fullPath = viewPath + Path.DirectorySeparatorChar + @"empty.jpg";
-                    res_4 = UtilsDLL.Rhino.Render(rhino_wrapper, view_key, new System.Drawing.Size(height, height), fullPath);
+                    res_4 = UtilsDLL.Rhino.Render(rhino_wrapper, new System.Drawing.Size(height, height), fullPath);
                 }
             }
 
@@ -208,7 +208,7 @@ namespace LibTester
 
             bool res35 = UtilsDLL.Rhino.Bake_GH(rhino_wrapper, "Bakery");
 
-            bool res4 = UtilsDLL.Rhino.Render(rhino_wrapper, "Render", new System.Drawing.Size(200, 200), @"C:\Temp\hope_" + i +".jpg");
+            bool res4 = UtilsDLL.Rhino.Render(rhino_wrapper, new System.Drawing.Size(200, 200), @"C:\Temp\hope_" + i +".jpg");
 
             }
             //            grasshopper.RunSolver(true);
