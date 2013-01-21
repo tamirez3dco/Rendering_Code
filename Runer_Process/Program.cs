@@ -867,6 +867,17 @@ namespace Runer_Process
                                     lastResult = CycleResult.FAIL;
                                     return;
                                 }
+                                String resulting_bin_path = resultingLocalImageFilePath.Replace(".jpg", ".bin");
+                                String bin_fileName_on_S3 = imageData.item_id.ToString() + ".bin";
+                                String bin_url;
+                                if (!UtilsDLL.S3_Utils.Write_File_To_S3(stl_bucket_name, resulting_bin_path, bin_fileName_on_S3, out bin_url))
+                                {
+                                    String logLine = "failed to UtilsDLL.S3_Utils.Write_File_To_S3(stl_bucket_name=" + stl_bucket_name + ", resulting_bin_path=" + resulting_bin_path + ", bin_fileName_on_S3=" + bin_fileName_on_S3 + ", out bin_url=*) !!!";
+                                    lastLogMsg = logLine;
+                                    log(logLine);
+                                    lastResult = CycleResult.FAIL;
+                                    return;
+                                }
                             }
                             break;
                         }
@@ -894,14 +905,17 @@ namespace Runer_Process
 
                     String stl_fileName_on_S3 = imageData.item_id.ToString() + "." + imageData.export_format;
                     String stl_remote_url;
-                    if (!S3_Utils.Write_File_To_S3(stl_bucket_name, resulting_3dm_path, stl_fileName_on_S3, out stl_remote_url))
+                    if (imageData.export_format != "obj")
                     {
-                        String logLine = "Write_File_To_S3(resulting_3dm_path=" + resulting_3dm_path + ", stl_fileName_on_S3=" + stl_fileName_on_S3 + ") failed !!!";
-                        log(logLine);
-                        lastLogMsg = logLine;
-//                        Send_Msg_To_ERROR_Q(imageData.item_id, logLine, beforeProcessingTime);
-                        lastResult = CycleResult.FAIL;
-                        return;
+                        if (!S3_Utils.Write_File_To_S3(stl_bucket_name, resulting_3dm_path, stl_fileName_on_S3, out stl_remote_url))
+                        {
+                            String logLine = "Write_File_To_S3(resulting_3dm_path=" + resulting_3dm_path + ", stl_fileName_on_S3=" + stl_fileName_on_S3 + ") failed !!!";
+                            log(logLine);
+                            lastLogMsg = logLine;
+                            //                        Send_Msg_To_ERROR_Q(imageData.item_id, logLine, beforeProcessingTime);
+                            lastResult = CycleResult.FAIL;
+                            return;
+                        }
                     }
                 }
 
