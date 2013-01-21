@@ -841,7 +841,7 @@ namespace Runer_Process
                             rhino_wrapper.rhino_app.RunScript(command, 1);
                             log("After command :" + command);
                             command = "-Export _GeometryOnly=Yes " + resulting_3dm_path;
-                            if (imageData.export_format == "obj") command += " Enter Enter";
+                            if (imageData.export_format == "obj") command += " Enter Geometry=Mesh  EndOfLine=CRLF  ExportRhinoObjectNames=ExportObjectsAsOBJObjects  ExportRhinoGroupOrLayerNames=DoNotExportGroupNames  ExportMeshTextureCoordinates=No  ExportMeshVertexNormals=Yes  CreateNGons=No  ExportMaterialDefinitions=No  YUp=No  WrapLongLines=No  VertexWelding=Welded  WritePrecision=16 Enter";
                             log("Before command :" + command);
                             rhino_wrapper.rhino_app.RunScript(command, 1);
                             log("After command :" + command);
