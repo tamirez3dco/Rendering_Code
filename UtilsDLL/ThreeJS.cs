@@ -31,7 +31,7 @@ namespace UtilsDLL
             System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo();
             psi.FileName = "python.exe";
             psi.WorkingDirectory = @"C:\Python27";
-            psi.Arguments = @"c:\inetpub\ftproot\Rendering_Code\ThreeJS\mrdoob-three.js-0e6f58c\utils\converters\obj\convert_obj_three.py " +
+            psi.Arguments = @"c:\inetpub\ftproot\ThreeJS\mrdoob-three.js-0e6f58c\utils\converters\obj\convert_obj_three.py " +
                              "-t binary -i " + inputPath + " -o " + outputPath;
             psi.UseShellExecute = true;
             System.Diagnostics.Process p = System.Diagnostics.Process.Start(psi);
