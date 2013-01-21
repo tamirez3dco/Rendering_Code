@@ -510,6 +510,7 @@ namespace Process_Manager
                             }
                             catch (Exception exc)
                             {
+                                System.Console.WriteLine(exc.Message);
                                 continue;
                             }
                             deletionsCounter++;
