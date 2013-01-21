@@ -33,11 +33,16 @@ namespace Runer_Process
         public String stl_to_load;
         public Object jsonObjParam;
 
+        public int reduceMesh = -1;
+        public string export_format;
+
         public const String PARAM_JSON_KEY = "param";
         public const String OPERATION_JSON_KEY = "operation";
         public const String GH_FILE_JSON_KEY = "gh_file";
         public const String STATUS_JSON_KEY = "status";
         public const String URL_JSON_KEY = "url";
+        public const String REDUCE_MESH_JSON_KEY = "reduce_mesh";
+        public const string EXPORT_FORMAT_JSON_KEY = "export_format";
 
         public const String GHX_ADJUSTING_CMD = "adjust_ghx";
         public const String RENDER_CMD = "render_model";
@@ -177,7 +182,20 @@ namespace Runer_Process
                 imageData.stl_to_load = ((String)jsonDict["load_stl"]).Trim();
             }
 
+            imageData.reduceMesh = -1;
+            if (jsonDict.ContainsKey(REDUCE_MESH_JSON_KEY))
+            {
+                Object o = jsonDict[REDUCE_MESH_JSON_KEY];
+                int vi = (int)o;
+                double vd = (double)vi;
+                imageData.reduceMesh = (int)vd;
+            }
 
+            imageData.export_format = "3dm";
+            if (jsonDict.ContainsKey(EXPORT_FORMAT_JSON_KEY))
+            {
+                imageData.export_format = (String)jsonDict[EXPORT_FORMAT_JSON_KEY];
+            }
 
             imageData.creationTime = DateTime.Now;
             return true;
@@ -194,6 +212,9 @@ namespace Runer_Process
             res += "creationTime=" + creationTime.ToShortTimeString() + Environment.NewLine;
             res += "retries=" + retries.ToString() + Environment.NewLine;
             res += "stl_to_load=" + stl_to_load;
+            res += "reduce_mesh" + reduceMesh.ToString() + Environment.NewLine;
+            res += "export_format=" + export_format + Environment.NewLine;
+
             res += "params:" + Environment.NewLine;
             foreach (String key in propValues.Keys)
             {
@@ -355,7 +376,7 @@ namespace Runer_Process
                 {
                     load_rhino_gate.Release();
                 }
-                catch (Exception e) { };
+                catch (Exception e) { log(e.Message); };
                 return;
             }
 
@@ -378,7 +399,7 @@ namespace Runer_Process
             {
                 load_rhino_gate.Release();
             }
-            catch (Exception e) { };
+            catch (Exception e) { log(e.Message); };
             log("): After rhino gate.Release() : " + DateTime.Now.ToString());
 
             
@@ -794,8 +815,20 @@ namespace Runer_Process
                 TimeSpan stl_timespan = new TimeSpan(0,0,0,99);
                 if (imageData.getSTL)
                 {
+                    if (imageData.reduceMesh > 0)
+                    {
+                        if (!Rhino.ReduceMesh(rhino_wrapper, imageData.reduceMesh))
+                        {
+                            String logLine = "Rhino.ReduceMEsh failed !!!";
+                            log(logLine);
+                            lastLogMsg = logLine;
+                            //                        Send_Msg_To_ERROR_Q(imageData.item_id, logLine, beforeProcessingTime);
+                            lastResult = CycleResult.FAIL;
+                            return;
+                        }
+                    }
                     DateTime beforeSTL = DateTime.Now;
-                    String resulting_3dm_path = resultingLocalImageFilePath.Replace(".jpg",".3dm");
+                    String resulting_3dm_path = resultingLocalImageFilePath.Replace(".jpg","."+imageData.export_format);
 
                     int tries = 3;
                     String command = "-SelAll";
@@ -808,9 +841,33 @@ namespace Runer_Process
                             rhino_wrapper.rhino_app.RunScript(command, 1);
                             log("After command :" + command);
                             command = "-Export _GeometryOnly=Yes " + resulting_3dm_path;
+                            if (imageData.export_format == "obj") command += " Enter Enter";
                             log("Before command :" + command);
                             rhino_wrapper.rhino_app.RunScript(command, 1);
                             log("After command :" + command);
+                            if (imageData.export_format == "obj")
+                            {
+                                String resulting_js_path = resultingLocalImageFilePath.Replace(".jpg",".js");
+                                if (!UtilsDLL.ThreeJS.convert_from_obj_to_js(resulting_3dm_path, resulting_js_path))
+                                {
+                                    String logLine = "failed to UtilsDLL.ThreeJS.convert_from_obj_to_js(resulting_3dm_path=" + resulting_3dm_path + ", resulting_js_path=" + resulting_js_path + ")";
+                                    lastLogMsg = logLine;
+                                    log(logLine);
+                                    lastResult = CycleResult.FAIL;
+                                    return;
+                                }
+
+                                String js_fileName_on_S3 = imageData.item_id.ToString() + ".js";
+                                String js_url;
+                                if (!UtilsDLL.S3_Utils.Write_File_To_S3(stl_bucket_name,resulting_js_path,js_fileName_on_S3,out js_url))
+                                {
+                                    String logLine = "failed to UtilsDLL.S3_Utils.Write_File_To_S3(stl_bucket_name="+stl_bucket_name+", resulting_js_path="+resulting_js_path+", js_fileName_on_S3="+js_fileName_on_S3+", out js_url=*) !!!";
+                                    lastLogMsg = logLine;
+                                    log(logLine);
+                                    lastResult = CycleResult.FAIL;
+                                    return;
+                                }
+                            }
                             break;
                         }
                         catch (Exception e)
@@ -820,6 +877,7 @@ namespace Runer_Process
                             tries--;
                             continue;
                         }
+
                     }
 
                     if (tries == 0)
@@ -834,7 +892,7 @@ namespace Runer_Process
 
                     stl_timespan = DateTime.Now - beforeSTL;
 
-                    String stl_fileName_on_S3 = imageData.item_id.ToString() + ".3dm";
+                    String stl_fileName_on_S3 = imageData.item_id.ToString() + "." + imageData.export_format;
                     String stl_remote_url;
                     if (!S3_Utils.Write_File_To_S3(stl_bucket_name, resulting_3dm_path, stl_fileName_on_S3, out stl_remote_url))
                     {
@@ -1363,6 +1421,7 @@ namespace Runer_Process
                 }
                 catch (Exception e)
                 {
+                    log(e.Message);
                     continue;
                 }
             }
