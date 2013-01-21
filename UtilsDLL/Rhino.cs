@@ -86,7 +86,7 @@ namespace UtilsDLL
                     rhino_wrapper.rhino_app.RunScript("ChangeToCurrentLayer", 1);
                     log("Finished succefully  Load_STL(*,filePath=" + filePath + ((int)(DateTime.Now - before).TotalMilliseconds) + " miliseconds after Starting");
                     return true;
-                    
+
                 }
                 catch (Exception e)
                 {
@@ -100,7 +100,7 @@ namespace UtilsDLL
 
         }
 
-        public static bool Get_All_Parameters_From_GHX_file(String local_raw_ghx_path, out Dictionary<String,bool> paramNames)
+        public static bool Get_All_Parameters_From_GHX_file(String local_raw_ghx_path, out Dictionary<String, bool> paramNames)
         {
             paramNames = new Dictionary<string, bool>();
             try
@@ -139,12 +139,12 @@ namespace UtilsDLL
         }
 
 
-        public static bool Adjust_GHX_file(String local_raw_ghx_path, String local_adjusted_ghx_path, Dictionary<String,Object> reply, List<String> screener)
+        public static bool Adjust_GHX_file(String local_raw_ghx_path, String local_adjusted_ghx_path, Dictionary<String, Object> reply, List<String> screener)
         {
-            
+
             try
             {
-                Dictionary<String,bool> currentParamNames;
+                Dictionary<String, bool> currentParamNames;
                 if (!Get_All_Parameters_From_GHX_file(local_raw_ghx_path, out currentParamNames))
                 {
                     log("Get_All_Parameters_From_GHX_file(local_raw_ghx_path=" + local_raw_ghx_path + ")  failed!!!");
@@ -161,8 +161,8 @@ namespace UtilsDLL
                 List<Object> slidersList = new List<object>();
                 foreach (XmlNode gh_obj in objList)
                 {
-                     XmlNode nickNameNode = gh_obj.SelectSingleNode("chunks/chunk/items/item[@name='NickName']");
-                     String oldNickName = nickNameNode.InnerText;
+                    XmlNode nickNameNode = gh_obj.SelectSingleNode("chunks/chunk/items/item[@name='NickName']");
+                    String oldNickName = nickNameNode.InnerText;
 
                     if (screener != null && screener.Count > 0)
                     {
@@ -232,7 +232,7 @@ namespace UtilsDLL
                             int unique_counter = 1;
                             while (true)
                             {
-                                newNickName = "AUTO_" + oldNickName+"_" + unique_counter.ToString();
+                                newNickName = "AUTO_" + oldNickName + "_" + unique_counter.ToString();
                                 if (!currentParamNames.ContainsKey(newNickName)) break;
                                 unique_counter++;
                             }
@@ -261,7 +261,7 @@ namespace UtilsDLL
 
         }
 
-        
+
         public static bool Save_GH_File(Rhino_Wrapper rhino_wrapper, string filePath)
         {
             log("Starting  Save_GH_File(*,filePath=" + filePath);
@@ -289,7 +289,7 @@ namespace UtilsDLL
             DateTime before = DateTime.Now;
 
             try
-            {               
+            {
                 FileInfo fif = new FileInfo(filePath);
                 if (!fif.Exists)
                 {
@@ -370,7 +370,7 @@ namespace UtilsDLL
                 newRhino.rhino_pid = new_pids[0];
             }
 
-            
+
             Console.WriteLine("Starting Grasshopper at " + DateTime.Now);
             newRhino.rhino_app.RunScript("_Grasshopper", 0);
             Thread.Sleep(1000);
@@ -380,7 +380,7 @@ namespace UtilsDLL
                 Console.WriteLine("ERROR!!: (grasshopper == null)");
                 return false;
             }
-            
+
             if (!rhino_visible) newRhino.grasshopper.HideEditor();
 
             String sceneFilePath = UtilsDLL.Dirs.scenes_DirPath + Path.DirectorySeparatorChar + sceneFile_name;
@@ -425,6 +425,26 @@ namespace UtilsDLL
 
         }
 
+        public static bool ReduceMesh(Rhino_Wrapper rhino_wrapper, int percentage)
+        {
+            try
+            {
+                DateTime beforeTime = DateTime.Now;
+                String reduceCommand = "-ReduceMesh R " + percentage.ToString() + " Enter";
+                int reduceCommandRes = rhino_wrapper.rhino_app.RunScript(reduceCommand, 1);
+
+                int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
+                log("After reducing by: " + reduceCommand+" returned " + reduceCommandRes.ToString() + " After " + fromStart + " milliseconds");
+            }
+            catch (Exception e)
+            {
+                log("Excpetion in reduceMesh(" +percentage.ToString()+ ") , e.Message=" + e.Message);
+                return false;
+            }
+
+            return true;
+        }
+
 
         public static bool scaleAll(Rhino_Wrapper rhino_wrapper, double scaleRatio)
         {
@@ -440,14 +460,14 @@ namespace UtilsDLL
             int intRes = rhino_wrapper.rhino_app.RunScript("-SetActiveViewport " + viewName, 1);
             return (intRes == 1);
         }
-/*
-        public static bool Open_3dm_file(Rhino_Wrapper rhino_wrapper, String tdm_filePath)
-        {
-            save_3dm(rhino_wrapper, "C:\\Temp\\stam.3dm");
-            rhino_wrapper.rhino_app.RunScript("-Open " + tdm_filePath, 1);
-            return true;
-        }
-*/
+        /*
+                public static bool Open_3dm_file(Rhino_Wrapper rhino_wrapper, String tdm_filePath)
+                {
+                    save_3dm(rhino_wrapper, "C:\\Temp\\stam.3dm");
+                    rhino_wrapper.rhino_app.RunScript("-Open " + tdm_filePath, 1);
+                    return true;
+                }
+        */
         public static bool Unify_1(Rhino_Wrapper rhino_wrapper)
         {
             int res;
@@ -496,17 +516,17 @@ namespace UtilsDLL
             rhino_wrapper.rhino_app.RunScript(command, 1);
             return true;
         }
-/*
-        public static bool Solve_And_Bake(Rhino_Wrapper rhino_wrapper, String bake)
-        {
+        /*
+                public static bool Solve_And_Bake(Rhino_Wrapper rhino_wrapper, String bake)
+                {
 
-            Object obj1 = rhino_wrapper.grasshopper.RunSolver(true);
+                    Object obj1 = rhino_wrapper.grasshopper.RunSolver(true);
 
-            Object objRes = rhino_wrapper.grasshopper.BakeDataInObject(bake);
+                    Object objRes = rhino_wrapper.grasshopper.BakeDataInObject(bake);
 
-            return true;
-        }
-*/
+                    return true;
+                }
+        */
         public static bool Solve_GH(Rhino_Wrapper rhino_wrapper)
         {
 
@@ -563,7 +583,7 @@ namespace UtilsDLL
                         String[] keys = new String[parameters.Count];
                         parameters.Keys.CopyTo(keys, 0);
                         Array.Sort(keys);
-                        for (int i = 0 ; i < keys.Length ; i++)
+                        for (int i = 0; i < keys.Length; i++)
                         {
                             String key = keys[i];
                             Object val = parameters[key];
