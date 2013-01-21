@@ -16,6 +16,10 @@ namespace LibTester
     {
         static void Main(string[] args)
         {
+
+            UtilsDLL.ThreeJS.convert_from_obj_to_js(@"C:\Temp\hope2.obj", @"C:\Temp\yalla2.js");
+            System.Drawing.Text.InstalledFontCollection col = new System.Drawing.Text.InstalledFontCollection();
+            FontFamily[] ff = col.Families;
             UtilsDLL.Dirs.get_all_relevant_dirs();
             Dictionary<String,bool> paramNames;
             Dictionary<String,Object> resDist = new Dictionary<string,object>();
