@@ -73,6 +73,7 @@
     <Compile Include="S3_Utils.cs" />
     <Compile Include="SNS_Utils.cs" />
     <Compile Include="SQS_Utils.cs" />
+    <Compile Include="ThreeJS.cs" />
     <Compile Include="Win32_API.cs" />
   </ItemGroup>
   <ItemGroup>
