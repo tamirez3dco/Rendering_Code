@@ -828,7 +828,7 @@ namespace Runer_Process
                         }
                     }
                     DateTime beforeSTL = DateTime.Now;
-                    String resulting_3dm_path = resultingLocalImageFilePath.Replace(".jpg","."+imageData.export_format);
+                    String resulting_3dm_path = resultingLocalImageFilePath.Replace(".jpg","."+imageData.export_format).Replace("yofi_","");
 
                     int tries = 3;
                     String command = "-SelAll";
@@ -847,7 +847,7 @@ namespace Runer_Process
                             log("After command :" + command);
                             if (imageData.export_format == "obj")
                             {
-                                String resulting_js_path = resultingLocalImageFilePath.Replace(".jpg",".js");
+                                String resulting_js_path = resultingLocalImageFilePath.Replace(".jpg", ".js").Replace("yofi_", "");
                                 if (!UtilsDLL.ThreeJS.convert_from_obj_to_js(resulting_3dm_path, resulting_js_path))
                                 {
                                     String logLine = "failed to UtilsDLL.ThreeJS.convert_from_obj_to_js(resulting_3dm_path=" + resulting_3dm_path + ", resulting_js_path=" + resulting_js_path + ")";
@@ -867,7 +867,7 @@ namespace Runer_Process
                                     lastResult = CycleResult.FAIL;
                                     return;
                                 }
-                                String resulting_bin_path = resultingLocalImageFilePath.Replace(".jpg", ".bin");
+                                String resulting_bin_path = resultingLocalImageFilePath.Replace(".jpg", ".bin").Replace("yofi_", "");
                                 String bin_fileName_on_S3 = imageData.item_id.ToString() + ".bin";
                                 String bin_url;
                                 if (!UtilsDLL.S3_Utils.Write_File_To_S3(stl_bucket_name, resulting_bin_path, bin_fileName_on_S3, out bin_url))
