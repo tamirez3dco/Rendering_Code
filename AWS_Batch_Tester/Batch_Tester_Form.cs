@@ -45,7 +45,7 @@ namespace AWS_Batch_Tester
                     return;
                 }
 
-                String[] layers = { "Default", "tamir1", "tamir2", "tamir3", "tamir4" };
+                String[] layers = { "Default"};
                 int first_id = int.Parse(id_textBox.Text);
                 int num_msgs = int.Parse(id_till_textBox.Text);
 
@@ -85,8 +85,12 @@ namespace AWS_Batch_Tester
                     Double val2 = double.Parse(textBox1.Text);
                     paramsDict[textBox2.Text] = val2;
 
-                    //paramsDict[property_textBox.Text] = propValue;
-                    paramsDict["textParam"] = textValue_textBox.Text;
+                    paramsDict["AUTO_Density"] = 3;
+                    paramsDict["AUTO_Pattern"] = 2;
+                    paramsDict["AUTO_Stroke"] = 1.1;
+                    paramsDict["AUTO_Symmetry"] = 5;
+                    paramsDict["AUTO_Wave"] = 0;
+                    //paramsDict["textParam"] = textValue_textBox.Text;
                     dict["params"] = paramsDict;
                     //List<String> bakeries = new List<String>();
                     //bakeries.Add(bake_textBox.Text);
