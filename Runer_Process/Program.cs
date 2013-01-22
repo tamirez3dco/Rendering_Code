@@ -817,7 +817,8 @@ namespace Runer_Process
                 {
                     if (imageData.reduceMesh > 0)
                     {
-                        if (!Rhino.ReduceMesh(rhino_wrapper, imageData.reduceMesh))
+
+                        if (!Rhino.ReduceMeshByPercentage(rhino_wrapper, imageData.reduceMesh))
                         {
                             String logLine = "Rhino.ReduceMEsh failed !!!";
                             log(logLine);
