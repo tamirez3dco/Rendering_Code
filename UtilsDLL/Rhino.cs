@@ -425,12 +425,15 @@ namespace UtilsDLL
 
         }
 
-        public static bool ReduceMesh(Rhino_Wrapper rhino_wrapper, int percentage)
+        public static bool ReduceMeshByPercentage(Rhino_Wrapper rhino_wrapper, int percentage)
         {
             try
             {
                 DateTime beforeTime = DateTime.Now;
-                String reduceCommand = "-ReduceMesh R " + percentage.ToString() + " Enter";
+                String selCommand = "-SelMesh";
+                int selCommandRes = rhino_wrapper.rhino_app.RunScript(selCommand, 1);
+
+                String reduceCommand = "-ReduceMesh _ReductionPercentage=" + percentage.ToString() + " Enter Enter";
                 int reduceCommandRes = rhino_wrapper.rhino_app.RunScript(reduceCommand, 1);
 
                 int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
