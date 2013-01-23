@@ -89,7 +89,7 @@
             this.file_textBox.Name = "file_textBox";
             this.file_textBox.Size = new System.Drawing.Size(75, 20);
             this.file_textBox.TabIndex = 7;
-            this.file_textBox.Text = "f64acbde-3ff5-11e2-bb3e-12313d17fcb1_adj.ghx";
+            this.file_textBox.Text = "2be86a02-640f-11e2-8d19-1231380fae95_adj.ghx";
             this.file_textBox.TextChanged += new System.EventHandler(this.file_textBox_TextChanged);
             // 
             // property_textBox

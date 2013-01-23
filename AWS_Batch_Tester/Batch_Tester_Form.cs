@@ -67,7 +67,8 @@ namespace AWS_Batch_Tester
                     //dict["load_stl"] = "Gilad_RM";
                     dict["retries"] = 2;
 
-                    dict["reduce_mesh"] = 43;
+                    dict["reduce_mesh"] = 5000;
+                    dict[UtilsDLL.Constants.REDUCE_BY_JSON_KEY] = Constants.REDUCE_BY_FACES;
                     dict["export_format"] = "obj";
                     //String layerName = (layers[i % layers.Length]);
                     //if (i <= 7) dict["layer_name"] = layerName;
