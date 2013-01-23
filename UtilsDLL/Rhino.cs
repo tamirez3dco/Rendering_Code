@@ -425,7 +425,7 @@ namespace UtilsDLL
 
         }
 
-        public static bool ReduceMeshByPercentage(Rhino_Wrapper rhino_wrapper, int percentage)
+        public static bool ReduceMesh(Rhino_Wrapper rhino_wrapper, int factor, String reduceBy)
         {
             try
             {
@@ -433,7 +433,23 @@ namespace UtilsDLL
                 String selCommand = "-SelMesh";
                 int selCommandRes = rhino_wrapper.rhino_app.RunScript(selCommand, 1);
 
-                String reduceCommand = "-ReduceMesh _ReductionPercentage=" + percentage.ToString() + " Enter Enter";
+                String reduceCommand = "-ReduceMesh ";
+                if (reduceBy == Constants.REDUCE_BY_PERCENTAGE)
+                {
+                    reduceCommand += "_ReductionPercentage=" + factor.ToString() + " Enter Enter";
+                }
+                else if (reduceBy == Constants.REDUCE_BY_FACES)
+                {
+                    reduceCommand += "_FaceCount=" + factor.ToString() + " Enter Enter";
+                }
+                else
+                {
+                    log("ReduceMesh() failes because reduceBY=" + reduceBy);
+                    return false;
+                }
+
+                
+                
                 int reduceCommandRes = rhino_wrapper.rhino_app.RunScript(reduceCommand, 1);
 
                 int fromStart = (int)((DateTime.Now - beforeTime).TotalMilliseconds);
@@ -441,7 +457,7 @@ namespace UtilsDLL
             }
             catch (Exception e)
             {
-                log("Excpetion in reduceMesh(" +percentage.ToString()+ ") , e.Message=" + e.Message);
+                log("Excpetion in reduceMesh(" +factor.ToString()+ ") , e.Message=" + e.Message);
                 return false;
             }
 
