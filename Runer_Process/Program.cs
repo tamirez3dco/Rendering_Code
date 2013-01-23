@@ -34,18 +34,11 @@ namespace Runer_Process
         public Object jsonObjParam;
 
         public int reduceMesh = -1;
+        public String reduceBy = Constants.REDUCE_BY_PERCENTAGE;
         public string export_format;
 
-        public const String PARAM_JSON_KEY = "param";
-        public const String OPERATION_JSON_KEY = "operation";
-        public const String GH_FILE_JSON_KEY = "gh_file";
-        public const String STATUS_JSON_KEY = "status";
-        public const String URL_JSON_KEY = "url";
-        public const String REDUCE_MESH_JSON_KEY = "reduce_mesh";
-        public const string EXPORT_FORMAT_JSON_KEY = "export_format";
+      
 
-        public const String GHX_ADJUSTING_CMD = "adjust_ghx";
-        public const String RENDER_CMD = "render_model";
         
         public static bool deciferImageDataFromBody(String msgBody, out ImageDataRequest imageData)
         {
@@ -59,30 +52,30 @@ namespace Runer_Process
             Dictionary<String, Object> jsonDict = (Dictionary<String, Object>)jsonObject;
 
             imageData.jsonObjParam = null;
-            if (!jsonDict.ContainsKey(PARAM_JSON_KEY))
+            if (!jsonDict.ContainsKey(Constants.PARAM_JSON_KEY))
             {
-                Console.WriteLine("ERROR !!! - (!jsonDict.ContainsKey(" + PARAM_JSON_KEY + ")");
+                Console.WriteLine("ERROR !!! - (!jsonDict.ContainsKey(" + Constants.PARAM_JSON_KEY + ")");
             }
             else
             {
-                imageData.jsonObjParam = jsonDict[PARAM_JSON_KEY];
-            } 
+                imageData.jsonObjParam = jsonDict[Constants.PARAM_JSON_KEY];
+            }
 
-            if (!jsonDict.ContainsKey(OPERATION_JSON_KEY))
+            if (!jsonDict.ContainsKey(Constants.OPERATION_JSON_KEY))
             {
-                Console.WriteLine("ERROR !!! - (!jsonDict.ContainsKey("+OPERATION_JSON_KEY+")");
+                Console.WriteLine("ERROR !!! - (!jsonDict.ContainsKey(" + Constants.OPERATION_JSON_KEY + ")");
                 return false;
             }
-            else imageData.operation = (String)jsonDict[OPERATION_JSON_KEY];
+            else imageData.operation = (String)jsonDict[Constants.OPERATION_JSON_KEY];
 
-            if (!jsonDict.ContainsKey(GH_FILE_JSON_KEY))
+            if (!jsonDict.ContainsKey(Constants.GH_FILE_JSON_KEY))
             {
-                Console.WriteLine("ERROR !!! - (!jsonDict.ContainsKey("+GH_FILE_JSON_KEY+"))");
+                Console.WriteLine("ERROR !!! - (!jsonDict.ContainsKey(" + Constants.GH_FILE_JSON_KEY + "))");
                 return false;
             }
-            else imageData.gh_fileName = (String)jsonDict[GH_FILE_JSON_KEY];
+            else imageData.gh_fileName = (String)jsonDict[Constants.GH_FILE_JSON_KEY];
 
-            if (imageData.operation == GHX_ADJUSTING_CMD) return true;
+            if (imageData.operation == Constants.GHX_ADJUSTING_CMD) return true;
 
             if (!jsonDict.ContainsKey("item_id"))
             {
@@ -183,18 +176,25 @@ namespace Runer_Process
             }
 
             imageData.reduceMesh = -1;
-            if (jsonDict.ContainsKey(REDUCE_MESH_JSON_KEY))
+            if (jsonDict.ContainsKey(Constants.REDUCE_MESH_JSON_KEY))
             {
-                Object o = jsonDict[REDUCE_MESH_JSON_KEY];
+                Object o = jsonDict[Constants.REDUCE_MESH_JSON_KEY];
                 int vi = (int)o;
                 double vd = (double)vi;
                 imageData.reduceMesh = (int)vd;
             }
 
-            imageData.export_format = "3dm";
-            if (jsonDict.ContainsKey(EXPORT_FORMAT_JSON_KEY))
+            imageData.reduceBy = Constants.REDUCE_BY_PERCENTAGE;
+            if (jsonDict.ContainsKey(Constants.REDUCE_BY_JSON_KEY))
             {
-                imageData.export_format = (String)jsonDict[EXPORT_FORMAT_JSON_KEY];
+                imageData.reduceBy = (String)jsonDict[Constants.REDUCE_BY_JSON_KEY];
+            }
+
+
+            imageData.export_format = "3dm";
+            if (jsonDict.ContainsKey(Constants.EXPORT_FORMAT_JSON_KEY))
+            {
+                imageData.export_format = (String)jsonDict[Constants.EXPORT_FORMAT_JSON_KEY];
             }
 
             imageData.creationTime = DateTime.Now;
@@ -444,11 +444,11 @@ namespace Runer_Process
                             TimeSpan duration = DateTime.Now - lastIDR.creationTime;
                             Dictionary<String,Object> dict = new Dictionary<string,object>();
                             dict["item_id"] = lastIDR.item_id;
-                            dict[ImageDataRequest.URL_JSON_KEY] = @"http://s3.amazonaws.com/" + bucket_name + @"/" + lastIDR.item_id + ".jpg";
+                            dict[Constants.URL_JSON_KEY] = @"http://s3.amazonaws.com/" + bucket_name + @"/" + lastIDR.item_id + ".jpg";
                             dict["duration"] = Math.Round(duration.TotalSeconds, 3);
                             dict["server"] = external_ip.ToString();
                             dict["instance_id"] = id;
-                            dict[ImageDataRequest.STATUS_JSON_KEY] = RenderStatus.ERROR.ToString();
+                            dict[Constants.STATUS_JSON_KEY] = RenderStatus.ERROR.ToString();
 
                             Send_Dict_Msg_To_Readies_Q(dict,3);
                         }
@@ -672,7 +672,7 @@ namespace Runer_Process
                 return;
             }
 
-            if (imageData.operation == ImageDataRequest.RENDER_CMD)
+            if (imageData.operation == Constants.RENDER_CMD)
             {
                 lastIDR = imageData;
                 DateTime time_msg_decifered = DateTime.Now;
@@ -698,7 +698,7 @@ namespace Runer_Process
                 TimeSpan duration = DateTime.Now - time_single_cycle_start;
                 Dictionary<String, Object> tempDict = new Dictionary<string, object>();
                 tempDict["item_id"] = imageData.item_id;
-                tempDict[ImageDataRequest.URL_JSON_KEY] = @"http://s3.amazonaws.com/" + bucket_name + @"/" + imageData.item_id + ".jpg";
+                tempDict[Constants.URL_JSON_KEY] = @"http://s3.amazonaws.com/" + bucket_name + @"/" + imageData.item_id + ".jpg";
                 tempDict["duration"] = Math.Round(duration.TotalSeconds, 3);
                 tempDict["status"] = RenderStatus.STARTED.ToString();
 
@@ -714,7 +714,7 @@ namespace Runer_Process
 
                 Console.WriteLine("EntireJSON = " + imageData.entireJSON);
                 // inform manager
-                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, ImageDataRequest.RENDER_CMD+" starting " + imageData.item_id + " " + imageData.entireJSON);
+                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, Constants.RENDER_CMD+" starting " + imageData.item_id + " " + imageData.entireJSON);
 
                 // Process Msg to picture
                 String resultingLocalImageFilePath;
@@ -817,8 +817,7 @@ namespace Runer_Process
                 {
                     if (imageData.reduceMesh > 0)
                     {
-
-                        if (!Rhino.ReduceMeshByPercentage(rhino_wrapper, imageData.reduceMesh))
+                        if (!Rhino.ReduceMesh(rhino_wrapper, imageData.reduceMesh, imageData.reduceBy))
                         {
                             String logLine = "Rhino.ReduceMEsh failed !!!";
                             log(logLine);
@@ -964,7 +963,7 @@ namespace Runer_Process
                 duration = DateTime.Now - time_single_cycle_start;
                 tempDict = new Dictionary<string, object>();
                 tempDict["item_id"] = imageData.item_id;
-                tempDict[ImageDataRequest.URL_JSON_KEY] = @"http://s3.amazonaws.com/" + bucket_name + @"/" + imageData.item_id + ".jpg";
+                tempDict[Constants.URL_JSON_KEY] = @"http://s3.amazonaws.com/" + bucket_name + @"/" + imageData.item_id + ".jpg";
                 tempDict["duration"] = Math.Round(duration.TotalSeconds, 3);
                 tempDict["status"] = RenderStatus.FINISHED.ToString();
 
@@ -987,11 +986,11 @@ namespace Runer_Process
                 log("S3 Time=" + (time_Before_SQS - time_Before_S3).TotalMilliseconds.ToString() + " millis");
                 log("SQS Time=" + (time_afterSQS - time_Before_SQS).TotalMilliseconds.ToString() + " millis");
 
-                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, ImageDataRequest.RENDER_CMD+" finished " + imageData.item_id);
+                UtilsDLL.Win32_API.sendWindowsStringMessage(whnd, id, Constants.RENDER_CMD+" finished " + imageData.item_id);
                 lastResult = CycleResult.SUCCESS;
                 return;
             }
-            else if (imageData.operation == ImageDataRequest.GHX_ADJUSTING_CMD)
+            else if (imageData.operation == Constants.GHX_ADJUSTING_CMD)
             {
                 // Delete Msg From Queue_Requests
                 if (!Delete_Msg_From_Req_Q(msg, useLowPrioirty_Q))
@@ -1009,11 +1008,11 @@ namespace Runer_Process
                 if (!Adjust_GHX_file_S3(imageData, reply))
                 {
                     log("Adjust_GHX_file_S3(imageData)");
-                    reply[ImageDataRequest.STATUS_JSON_KEY] = RenderStatus.FINISHED;
+                    reply[Constants.STATUS_JSON_KEY] = RenderStatus.FINISHED;
                 }
                 else
                 {
-                    reply[ImageDataRequest.STATUS_JSON_KEY] = RenderStatus.ERROR;
+                    reply[Constants.STATUS_JSON_KEY] = RenderStatus.ERROR;
                 }
                 lastResult = CycleResult.SUCCESS;
                 
@@ -1078,7 +1077,7 @@ namespace Runer_Process
             try
             {
                 String fileName = request.gh_fileName;
-                reply[ImageDataRequest.GH_FILE_JSON_KEY] = fileName;
+                reply[Constants.GH_FILE_JSON_KEY] = fileName;
                 String local_raw_ghx_path = Path.Combine(Dirs.ghx_local_DirPath, fileName);
                 if (!S3_Utils.Download_File_From_S3(ghx_bucket_name, local_raw_ghx_path, "gh_files/"+fileName))
                 {
@@ -1144,8 +1143,8 @@ namespace Runer_Process
                     log("S3_Utils.Write_File_To_S3(ghx_bucket=" + ghx_bucket_name + ", local_raw_ghx_path=" + local_raw_ghx_path + ", fileName=" + fileName + ")");
                     return false;
                 }
-                reply[ImageDataRequest.URL_JSON_KEY] = remote_url;
-                reply[ImageDataRequest.STATUS_JSON_KEY] = RenderStatus.FINISHED;
+                reply[Constants.URL_JSON_KEY] = remote_url;
+                reply[Constants.STATUS_JSON_KEY] = RenderStatus.FINISHED;
             }
             catch (Exception e)
             {
